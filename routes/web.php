@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\EventFieldController;
+use App\Http\Controllers\EventTemplateController;
+use App\Http\Controllers\FieldTemplateController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,18 +25,32 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    Route::get('/events', [EventController::class, 'index'])->name('events');
-    Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
-    Route::post('/events', [EventController::class, 'store'])->name('events.store');
-    Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
-    Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
-    Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+    Route::prefix('events')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->name('events.index');
+        Route::get('/create', [EventController::class, 'create'])->name('events.create');
+        Route::post('/', [EventController::class, 'store'])->name('events.store');
+        Route::get('/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
+        Route::put('/{event}', [EventController::class, 'update'])->name('events.update');
+        Route::delete('/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+    });
 
-    Route::get('/event-fields', [EventFieldController::class, 'index'])->name('event-fields');
-    Route::get('/event-fields/create', [EventFieldController::class, 'create'])->name('event-fields.create');
-    Route::post('/event-fields', [EventFieldController::class, 'store'])->name('event-fields.store');
-    Route::get('/event-fields/{eventField}/edit', [EventFieldController::class, 'edit'])->name('event-fields.edit');
-    Route::put('/event-fields/{eventField}', [EventFieldController::class, 'update'])->name('event-fields.update');
-    Route::delete('/event-fields/{eventField}', [EventFieldController::class, 'destroy'])->name('event-fields.destroy');
+    Route::prefix('event-templates')->group(function () {
+        Route::get('/', [EventTemplateController::class, 'index'])->name('event-templates.index');
+        Route::get('/create', [EventTemplateController::class, 'create'])->name('event-templates.create');
+        Route::post('/', [EventTemplateController::class, 'store'])->name('event-templates.store');
+        Route::get('/{eventTemplate}/edit', [EventTemplateController::class, 'edit'])->name('event-templates.edit');
+        Route::put('/{eventTemplate}', [EventTemplateController::class, 'update'])->name('event-templates.update');
+        Route::delete('/{eventTemplate}', [EventTemplateController::class, 'destroy'])->name('event-templates.destroy');
+    });
+
+    Route::prefix('field-templates')->group(function () {
+        Route::get('/', [FieldTemplateController::class, 'index'])->name('field-templates.index');
+        Route::get('/create', [FieldTemplateController::class, 'create'])->name('field-templates.create');
+        Route::post('/', [FieldTemplateController::class, 'store'])->name('field-templates.store');
+        Route::get('/{fieldTemplate}/edit', [FieldTemplateController::class, 'edit'])->name('field-templates.edit');
+        Route::put('/{fieldTemplate}', [FieldTemplateController::class, 'update'])->name('field-templates.update');
+        Route::delete('/{fieldTemplate}', [FieldTemplateController::class, 'destroy'])->name('field-templates.destroy');
+    });
+
 
 });

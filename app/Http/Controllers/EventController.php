@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\EventField;
+use App\Models\EventTemplate;
+use App\Models\FieldTemplate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,48 +15,30 @@ class EventController extends Controller
     {
         return Inertia::render('Events/Index', [
             'events' => Event::latest()->get(),
-            'fields' => EventField::latest()->get()
         ]);
     }
 
-    // Show the form for creating a new event
     public function create()
     {
-        return Inertia::render('Events/Create', [
-            'fields' => EventField::latest()->get()  // Pass fields to the creation page if needed
-        ]);
+        return [
+            'templates' => EventTemplate::all(),
+            'fields' => FieldTemplate::latest()->get(),
+        ];
     }
 
-    // Store a newly created event
     public function store(Request $request)
     {
         // Validate the incoming request data
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date',
-            'venue_name' => 'nullable|string',
-            'city' => 'nullable|string',
-            'type' => 'nullable|string',
-            'status' => 'nullable|string|in:draft,published,cancelled',
-            'capacity' => 'nullable|integer',
-            'registration_required' => 'nullable|boolean',
-            'registration_deadline' => 'nullable|date',
-            'price' => 'nullable|numeric',
-            'organizer_name' => 'nullable|string',
-            'organizer_email' => 'nullable|email',
-            'custom_fields' => 'nullable|array',
-            'featured_image' => 'nullable|string'
+            'template_id' => 'required|exists:event_templates,id',
+            'event_data' => 'required|array',
         ]);
 
-        // Create a new event with validated data
+        // Create a new event from the selected template
         $event = Event::create($validated);
 
-        // Redirect back with success message
-        return redirect()->refresh()->with('success', 'Event created successfully.');
+        return redirect()->route('events.index')->with('success', 'Event created successfully.');
     }
-
 
     // Show the form for editing the specified event
     public function edit(Event $event)

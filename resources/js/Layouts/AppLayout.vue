@@ -7,6 +7,7 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+import DropdownNav from "@/Components/DropdownNav.vue";
 
 defineProps({
     title: String,
@@ -52,13 +53,11 @@ const logout = () => {
                                     Dashboard
                                 </NavLink>
 
-                                <NavLink :href="route('events')" :active="route().current('events')">
+                                <NavLink :href="route('events.index')" :active="route().current('events')">
                                     Events
                                 </NavLink>
 
-                                <NavLink :href="route('event-fields')" :active="route().current('event-fields')">
-                                    Event Fields
-                                </NavLink>
+                                <DropdownNav />
                             </div>
                         </div>
 

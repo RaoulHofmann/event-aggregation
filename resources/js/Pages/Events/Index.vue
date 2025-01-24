@@ -1,6 +1,10 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import {ref} from 'vue';
+import { ref } from 'vue';
+import Modal from "@/Components/Modal.vue";
+import Create from './Create.vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 
 // Define props to accept data passed from the backend (Inertia)
 const props = defineProps({
@@ -8,10 +12,16 @@ const props = defineProps({
     fields: Array
 });
 
-import Create from './Create.vue';
-import Modal from "@/Components/Modal.vue";
+console.log(props.events)
 
 const showEventModal = ref(false);
+
+// Columns for the data table
+const columns = [
+    { field: 'name', header: 'Name' },
+    { field: 'start_date', header: 'Date', format: 'date' },
+    { field: 'status', header: 'Status' }
+];
 </script>
 
 <template>
@@ -24,39 +34,43 @@ const showEventModal = ref(false);
                     <button @click="showEventModal = true" class="bg-blue-500 text-white px-4 py-2 rounded-md">
                         Create Event
                     </button>
-
-                    <Modal :show="showEventModal" @close="showEventModal = false" :max-width="'7xl'">
-                        <Create @created="showEventModal = false" :custom-fields="fields" />
-                    </Modal>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead>
-                        <tr class="border-b">
-                            <th class="text-left py-2">Name</th>
-                            <th class="text-left py-2">Date</th>
-                            <th class="text-left py-2">Status</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="event in events" :key="event.id" class="border-b">
-                            <td class="py-2">{{ event.name }}</td>
-                            <td class="py-2">{{ new Date(event.start_date).toLocaleDateString() }}</td>
-                            <td class="py-2">
-                   <span :class="{
-                     'px-2 py-1 rounded text-sm': true,
-                     'bg-green-100 text-green-800': event.status === 'published',
-                     'bg-yellow-100 text-yellow-800': event.status === 'draft'
-                   }">
-                     {{ event.status }}
-                   </span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <!-- Create Event Modal -->
+                <Modal :show="showEventModal" @close="showEventModal = false" :max-width="'7xl'">
+                    <Create @created="showEventModal = false" :custom-fields="fields" />
+                </Modal>
+
+                <!-- Data Table -->
+                <DataTable :value="events" :paginator="true" :rows="10" responsive-layout="scroll">
+                    <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header">
+                        <template #body="slotProps" >
+                            <!-- Format Date Column -->
+                            <span v-if="col?.field?.start_date">
+                                {{ new Date(slotProps.data?.event_data?.start_date).toLocaleDateString() }}
+                            </span>
+
+                            <!-- Format Status Column -->
+                            <span v-else-if="col?.field?.status" :class="{
+                                'px-2 py-1 rounded text-sm': true,
+                                'bg-green-100 text-green-800': slotProps.data?.event_data?.status === 'published',
+                                'bg-yellow-100 text-yellow-800': slotProps.data?.event_data?.status === 'draft'
+                            }">
+                                {{ slotProps.data?.event_data?.status }}
+                            </span>
+
+                            <!-- Default Rendering -->
+                            <span v-else>
+                                {{ slotProps.data?.event_data[col.field] }}
+                            </span>
+                        </template>
+                    </Column>
+                </DataTable>
             </div>
         </div>
     </AppLayout>
 </template>
+
+<style>
+/* Optional Custom Styling */
+</style>

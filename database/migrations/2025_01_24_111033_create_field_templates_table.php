@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_fields', function (Blueprint $table) {
+        Schema::create('field_templates', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('type');
-            $table->string('options');
+            $table->string('label');
+            $table->string('fieldId');
+            $table->string('type'); // text, number, date, select, etc.
             $table->boolean('required')->default(false);
+            $table->json('validation_rules')->nullable();
+            $table->json('options')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_fields');
+        Schema::dropIfExists('field_templates');
     }
 };

@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('events', function (Blueprint $table) {
+        Schema::create('event_templates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('template_id')->constrained('event_templates');
-            $table->json('event_data');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->json('field_configurations')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('events');
+        Schema::dropIfExists('event_templates');
     }
 };
