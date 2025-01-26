@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->jsonb('field_configurations')->nullable();
+            $table->jsonb('fields')->nullable();
+            $table->jsonb('layout')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

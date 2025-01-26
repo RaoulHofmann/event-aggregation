@@ -21,14 +21,24 @@ const formFields = reactive({
     fields: computed(() => {
         const selectedTemplate = templates.value.find(template => template.id === form.template_id)
         if (!selectedTemplate) return []
-        return selectedTemplate.field_configurations.map(field_id =>
+        return selectedTemplate.fields.map(field_id =>
             customFields.value.find(field => field.id === field_id)
         ).filter(field => field)
+    }),
+    layout: computed(() => {
+        const selectedTemplate = templates.value.find(template => template.id === form.template_id)
+        console.log(selectedTemplate)
+
+        return selectedTemplate?.layout || [[], []]
     })
 })
 
+
 watch(() => form.template_id, () => {
     loadTemplateFields()
+
+    console.log(formFields.layout)
+
 })
 
 const loadTemplateFields = () => {
@@ -40,6 +50,10 @@ const loadTemplateFields = () => {
 
 const submit = () => {
     form.post(route('events.store'))
+}
+
+const getField = (fieldId) => {
+    return customFields.value.find(field => field.id === fieldId)
 }
 </script>
 
@@ -61,47 +75,61 @@ const submit = () => {
             <!-- Event Data Fields -->
             <div v-if="formFields.fields.length" class="space-y-6">
                 <h2 class="text-xl font-semibold text-gray-800">Event Data</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div v-for="field in formFields.fields" :key="field.field_id" class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div v-for="(column, columnIndex) in formFields.layout" :key="columnIndex" class="space-y-4">
+                        <div v-for="fieldId in column" :key="fieldId" class="space-y-2">
+                            <template v-if="getField(fieldId)">
+                                <label class="block text-sm font-medium text-gray-700">{{
+                                        getField(fieldId).label
+                                    }}</label>
 
-                        <!-- Handle all field types -->
-                        <template v-if="field.type === 'text' || field.type === 'email' || field.type === 'url'">
-                            <input :type="field.type" v-model="form.event_data[field.field_id]"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </template>
-                        <template v-else-if="field.type === 'textarea'">
-                            <textarea v-model="form.event_data[field.field_id]" rows="3"
-                                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                        </template>
-                        <template v-else-if="field.type === 'select'">
-                            <select v-model="form.event_data[field.field_id]"
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option v-for="option in field.options" :key="option" :value="option">{{ option }}</option>
-                            </select>
-                        </template>
-                        <template v-else-if="field.type === 'boolean'">
-                            <div class="flex items-center">
-                                <input type="checkbox" v-model="form.event_data[field.field_id]"
-                                       class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label class="ml-2 text-sm text-gray-700">{{ field.label }}</label>
-                            </div>
-                        </template>
-                        <template v-else-if="field.type === 'number' || field.type === 'decimal'">
-                            <input type="number" v-model="form.event_data[field.field_id]" :step="field.type === 'decimal' ? '0.01' : '1'"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </template>
-                        <template v-else-if="field.type === 'datetime'">
-                            <input type="datetime-local" v-model="form.event_data[field.field_id]"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </template>
-                        <template v-else-if="field.type === 'date'">
-                            <input type="date" v-model="form.event_data[field.field_id]"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </template>
-                        <template v-else>
-                            <p class="text-red-500 text-sm">Unsupported field type: {{ field.type }}</p>
-                        </template>
+                                <!-- Handle all field types -->
+                                <template
+                                    v-if="getField(fieldId).type === 'text' || getField(fieldId).type === 'email' || getField(fieldId).type === 'url'">
+                                    <input :type="getField(fieldId).type"
+                                           v-model="form.event_data[getField(fieldId).field_id]"
+                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </template>
+                                <template v-else-if="getField(fieldId).type === 'textarea'">
+                                    <textarea v-model="form.event_data[getField(fieldId).field_id]" rows="3"
+                                              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                </template>
+                                <template v-else-if="getField(fieldId).type === 'select'">
+                                    <select v-model="form.event_data[getField(fieldId).field_id]"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option v-for="option in getField(fieldId).options" :key="option"
+                                                :value="option">{{ option }}
+                                        </option>
+                                    </select>
+                                </template>
+                                <template v-else-if="getField(fieldId).type === 'boolean'">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" v-model="form.event_data[getField(fieldId).field_id]"
+                                               class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        <label class="ml-2 text-sm text-gray-700">{{ getField(fieldId).label }}</label>
+                                    </div>
+                                </template>
+                                <template
+                                    v-else-if="getField(fieldId).type === 'number' || getField(fieldId).type === 'decimal'">
+                                    <input type="number" v-model="form.event_data[getField(fieldId).field_id]"
+                                           :step="getField(fieldId).type === 'decimal' ? '0.01' : '1'"
+                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </template>
+                                <template v-else-if="getField(fieldId).type === 'datetime'">
+                                    <input type="datetime-local" v-model="form.event_data[getField(fieldId).field_id]"
+                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </template>
+                                <template v-else-if="getField(fieldId).type === 'date'">
+                                    <input type="date" v-model="form.event_data[getField(fieldId).field_id]"
+                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </template>
+                                <template v-else>
+                                    <p class="text-red-500 text-sm">Unsupported field type: {{
+                                            getField(fieldId).type
+                                        }}</p>
+                                </template>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>

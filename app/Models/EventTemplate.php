@@ -9,10 +9,11 @@ class EventTemplate extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'field_configurations'];
+    protected $fillable = ['name', 'description', 'fields', 'layout'];
 
     protected $casts = [
-        'field_configurations' => 'array'
+        'fields' => 'array',
+        'layout' => 'array'
     ];
 
     public function events(): \Illuminate\Database\Eloquent\Relations\HasMany

@@ -26,14 +26,16 @@ class EventTemplateController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:event_templates,name',
             'description' => 'nullable|string',
-            'field_configurations' => 'required|array',
-            'field_configurations.*' => 'exists:field_templates,id',
+            'fields' => 'required|array',
+            'fields.*' => 'exists:field_templates,id',
+            'layout' => 'required|array',
         ]);
 
         EventTemplate::create([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'field_configurations' => $validated['field_configurations'],
+            'fields' => $validated['fields'],
+            'layout' => $validated['layout'],
         ]);
 
         return redirect()->route('event-templates.index')
@@ -45,18 +47,17 @@ class EventTemplateController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:event_templates,name,' . $eventTemplate->id,
             'description' => 'nullable|string',
-            'field_configurations' => 'required|array',
-            'field_configurations.*' => 'exists:field_templates,id',
+            'fields' => 'required|array',
+            'fields.*' => 'exists:field_templates,id',
         ]);
 
         $eventTemplate->update([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'field_configurations' => $validated['field_configurations'],
+            'fields' => $validated['fields'],
         ]);
 
-        return redirect()->route('event-templates.index')
-            ->with('success', 'Event template updated successfully.');
+        session()->flash('success', 'Event template updated successfully.');
     }
 
     public function destroy(EventTemplate $eventTemplate)

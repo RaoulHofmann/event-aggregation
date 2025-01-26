@@ -70,7 +70,7 @@ const deleteEventTemplate = (id) => {
                         <div>
                             <span class="font-medium">{{ template.name }}</span>
                             <span class="ml-2 text-sm text-gray-500">
-                                {{ template.field_configurations.length }} Fields
+                                {{ template.fields.length }} Fields
                             </span>
                         </div>
                         <div class="flex space-x-2">

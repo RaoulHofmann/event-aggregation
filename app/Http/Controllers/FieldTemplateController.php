@@ -11,13 +11,13 @@ class FieldTemplateController extends Controller
     public function index()
     {
         return Inertia::render('FieldTemplates/Index', [
-            'field_templates' => FieldTemplate::latest()->get()->sortBy('label')->values(),
+            'field-templates' => FieldTemplate::get()->sortBy('label')->values(),
         ]);
     }
 
     public function data()
     {
-        return Inertia::render('FieldTemplates/Create');
+        return FieldTemplate::get()->sortBy('label')->values();
     }
 
     public function store(Request $request)

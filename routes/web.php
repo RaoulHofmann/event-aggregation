@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventTemplateController;
+use App\Http\Controllers\ExclusionController;
 use App\Http\Controllers\FieldTemplateController;
+use App\Http\Controllers\RecurrenceRuleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -48,6 +50,4 @@ Route::middleware([
         Route::put('/{fieldTemplate}', [FieldTemplateController::class, 'update'])->name('field-templates.update');
         Route::delete('/{fieldTemplate}', [FieldTemplateController::class, 'destroy'])->name('field-templates.destroy');
     });
-
-
 });

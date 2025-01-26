@@ -168,12 +168,15 @@ class DefaultEventTemplateSeeder extends Seeder
                 );
             });
 
+            $fieldList = $fieldTemplates->pluck('id')->toArray();
+
             // Create default event template
             EventTemplate::firstOrCreate([
                 'name' => 'Default Event Template',
                 'description' => 'Comprehensive event template with all standard fields',
             ], [
-                'field_configurations' => $fieldTemplates->pluck('id')->toArray(),
+                'fields' => $fieldList,
+                'layout' => array_chunk($fieldList, (count($fieldList) / 2)),
             ]);
         });
     }
