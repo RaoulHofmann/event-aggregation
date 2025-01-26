@@ -12,161 +12,168 @@ class DefaultEventTemplateSeeder extends Seeder
     public function run()
     {
         DB::transaction(function () {
-            // Create field templates based on original schema
+            // Define field templates
             $fields = [
                 [
                     'label' => 'Name',
-                    'fieldId' =>'name',
+                    'field_id' => 'name',
                     'type' => 'text',
                     'required' => true,
-                    'validation_rules' => json_encode(['max:255'])
+                    'validation_rules' => ['max:255'],
                 ],
                 [
                     'label' => 'Description',
-                    'fieldId' =>'description',
+                    'field_id' => 'description',
                     'type' => 'textarea',
                     'required' => false,
-                    'validation_rules' => json_encode(['max:1000'])
+                    'validation_rules' => ['max:1000'],
                 ],
                 [
                     'label' => 'Type',
-                    'fieldId' =>'type',
+                    'field_id' => 'type',
                     'type' => 'select',
                     'required' => false,
-                    'options' => json_encode(['conference', 'workshop', 'concert']),
-                    'validation_rules' => json_encode(['in:conference,workshop,concert'])
+                    'options' => ['conference', 'workshop', 'concert'], // Use array for options
+                    'validation_rules' => ['in:conference,workshop,concert'],
                 ],
                 [
                     'label' => 'Status',
-                    'fieldId' =>'status',
+                    'field_id' => 'status',
                     'type' => 'select',
                     'required' => true,
-                    'options' => json_encode(['draft', 'published', 'cancelled']),
-                    'validation_rules' => json_encode(['in:draft,published,cancelled'])
+                    'options' => ['draft', 'published', 'cancelled'],
+                    'validation_rules' => ['in:draft,published,cancelled'],
                 ],
                 [
                     'label' => 'Start Date',
-                    'fieldId' =>'start_date',
+                    'field_id' => 'start_date',
                     'type' => 'datetime',
-                    'required' => true
+                    'required' => true,
                 ],
                 [
                     'label' => 'End Date',
-                    'fieldId' =>'end_date',
+                    'field_id' => 'end_date',
                     'type' => 'datetime',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'label' => 'Timezone',
-                    'fieldId' =>'timezone',
+                    'field_id' => 'timezone',
                     'type' => 'text',
                     'required' => false,
-                    'options' => json_encode(['UTC']),
-                    'validation_rules' => json_encode(['max:50'])
+                    'options' => ['UTC'],
+                    'validation_rules' => ['max:50'],
                 ],
                 [
                     'label' => 'Venue Name',
-                    'fieldId' =>'venue_name',
+                    'field_id' => 'venue_name',
                     'type' => 'text',
                     'required' => false,
-                    'validation_rules' => json_encode(['max:255'])
+                    'validation_rules' => ['max:255'],
                 ],
                 [
                     'label' => 'Address',
-                    'fieldId' =>'address',
+                    'field_id' => 'address',
                     'type' => 'text',
                     'required' => false,
-                    'validation_rules' => json_encode(['max:500'])
+                    'validation_rules' => ['max:500'],
                 ],
                 [
                     'label' => 'City',
-                    'fieldId' =>'city',
+                    'field_id' => 'city',
                     'type' => 'text',
                     'required' => false,
-                    'validation_rules' => json_encode(['max:100'])
+                    'validation_rules' => ['max:100'],
                 ],
                 [
                     'label' => 'Country',
-                    'fieldId' =>'country',
+                    'field_id' => 'country',
                     'type' => 'text',
                     'required' => false,
-                    'validation_rules' => json_encode(['max:100'])
+                    'validation_rules' => ['max:100'],
                 ],
                 [
                     'label' => 'Is Virtual',
-                    'fieldId' =>'is_virtual',
+                    'field_id' => 'is_virtual',
                     'type' => 'boolean',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'label' => 'Virtual URL',
-                    'fieldId' =>'virtual_url',
+                    'field_id' => 'virtual_url',
                     'type' => 'url',
                     'required' => false,
-                    'validation_rules' => json_encode(['url', 'max:255'])
+                    'validation_rules' => ['url', 'max:255'],
                 ],
                 [
                     'label' => 'Capacity',
-                    'fieldId' =>'capacity',
+                    'field_id' => 'capacity',
                     'type' => 'number',
                     'required' => false,
-                    'validation_rules' => json_encode(['integer', 'min:0'])
+                    'validation_rules' => ['integer', 'min:0'],
                 ],
                 [
                     'label' => 'Registration Required',
-                    'fieldId' =>'registration_required',
+                    'field_id' => 'registration_required',
                     'type' => 'boolean',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'label' => 'Registration Deadline',
-                    'fieldId' =>'registration_deadline',
+                    'field_id' => 'registration_deadline',
                     'type' => 'datetime',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'label' => 'Price',
-                    'fieldId' =>'price',
+                    'field_id' => 'price',
                     'type' => 'decimal',
                     'required' => false,
-                    'validation_rules' => json_encode(['numeric', 'min:0'])
+                    'validation_rules' => ['numeric', 'min:0'],
                 ],
                 [
                     'label' => 'Organizer Name',
-                    'fieldId' =>'organizer_name',
+                    'field_id' => 'organizer_name',
                     'type' => 'text',
                     'required' => false,
-                    'validation_rules' => json_encode(['max:255'])
+                    'validation_rules' => ['max:255'],
                 ],
                 [
                     'label' => 'Organizer Email',
-                    'fieldId' =>'organizer_email',
+                    'field_id' => 'organizer_email',
                     'type' => 'email',
                     'required' => false,
-                    'validation_rules' => json_encode(['email', 'max:255'])
+                    'validation_rules' => ['email', 'max:255'],
                 ],
                 [
                     'label' => 'Is Recurring',
-                    'fieldId' =>'is_recurring',
+                    'field_id' => 'is_recurring',
                     'type' => 'boolean',
-                    'required' => false
-                ]
+                    'required' => false,
+                ],
             ];
 
             // Create field templates
             $fieldTemplates = collect($fields)->map(function ($field) {
+                // Save each field template
                 return FieldTemplate::firstOrCreate(
-                    ['fieldId' => $field['fieldId']],
-                    $field
+                    ['field_id' => $field['field_id']],
+                    [
+                        'label' => $field['label'],
+                        'type' => $field['type'],
+                        'required' => $field['required'] ?? false,
+                        'validation_rules' => $field['validation_rules'] ?? null,
+                        'options' => $field['options'] ?? null,
+                    ]
                 );
             });
 
             // Create default event template
             EventTemplate::firstOrCreate([
-                'name' =>'Default Event Template',
-                'description' => 'Comprehensive event template with all standard fields'
+                'name' => 'Default Event Template',
+                'description' => 'Comprehensive event template with all standard fields',
             ], [
-                'field_configurations' => $fieldTemplates->pluck('id')->toArray()
+                'field_configurations' => $fieldTemplates->pluck('id')->toArray(),
             ]);
         });
     }

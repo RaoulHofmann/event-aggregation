@@ -1,28 +1,38 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
-import {Link} from '@inertiajs/vue3';
-import {defineProps, ref} from 'vue';
-import Create from './Create.vue';
-import Modal from "@/Components/Modal.vue";
+import AppLayout from '@/Layouts/AppLayout.vue'
+import {Link} from '@inertiajs/vue3'
+import {defineProps, ref} from 'vue'
+import Mutate from './Mutate.vue'
+import Modal from "@/Components/Modal.vue"
 
 const props = defineProps({
-    event_templates: Array
-});
+    eventTemplates: Array
+})
 
-const showEventTemplateModal = ref(false);
-const selectedEventTemplate = ref(null);
+const showEventTemplateModal = ref(false)
+const selectedEventTemplate = ref(null)
 
 const editEventTemplate = (template) => {
-    selectedEventTemplate.value = template;
-    showEventTemplateModal.value = true;
-};
+    selectedEventTemplate.value = template
+    showEventTemplateModal.value = true
+}
+
+const createEventTemplate = () => {
+    selectedEventTemplate.value = null
+    showEventTemplateModal.value = true
+}
+
+const close = () => {
+    selectedEventTemplate.value = null
+    showEventTemplateModal.value = false
+}
 
 const deleteEventTemplate = (id) => {
     if(confirm('Are you sure you want to delete this event template?')) {
         // Implement deletion logic
-        this.$inertia.delete(route('event-templates.destroy', id));
+        this.$inertia.delete(route('event-templates.destroy', id))
     }
-};
+}
 </script>
 
 <template>
@@ -32,7 +42,7 @@ const deleteEventTemplate = (id) => {
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold">Event Templates</h2>
                     <button
-                        @click="showEventTemplateModal = true"
+                        @click="createEventTemplate"
                         class="bg-blue-500 text-white px-4 py-2 rounded-md"
                     >
                         Create Event Template
@@ -43,16 +53,17 @@ const deleteEventTemplate = (id) => {
                         @close="showEventTemplateModal = false"
                         :max-width="'7xl'"
                     >
-                        <Create
+                        <Mutate
                             @created="showEventTemplateModal = false"
                             :event-template="selectedEventTemplate"
+                            @submit="close"
                         />
                     </Modal>
                 </div>
 
                 <div class="space-y-2">
                     <div
-                        v-for="template in event_templates"
+                        v-for="template in eventTemplates"
                         :key="template.id"
                         class="flex justify-between items-center p-3 bg-gray-50 rounded"
                     >

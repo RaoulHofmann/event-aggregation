@@ -10,13 +10,12 @@ class FieldTemplateController extends Controller
 {
     public function index()
     {
-        $field_templates = FieldTemplate::latest()->get();
         return Inertia::render('FieldTemplates/Index', [
-            'field_templates' => $field_templates,
+            'field_templates' => FieldTemplate::latest()->get()->sortBy('label')->values(),
         ]);
     }
 
-    public function create()
+    public function data()
     {
         return Inertia::render('FieldTemplates/Create');
     }
@@ -25,7 +24,7 @@ class FieldTemplateController extends Controller
     {
         $validated = $request->validate([
             'label' => 'required|string|max:255|unique:field_templates,label',
-            'fieldId' => 'required|string|max:255|unique:field_templates,label',
+            'field_id' => 'required|string|max:255|unique:field_templates,label',
             'type' => 'required|in:text,number,date,datetime,email,url,select,boolean,textarea,decimal',
             'required' => 'boolean',
             'validation_rules' => 'nullable|array',
@@ -35,7 +34,7 @@ class FieldTemplateController extends Controller
 
         FieldTemplate::create([
             'label' => $validated['label'],
-            'fieldId' => strtolower($validated['fieldId']),
+            'field_id' => strtolower($validated['field_id']),
             'type' => $validated['type'],
             'required' => $validated['required'] ?? false,
             'validation_rules' => $validated['validation_rules'] ?? null,
@@ -48,17 +47,10 @@ class FieldTemplateController extends Controller
             ->with('success', 'Field template created successfully.');
     }
 
-    public function edit(FieldTemplate $fieldTemplate)
-    {
-        return Inertia::render('FieldTemplates/Edit', [
-            'field_template' => $fieldTemplate,
-        ]);
-    }
-
     public function update(Request $request, FieldTemplate $fieldTemplate)
     {
         $validated = $request->validate([
-            'label' => 'required|string|max:255|unique:field_templates,name,' . $fieldTemplate->id,
+            'label' => 'required|string|max:255|unique:field_templates,label,' . $fieldTemplate->id,
             'type' => 'required|in:text,number,date,datetime,email,url,select,boolean,textarea,decimal',
             'required' => 'boolean',
             'validation_rules' => 'nullable|array',

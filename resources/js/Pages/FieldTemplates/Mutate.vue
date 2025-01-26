@@ -1,66 +1,78 @@
 <script setup>
-import {ref} from 'vue';
-import {useForm} from '@inertiajs/vue3';
+import {defineProps, ref} from 'vue'
+import {useForm} from '@inertiajs/vue3'
 
-const form = useForm({
+const emit = defineEmits(['submit'])
+
+const props = defineProps({
+    fieldTemplate: Object,
+})
+
+const form = useForm(props.fieldTemplate ?? {
     label: '',
     id: '',
     type: 'text',
     required: false,
     validation_rules: {},
     options: [],
-});
+})
 
-const showOptionsInput = ref(false);
-const optionInput = ref('');
-const validationRules = ref({});
+
+const showOptionsInput = ref(false)
+const optionInput = ref('')
+const validationRules = ref({})
+const editMode = ref(props.fieldTemplate !== null)
 
 const fieldTypes = [
     'text', 'number', 'date', 'datetime',
     'email', 'url', 'select', 'boolean',
     'textarea', 'decimal'
-];
+]
 
 const addOption = () => {
     if (optionInput.value.trim()) {
-        form.options.push(optionInput.value.trim());
-        optionInput.value = '';
+        form.options.push(optionInput.value.trim())
+        optionInput.value = ''
     }
-};
+}
 
 const removeOption = (index) => {
-    form.options.splice(index, 1);
-};
+    form.options.splice(index, 1)
+}
 
 const addValidationRule = (rule, value) => {
-    form.validation_rules[rule] = value;
-};
+    form.validation_rules[rule] = value
+}
 
-const saveFieldTemplate = () => {
+const mutateFieldTemplate = () => {
     // Prepare validation rules and options
     form.validation_rules = Object.keys(validationRules.value).length
-        ? JSON.stringify(validationRules.value)
-        : null;
+        ? validationRules.value
+        : null
 
     form.options = form.type === 'select'
-        ? JSON.stringify(form.options)
-        : null;
+        ? form.options
+        : null
 
-    form.post(route('field-templates.store'), {
+    const action = editMode ? 'put' : 'post'
+    const routeName = editMode ? route('field-templates.update', { fieldTemplate: form.id }) : route('field-templates.store')
+
+    form[action](routeName, {
         preserveScroll: true,
         onSuccess: () => {
-            form.reset();
-            showOptionsInput.value = false;
-            validationRules.value = {};
+            form.reset()
+            showOptionsInput.value = false
+            validationRules.value = {}
+            emit('submit')
         }
-    });
-};
+    })
+}
 </script>
 
 <template>
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div class="bg-white p-6 rounded-lg shadow">
-            <form @submit.prevent="saveFieldTemplate" class="space-y-6">
+            <form @submit.prevent="mutateFieldTemplate" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Field Label</label>
@@ -163,7 +175,7 @@ const saveFieldTemplate = () => {
                     type="submit"
                     class="bg-blue-500 text-white px-4 py-2 rounded-md"
                 >
-                    Save Field Template
+                    {{ editMode ? 'Edit' : 'Save'}} Field Template
                 </button>
             </form>
         </div>

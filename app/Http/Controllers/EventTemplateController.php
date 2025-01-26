@@ -12,13 +12,13 @@ class EventTemplateController extends Controller
     public function index()
     {
         return Inertia::render('EventTemplates/Index', [
-            'event_templates' => EventTemplate::latest()->get(),
+            'event-templates' => EventTemplate::get()->sortBy('name')->values(),
         ]);
     }
 
-    public function create()
+    public function data()
     {
-        return FieldTemplate::latest()->get();
+        return FieldTemplate::get()->sortBy('label')->values();
     }
 
     public function store(Request $request)
@@ -38,15 +38,6 @@ class EventTemplateController extends Controller
 
         return redirect()->route('event-templates.index')
             ->with('success', 'Event template created successfully.');
-    }
-
-    public function edit(EventTemplate $eventTemplate)
-    {
-        $available_fields = FieldTemplate::latest()->get();
-        return Inertia::render('EventTemplates/Edit', [
-            'event_template' => $eventTemplate,
-            'available_fields' => $available_fields,
-        ]);
     }
 
     public function update(Request $request, EventTemplate $eventTemplate)

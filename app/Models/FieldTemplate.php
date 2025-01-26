@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FieldTemplate extends Model
 {
     protected $fillable = [
-        'label', 'fieldId', 'type', 'required',
+        'label', 'field_id', 'type', 'required',
         'validation_rules', 'options'
     ];
 

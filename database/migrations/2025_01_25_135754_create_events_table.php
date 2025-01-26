@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id();
             $table->foreignId('template_id')->constrained('event_templates');
-            $table->json('event_data');
+            $table->jsonb('event_data');
             $table->timestamps();
             $table->softDeletes();
         });

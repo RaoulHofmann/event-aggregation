@@ -6,9 +6,10 @@ const isOpen = ref(false)
 </script>
 
 <template>
-    <div class="inline-flex justify-center">
+    <div class="inline-flex flex-col justify-center">
         <button
             @click="isOpen = !isOpen"
+            @mouseenter="isOpen = !isOpen"
             class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700 focus:outline-none focus:text-gray-700 dark:focus:text-gray-300 focus:border-gray-300 dark:focus:border-gray-700 transition duration-150 ease-in-out"
         >
             Templates
@@ -27,10 +28,10 @@ const isOpen = ref(false)
         >
             <div
                 v-if="isOpen"
-                @click.outside="isOpen = false"
-                class="absolute z-50 mt-2 rounded-md shadow-lg"
+                @mouseleave="isOpen = false"
+                class="absolute top-10 z-50 mt-2 rounded-md shadow-lg"
             >
-                <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white">
+                <div class="rounded-md ring-1 ring-black ring-opacity-5 bg-white flex flex-col">
                     <NavLink
                         :href="route('field-templates.index')"
                         :active="route().current('field-templates')"

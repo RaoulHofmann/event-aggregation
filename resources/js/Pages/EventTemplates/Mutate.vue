@@ -1,50 +1,60 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import {ref, onMounted, defineProps} from 'vue'
+import { useForm } from '@inertiajs/vue3'
 
-const form = useForm({
+const emit = defineEmits(['submit'])
+
+const props = defineProps({
+    eventTemplate: Object,
+})
+
+const form = useForm(props.eventTemplate ?? {
     name: '',
     description: '',
     field_configurations: []
-});
+})
 
-const availableFields = ref([]);
-const selectedFields = ref([]);
+const availableFields = ref([])
+const selectedFields = ref(props.eventTemplate?.field_configurations?.map(f => ({ id: f })) ?? [])
+const editMode = ref(props.eventTemplate !== null)
 
 onMounted(async () => {
     // Fetch available field templates
-    const response = await axios.get(route('event-templates.create'));
-    availableFields.value = response.data;
-});
-
-console.log(availableFields)
+    const response = await axios.get(route('event-templates.data'))
+    availableFields.value = response.data
+})
 
 const toggleFieldSelection = (field) => {
-    const index = selectedFields.value.findIndex(f => f.id === field.id);
+    const index = selectedFields.value.findIndex(f => f.id === field.id)
     if (index > -1) {
-        selectedFields.value.splice(index, 1);
+        selectedFields.value.splice(index, 1)
     } else {
-        selectedFields.value.push(field);
+        selectedFields.value.push(field)
     }
-};
+}
 
-const saveEventTemplate = () => {
-    form.field_configurations = selectedFields.value.map(field => field.id);
+const mutateEventTemplate = () => {
+    form.field_configurations = selectedFields.value.map(field => field.id)
 
-    form.post(route('event-templates.store'), {
+    const action = editMode ? 'put' : 'post'
+    const routeName = editMode ? route('event-templates.update', { eventTemplate: form.id }) : route('event-templates.store')
+
+    form[action](routeName, {
         preserveScroll: true,
         onSuccess: () => {
-            form.reset();
-            selectedFields.value = [];
+            form.reset()
+            selectedFields.value = []
         }
-    });
-};
+    })
+
+    emit('submit')
+}
 </script>
 
 <template>
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div class="bg-white p-6 rounded-lg shadow">
-            <form @submit.prevent="saveEventTemplate" class="space-y-6">
+            <form @submit.prevent="mutateEventTemplate" class="space-y-6">
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Template Name</label>
@@ -78,7 +88,7 @@ const saveEventTemplate = () => {
                             }"
                         >
                             <div class="flex justify-between items-center">
-                                <span>{{ field.name }}</span>
+                                <span>{{ field.label }}</span>
                                 <span class="text-sm text-gray-500">{{ field.type }}</span>
                             </div>
                         </div>
@@ -89,7 +99,7 @@ const saveEventTemplate = () => {
                     type="submit"
                     class="bg-blue-500 text-white px-4 py-2 rounded-md"
                 >
-                    Save Event Template
+                    {{ editMode ? 'Edit' : 'Save'}} Event Template
                 </button>
             </form>
         </div>

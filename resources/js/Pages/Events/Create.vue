@@ -1,45 +1,46 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
-import { ref, reactive, computed, onMounted, watch } from "vue";
+import { useForm } from '@inertiajs/vue3'
+import { ref, reactive, computed, onMounted, watch } from "vue"
 
-const templates = ref([]);
-const customFields = ref([]);
+const templates = ref([])
+const customFields = ref([])
 
 const form = useForm({
     template_id: '',
     event_data: {},
-});
+    edit: false
+})
 
 onMounted(async () => {
-    const response = await axios.get(route('events.create'));
-    templates.value = response.data?.templates;
-    customFields.value = response.data?.fields;
-});
+    const response = await axios.get(route('events.data'))
+    templates.value = response.data?.templates
+    customFields.value = response.data?.fields
+})
 
 const formFields = reactive({
     fields: computed(() => {
-        const selectedTemplate = templates.value.find(template => template.id === form.template_id);
-        if (!selectedTemplate) return [];
-        return selectedTemplate.field_configurations.map(fieldId =>
-            customFields.value.find(field => field.id === fieldId)
-        ).filter(field => field);
+        const selectedTemplate = templates.value.find(template => template.id === form.template_id)
+        if (!selectedTemplate) return []
+        return selectedTemplate.field_configurations.map(field_id =>
+            customFields.value.find(field => field.id === field_id)
+        ).filter(field => field)
     })
-});
+})
 
 watch(() => form.template_id, () => {
-    loadTemplateFields();
-});
+    loadTemplateFields()
+})
 
 const loadTemplateFields = () => {
     form.event_data = formFields.fields.reduce((acc, field) => {
-        acc[field.fieldId] = field.default || '';
-        return acc;
-    }, {});
-};
+        acc[field.field_id] = field.default || ''
+        return acc
+    }, {})
+}
 
 const submit = () => {
-    form.post(route('events.store'));
-};
+    form.post(route('events.store'))
+}
 </script>
 
 <template>
@@ -61,41 +62,41 @@ const submit = () => {
             <div v-if="formFields.fields.length" class="space-y-6">
                 <h2 class="text-xl font-semibold text-gray-800">Event Data</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div v-for="field in formFields.fields" :key="field.fieldId" class="space-y-2">
+                    <div v-for="field in formFields.fields" :key="field.field_id" class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
 
                         <!-- Handle all field types -->
                         <template v-if="field.type === 'text' || field.type === 'email' || field.type === 'url'">
-                            <input :type="field.type" v-model="form.event_data[field.fieldId]"
+                            <input :type="field.type" v-model="form.event_data[field.field_id]"
                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </template>
                         <template v-else-if="field.type === 'textarea'">
-                            <textarea v-model="form.event_data[field.fieldId]" rows="3"
+                            <textarea v-model="form.event_data[field.field_id]" rows="3"
                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                         </template>
                         <template v-else-if="field.type === 'select'">
-                            <select v-model="form.event_data[field.fieldId]"
+                            <select v-model="form.event_data[field.field_id]"
                                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option v-for="option in JSON.parse(field.options)" :key="option" :value="option">{{ option }}</option>
+                                <option v-for="option in field.options" :key="option" :value="option">{{ option }}</option>
                             </select>
                         </template>
                         <template v-else-if="field.type === 'boolean'">
                             <div class="flex items-center">
-                                <input type="checkbox" v-model="form.event_data[field.fieldId]"
+                                <input type="checkbox" v-model="form.event_data[field.field_id]"
                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                 <label class="ml-2 text-sm text-gray-700">{{ field.label }}</label>
                             </div>
                         </template>
                         <template v-else-if="field.type === 'number' || field.type === 'decimal'">
-                            <input type="number" v-model="form.event_data[field.fieldId]" :step="field.type === 'decimal' ? '0.01' : '1'"
+                            <input type="number" v-model="form.event_data[field.field_id]" :step="field.type === 'decimal' ? '0.01' : '1'"
                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </template>
                         <template v-else-if="field.type === 'datetime'">
-                            <input type="datetime-local" v-model="form.event_data[field.fieldId]"
+                            <input type="datetime-local" v-model="form.event_data[field.field_id]"
                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </template>
                         <template v-else-if="field.type === 'date'">
-                            <input type="date" v-model="form.event_data[field.fieldId]"
+                            <input type="date" v-model="form.event_data[field.field_id]"
                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </template>
                         <template v-else>

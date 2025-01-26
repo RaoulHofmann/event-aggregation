@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('field_templates', function (Blueprint $table) {
             $table->id();
             $table->string('label');
-            $table->string('fieldId');
+            $table->string('field_id');
             $table->string('type'); // text, number, date, select, etc.
             $table->boolean('required')->default(false);
-            $table->json('validation_rules')->nullable();
-            $table->json('options')->nullable();
+            $table->jsonb('validation_rules')->nullable();
+            $table->jsonb('options')->nullable();
             $table->timestamps();
         });
     }

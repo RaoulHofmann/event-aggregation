@@ -1,28 +1,38 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
-import {Link} from '@inertiajs/vue3';
-import {defineProps, ref} from 'vue';
-import Create from './Create.vue';
-import Modal from "@/Components/Modal.vue";
+import AppLayout from '@/Layouts/AppLayout.vue'
+import {Link} from '@inertiajs/vue3'
+import {defineProps, ref} from 'vue'
+import Mutate from './Mutate.vue'
+import Modal from "@/Components/Modal.vue"
 
 const props = defineProps({
-    field_templates: Array
-});
+    fieldTemplates: Object
+})
 
-const showFieldTemplateModal = ref(false);
-const selectedFieldTemplate = ref(null);
+const showFieldTemplateModal = ref(false)
+const selectedFieldTemplate = ref(null)
 
 const editFieldTemplate = (field) => {
-    selectedFieldTemplate.value = field;
-    showFieldTemplateModal.value = true;
-};
+    selectedFieldTemplate.value = field
+    showFieldTemplateModal.value = true
+}
+
+const newFieldTemplate = () => {
+    selectedFieldTemplate.value = null
+    showFieldTemplateModal.value = true
+}
+
+const close = () => {
+    selectedFieldTemplate.value = null
+    showFieldTemplateModal.value = false
+}
 
 const deleteFieldTemplate = (id) => {
     if(confirm('Are you sure you want to delete this field template?')) {
         // Implement deletion logic
-        this.$inertia.delete(route('field-templates.destroy', id));
+        this.$inertia.delete(route('field-templates.destroy', id))
     }
-};
+}
 </script>
 
 <template>
@@ -32,7 +42,7 @@ const deleteFieldTemplate = (id) => {
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold">Field Templates</h2>
                     <button
-                        @click="showFieldTemplateModal = true"
+                        @click="newFieldTemplate"
                         class="bg-blue-500 text-white px-4 py-2 rounded-md"
                     >
                         Create Field Template
@@ -43,21 +53,22 @@ const deleteFieldTemplate = (id) => {
                         @close="showFieldTemplateModal = false"
                         :max-width="'7xl'"
                     >
-                        <Create
+                        <Mutate
                             @created="showFieldTemplateModal = false"
                             :field-template="selectedFieldTemplate"
+                            @submit="close()"
                         />
                     </Modal>
                 </div>
 
                 <div class="space-y-2">
                     <div
-                        v-for="field in field_templates"
+                        v-for="field in fieldTemplates"
                         :key="field.id"
                         class="flex justify-between items-center p-3 bg-gray-50 rounded"
                     >
                         <div>
-                            <span class="font-medium">{{ field.name }}</span>
+                            <span class="font-medium">{{ field.label }}</span>
                             <span class="ml-2 text-sm text-gray-500">{{ field.type }}</span>
                             <span v-if="field.required" class="ml-2 text-xs text-red-500">Required</span>
                         </div>

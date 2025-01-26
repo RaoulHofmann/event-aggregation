@@ -18,7 +18,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function create()
+    public function data()
     {
         return [
             'templates' => EventTemplate::all(),
@@ -38,16 +38,6 @@ class EventController extends Controller
         $event = Event::create($validated);
 
         return redirect()->route('events.index')->with('success', 'Event created successfully.');
-    }
-
-    // Show the form for editing the specified event
-    public function edit(Event $event)
-    {
-        // Pass the event and the available fields to the edit page
-        return Inertia::render('Events/Edit', [
-            'event' => $event,
-            'fields' => EventField::latest()->get()  // Pass fields if needed for the event editing form
-        ]);
     }
 
     // Update the specified event in storage
