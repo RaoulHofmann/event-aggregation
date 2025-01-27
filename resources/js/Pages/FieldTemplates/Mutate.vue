@@ -11,12 +11,12 @@ const props = defineProps({
 const form = useForm(props.fieldTemplate ?? {
     label: '',
     id: '',
+    field_id: '',
     type: 'text',
     required: false,
     validation_rules: {},
     options: [],
 })
-
 
 const showOptionsInput = ref(false)
 const optionInput = ref('')
@@ -54,8 +54,8 @@ const mutateFieldTemplate = () => {
         ? form.options
         : null
 
-    const action = editMode ? 'put' : 'post'
-    const routeName = editMode ? route('field-templates.update', { fieldTemplate: form.id }) : route('field-templates.store')
+    const action = editMode.value ? 'put' : 'post'
+    const routeName = editMode.value ? route('field-templates.update', {fieldTemplate: form.id}) : route('field-templates.store')
 
     form[action](routeName, {
         preserveScroll: true,
@@ -74,6 +74,7 @@ const mutateFieldTemplate = () => {
         <div class="bg-white p-6 rounded-lg shadow">
             <form @submit.prevent="mutateFieldTemplate" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Field Label -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Field Label</label>
                         <input
@@ -82,16 +83,22 @@ const mutateFieldTemplate = () => {
                             class="mt-1 block w-full rounded-md border-gray-300"
                             required
                         >
+                        <p v-if="form.errors.label" class="text-red-500 text-xs">{{ form.errors.label }}</p>
                     </div>
+
+                    <!-- Field ID -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Field ID</label>
                         <input
-                            v-model="form.id"
+                            v-model="form.field_id"
                             placeholder="Enter field id"
                             class="mt-1 block w-full rounded-md border-gray-300"
                             required
                         >
+                        <p v-if="form.errors.field_id" class="text-red-500 text-xs">{{ form.errors.field_id }}</p>
                     </div>
+
+                    <!-- Field Type -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Field Type</label>
                         <select
@@ -104,7 +111,10 @@ const mutateFieldTemplate = () => {
                                 {{ type }}
                             </option>
                         </select>
+                        <p v-if="form.errors.type" class="text-red-500 text-xs">{{ form.errors.type }}</p>
                     </div>
+
+                    <!-- Required Checkbox -->
                     <div class="flex items-end">
                         <label class="flex items-center">
                             <input
@@ -175,7 +185,7 @@ const mutateFieldTemplate = () => {
                     type="submit"
                     class="bg-blue-500 text-white px-4 py-2 rounded-md"
                 >
-                    {{ editMode ? 'Edit' : 'Save'}} Field Template
+                    {{ editMode ? 'Edit' : 'Save' }} Field Template
                 </button>
             </form>
         </div>

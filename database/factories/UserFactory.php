@@ -63,9 +63,11 @@ class UserFactory extends Factory
                 ->state(fn (array $attributes, User $user) => [
                     'name' => $user->name.'\'s Team',
                     'user_id' => $user->id,
+                    'schema_name' => str_replace(' ', '_', strtolower($user->name)).'_team',
                     'personal_team' => true,
                 ])
-                ->when(is_callable($callback), $callback),
+                ->when(is_callable($callback), $callback)
+                ->afterCreating($callback),
             'ownedTeams'
         );
     }

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\MultiTenantModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EventTemplate extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, MultiTenantModel;
 
     protected $fillable = ['name', 'description', 'fields', 'layout'];
 

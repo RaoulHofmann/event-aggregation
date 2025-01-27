@@ -5,6 +5,7 @@ use App\Http\Controllers\EventTemplateController;
 use App\Http\Controllers\ExclusionController;
 use App\Http\Controllers\FieldTemplateController;
 use App\Http\Controllers\RecurrenceRuleController;
+use App\Http\Middleware\SetPostgresSchema;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,6 +23,7 @@ Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
+    SetPostgresSchema::class
 ])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');

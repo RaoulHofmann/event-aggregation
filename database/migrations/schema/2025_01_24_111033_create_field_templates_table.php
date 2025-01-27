@@ -20,6 +20,7 @@ return new class extends Migration
             $table->jsonb('validation_rules')->nullable();
             $table->jsonb('options')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

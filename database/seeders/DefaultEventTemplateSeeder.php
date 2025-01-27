@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Traits\SchemaManagement;
 use Illuminate\Database\Seeder;
 use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
@@ -9,8 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class DefaultEventTemplateSeeder extends Seeder
 {
+    use SchemaManagement;
+
     public function run()
     {
+        $this->setSchema('test_user_team');
         DB::transaction(function () {
             // Define field templates
             $fields = [

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, defineProps } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import {ref, onMounted, defineProps} from 'vue'
+import {useForm} from '@inertiajs/vue3'
 import draggable from 'vuedraggable'
 
 const emit = defineEmits(['submit'])
@@ -21,6 +21,12 @@ const selectedFields = ref(props.eventTemplate?.fields ?? [])
 const columns = ref(form.layout || [[], []])
 const editMode = ref(props.eventTemplate !== null)
 
+// Error tracking
+const errors = ref({
+    name: '',
+    description: ''
+})
+
 onMounted(async () => {
     const response = await axios.get(route('event-templates.data'))
     availableFields.value = response.data
@@ -29,7 +35,6 @@ onMounted(async () => {
 const toggleFieldSelection = (field, columnIndex) => {
     columns.value[columnIndex] = columns.value[columnIndex].filter(f => f !== field.id)
     const index = selectedFields.value.findIndex(f => f === field.id)
-    console.log(index, field, selectedFields.value)
     if (index > -1) {
         selectedFields.value.splice(index, 1)
     }
@@ -43,14 +48,28 @@ const addFieldToColumn = (field) => {
     }
 }
 
+// Error validation
+const validateForm = () => {
+    let isValid = true
+    if (!form.name) {
+        errors.value.name = 'Template name is required'
+        isValid = false
+    }
+    if (!form.description) {
+        errors.value.description = 'Description is required'
+        isValid = false
+    }
+    return isValid
+}
+
 const mutateEventTemplate = () => {
+    if (!validateForm()) return
+
     form.fields = selectedFields.value
     form.layout = columns.value
-    console.log(form, editMode.value)
 
     const action = editMode.value ? 'put' : 'post'
-    console.log(action)
-    const routeName = editMode.value ? route('event-templates.update', { eventTemplate: form.id }) : route('event-templates.store')
+    const routeName = editMode.value ? route('event-templates.update', {eventTemplate: form.id}) : route('event-templates.store')
 
     form[action](routeName, {
         preserveScroll: true,
@@ -83,6 +102,7 @@ const getFieldDetails = (fieldId) => {
                             class="mt-1 block w-full rounded-md border-gray-300"
                             required
                         >
+                        <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Description</label>
@@ -91,6 +111,7 @@ const getFieldDetails = (fieldId) => {
                             placeholder="Enter template description"
                             class="mt-1 block w-full rounded-md border-gray-300"
                         ></textarea>
+                        <span v-if="errors.description" class="text-red-500 text-sm">{{ errors.description }}</span>
                     </div>
                 </div>
 
@@ -159,7 +180,7 @@ const getFieldDetails = (fieldId) => {
                     type="submit"
                     class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md"
                 >
-                    {{ editMode ? 'Edit' : 'Save'}} Event Template
+                    {{ editMode ? 'Edit' : 'Save' }} Event Template
                 </button>
             </form>
         </div>

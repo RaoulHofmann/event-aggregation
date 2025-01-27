@@ -38,8 +38,7 @@ class EventTemplateController extends Controller
             'layout' => $validated['layout'],
         ]);
 
-        return redirect()->route('event-templates.index')
-            ->with('success', 'Event template created successfully.');
+        session()->flash('success', 'Event template created successfully.');
     }
 
     public function update(Request $request, EventTemplate $eventTemplate)
