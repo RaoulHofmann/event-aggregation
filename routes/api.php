@@ -11,7 +11,4 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/user', function (Request $request) { return $request->user();});
-
-    Route::apiResource('events', EventController::class);
-    Route::apiResource('field-templates', FieldTemplateController::class);
 });
