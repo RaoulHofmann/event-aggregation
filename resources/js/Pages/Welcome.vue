@@ -60,12 +60,6 @@ defineProps({
                                     and more, all in one place.
                                 </p>
                             </div>
-                            <div class="feature-card">
-                                <h3 class="feature-title">Real-Time Updates</h3>
-                                <p class="feature-text">
-                                    Get real-time updates on event changes, ensuring your data is always up-to-date.
-                                </p>
-                            </div>
                         </div>
                     </section>
 
