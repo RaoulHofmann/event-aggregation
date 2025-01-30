@@ -92,7 +92,7 @@ defineProps({
 
             <!-- Footer -->
             <footer class="footer">
-                <p>&copy; 2023 EventNest. All rights reserved.</p>
+                <p>&copy; 2025 EventNest. All rights reserved.</p>
             </footer>
         </div>
     </div>
