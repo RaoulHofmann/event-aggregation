@@ -51,7 +51,7 @@ const deleteEventTemplate = (id) => {
                     <Modal
                         :show="showEventTemplateModal"
                         @close="showEventTemplateModal = false"
-                        :max-width="'90'"
+                        :max-width="'7xl'"
                     >
                         <Mutate
                             @created="showEventTemplateModal = false"

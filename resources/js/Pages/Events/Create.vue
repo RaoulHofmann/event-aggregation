@@ -2,6 +2,8 @@
 import { useForm } from '@inertiajs/vue3'
 import { ref, reactive, computed, onMounted, watch } from "vue"
 
+const emit = defineEmits(['submit'])
+
 const templates = ref([])
 const customFields = ref([])
 
@@ -36,9 +38,6 @@ const formFields = reactive({
 
 watch(() => form.template_id, () => {
     loadTemplateFields()
-
-    console.log(formFields.layout)
-
 })
 
 const loadTemplateFields = () => {
@@ -50,6 +49,7 @@ const loadTemplateFields = () => {
 
 const submit = () => {
     form.post(route('events.store'))
+    emit('submit')
 }
 
 const getField = (fieldId) => {

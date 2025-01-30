@@ -69,7 +69,7 @@ const deleteFieldTemplate = (id) => {
                     >
                         <div>
                             <span class="font-medium">{{ field.label }}</span>
-                            <span class="ml-2 text-sm text-gray-500">{{ field.type }}</span>
+                            <span class="ml-2 text-sm text-gray-500">{{ field.type.toUpperCase() }}</span>
                             <span v-if="field.required" class="ml-2 text-xs text-red-500">Required</span>
                         </div>
                         <div class="flex space-x-2">

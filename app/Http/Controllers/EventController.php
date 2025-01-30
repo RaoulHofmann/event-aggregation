@@ -15,6 +15,8 @@ class EventController extends Controller
     {
         return Inertia::render('Events/Index', [
             'events' => Event::latest()->get(),
+            'event-templates' => EventTemplate::get()->sortBy('name')->values(),
+            'field-templates' => FieldTemplate::get()->sortBy('label')->values(),
         ]);
     }
 
@@ -24,6 +26,11 @@ class EventController extends Controller
             'templates' => EventTemplate::all(),
             'fields' => FieldTemplate::latest()->get(),
         ];
+    }
+
+    public function get()
+    {
+        return Event::latest()->get();
     }
 
     public function store(Request $request)

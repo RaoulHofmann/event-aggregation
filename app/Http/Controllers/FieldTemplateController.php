@@ -21,6 +21,11 @@ class FieldTemplateController extends Controller
         return FieldTemplate::get()->sortBy('label')->values();
     }
 
+    public function get()
+    {
+        return FieldTemplate::get()->sortBy('label')->values();
+    }
+
     public function store(Request $request)
     {
         // Log all request data to check what's coming through

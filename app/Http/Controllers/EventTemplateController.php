@@ -21,6 +21,11 @@ class EventTemplateController extends Controller
         return FieldTemplate::get()->sortBy('label')->values();
     }
 
+    public function get()
+    {
+        return EventTemplate::get()->sortBy('name')->values();
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
