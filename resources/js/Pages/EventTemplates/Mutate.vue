@@ -10,12 +10,12 @@ const form = useForm(props.eventTemplate ?? {
     name: '',
     description: '',
     fields: [],
-    layout: [[], [], []]
+    layout: [[], []]
 })
 
 const availableFields = ref([])
 const selectedFields = ref(props.eventTemplate?.fields ?? [])
-const columns = ref(form.layout || [[], [], []])
+const columns = ref(form.layout || [[], []])
 const editMode = ref(!!props.eventTemplate)
 const errors = ref({})
 
@@ -28,7 +28,11 @@ const validateForm = () => {
 }
 
 onMounted(async () => {
-    const response = await axios.get(route('event-templates.data'))
+    const response = await axios.get('api/field-templates', {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
     availableFields.value = response.data
 })
 

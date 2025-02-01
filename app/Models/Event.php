@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\MultiTenantModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -18,17 +19,8 @@ class Event extends Model
         'event_data' => 'array'
     ];
 
-    public function template(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function template(): BelongsTo
     {
         return $this->belongsTo(EventTemplate::class);
-    }
-    public function recurrenceRules(): HasMany
-    {
-        return $this->hasMany(RecurrenceRule::class);
-    }
-
-    public function exclusions(): HasMany
-    {
-        return $this->hasMany(Exclusion::class);
     }
 }

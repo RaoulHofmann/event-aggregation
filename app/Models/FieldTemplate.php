@@ -15,9 +15,12 @@ class FieldTemplate extends Model
         'validation_rules', 'options'
     ];
 
+    protected $guarded = ['system_field'];
+
     protected $casts = [
         'required' => 'boolean',
         'validation_rules' => 'array',
-        'options' => 'array'
+        'options' => 'array',
+        'system_field' => 'boolean'
     ];
 }

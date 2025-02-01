@@ -24,6 +24,7 @@ class DefaultEventTemplateSeeder extends Seeder
                     'type' => 'text',
                     'required' => true,
                     'validation_rules' => ['max:255'],
+                    'system_field' => true,
                 ],
                 [
                     'label' => 'Description',
@@ -53,12 +54,14 @@ class DefaultEventTemplateSeeder extends Seeder
                     'field_id' => 'start_date',
                     'type' => 'datetime',
                     'required' => true,
+                    'system_field' => true,
                 ],
                 [
                     'label' => 'End Date',
                     'field_id' => 'end_date',
                     'type' => 'datetime',
                     'required' => false,
+                    'system_field' => true,
                 ],
                 [
                     'label' => 'Timezone',
@@ -150,10 +153,11 @@ class DefaultEventTemplateSeeder extends Seeder
                     'validation_rules' => ['email', 'max:255'],
                 ],
                 [
-                    'label' => 'Is Recurring',
+                    'label' => 'Recurring',
                     'field_id' => 'is_recurring',
                     'type' => 'boolean',
                     'required' => false,
+                    'system_field' => true,
                 ],
             ];
 

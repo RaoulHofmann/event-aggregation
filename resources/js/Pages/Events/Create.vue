@@ -14,9 +14,8 @@ const form = useForm({
 })
 
 onMounted(async () => {
-    const response = await axios.get(route('events.data'))
-    templates.value = response.data?.templates
-    customFields.value = response.data?.fields
+    templates.value = (await axios.get('api/event-templates')).data
+    customFields.value = (await axios.get('api/field-templates')).data
 })
 
 const formFields = reactive({
@@ -29,8 +28,6 @@ const formFields = reactive({
     }),
     layout: computed(() => {
         const selectedTemplate = templates.value.find(template => template.id === form.template_id)
-        console.log(selectedTemplate)
-
         return selectedTemplate?.layout || [[], []]
     })
 })

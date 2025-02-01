@@ -14,7 +14,7 @@ Route::middleware([
     SetPostgresSchema::class
 ])->group(function () {
     Route::get('/user', function (Request $request) { return $request->user();});
-    Route::get('/event-templates', [EventTemplateController::class, 'get']);
-    Route::get('/field-templates', [FieldTemplateController::class, 'get']);
+    Route::get('/event-templates', [EventTemplateController::class, 'get'])->middleware('web');
+    Route::get('/field-templates', [FieldTemplateController::class, 'get'])->middleware('web');
     Route::get('/events', [EventController::class, 'get']);
 });

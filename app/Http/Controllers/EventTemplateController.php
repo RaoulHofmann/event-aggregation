@@ -12,18 +12,13 @@ class EventTemplateController extends Controller
     public function index()
     {
         return Inertia::render('EventTemplates/Index', [
-            'event-templates' => EventTemplate::get()->sortBy('name')->values(),
+            'event-templates' => EventTemplate::orderBy('name')->get()->values(),
         ]);
-    }
-
-    public function data()
-    {
-        return FieldTemplate::get()->sortBy('label')->values();
     }
 
     public function get()
     {
-        return EventTemplate::get()->sortBy('name')->values();
+        return EventTemplate::orderBy('name')->get()->values();
     }
 
     public function store(Request $request)

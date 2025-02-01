@@ -15,22 +15,61 @@ class EventController extends Controller
     {
         return Inertia::render('Events/Index', [
             'events' => Event::latest()->get(),
-            'event-templates' => EventTemplate::get()->sortBy('name')->values(),
-            'field-templates' => FieldTemplate::get()->sortBy('label')->values(),
+            'event-templates' => EventTemplate::orderBy('name')->get()->values(),
+            'field-templates' => FieldTemplate::orderBy('label')->get()->values(),
         ]);
-    }
-
-    public function data()
-    {
-        return [
-            'templates' => EventTemplate::all(),
-            'fields' => FieldTemplate::latest()->get(),
-        ];
     }
 
     public function get()
     {
-        return Event::latest()->get();
+        try {
+            $events = Event::latest()
+                ->with('template:id,name')
+                ->when(request('template_id'), function($query, $templateId) {
+                    return $query->where('template_id', $templateId);
+                })
+                ->when(request('template_name'), function($query, $templateName) {
+                    return $query->whereHas('eventTemplate', function($q) use ($templateName) {
+                        $q->where('name', 'LIKE', "%{$templateName}%");
+                    });
+                })
+                ->latest()
+                ->when(request('limit'), function($query, $limit) {
+                    return $query->limit($limit);
+                })
+                ->get();
+
+            if ($events->isEmpty()) {
+                return response()->json([
+                    'status' => 204,
+                    'error' => false,
+                    'message' => 'No events found',
+                    'data' => []
+                ]);
+            }
+
+            $data = request('template_id') || request('template_name')
+                ? $events
+                : $events->groupBy('template.name');
+
+            return response()->json([
+                'status' => 200,
+                'error' => false,
+                'message' => 'Success',
+                'total' => $events->count(),
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Event fetch failed: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 500,
+                'error' => true,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
     }
 
     public function store(Request $request)

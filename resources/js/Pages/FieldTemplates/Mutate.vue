@@ -31,6 +31,7 @@ const form = useForm(props.fieldTemplate ?? {
     type: 'text',
     required: false,
     validation_rules: getDefaultValidationRules('text'),
+    system_field: false,
     options: [],
 })
 
@@ -84,6 +85,10 @@ const mutateFieldTemplate = () => {
         }
     })
 }
+
+watch(() => form.label, (newVal) => {
+    form.field_id = newVal.replaceAll(' ', '_').toLowerCase()
+})
 </script>
 
 <template>
@@ -98,9 +103,11 @@ const mutateFieldTemplate = () => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Field Label</label>
                             <input
+                                :disabled="form.system_field"
                                 v-model="form.label"
                                 placeholder="Enter field label"
                                 class="mt-1 block w-full rounded-md border-gray-300"
+                                :class="form.system_field && 'opacity-30'"
                                 required
                             >
                             <p v-if="form.errors.label" class="text-red-500 text-xs mt-1">{{ form.errors.label }}</p>
@@ -109,9 +116,11 @@ const mutateFieldTemplate = () => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Field ID</label>
                             <input
+                                :disabled="form.system_field"
                                 v-model="form.field_id"
                                 placeholder="Enter field id"
                                 class="mt-1 block w-full rounded-md border-gray-300"
+                                :class="form.system_field && 'opacity-30'"
                                 required
                             >
                             <p v-if="form.errors.field_id" class="text-red-500 text-xs mt-1">{{
@@ -122,8 +131,10 @@ const mutateFieldTemplate = () => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Field Type</label>
                             <select
+                                :disabled="form.system_field"
                                 v-model="form.type"
                                 class="mt-1 block w-full rounded-md border-gray-300"
+                                :class="form.system_field && 'opacity-30'"
                                 required
                             >
                                 <option v-for="type in fieldTypes" :key="type.value" :value="type.value">
