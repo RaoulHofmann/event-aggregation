@@ -80,27 +80,22 @@ class EventController extends Controller
             'event_data' => 'required|array',
         ]);
 
-        // Create a new event from the selected template
-        $event = Event::create($validated);
+        Event::create($validated);
 
         return redirect()->route('events.index')->with('success', 'Event created successfully.');
     }
 
-    // Update the specified event in storage
     public function update(Request $request, Event $event)
     {
-        // Validate the incoming request
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date',
+            'template_id' => 'required|exists:event_templates,id',
+            'event_data' => 'required|array',
         ]);
 
         // Update the event
         $event->update($validated);
 
-        // Redirect back with a success message
-        return redirect()->route('events')->with('success', 'Event updated successfully.');
+        return redirect()->route('events.index')->with('success', 'Event updated successfully.');
     }
 
     // Remove the specified event from storage
@@ -110,6 +105,6 @@ class EventController extends Controller
         $event->delete();
 
         // Redirect back with a success message
-        return redirect()->route('events')->with('success', 'Event deleted successfully.');
+        return redirect()->route('events.index')->with('success', 'Event deleted successfully.');
     }
 }

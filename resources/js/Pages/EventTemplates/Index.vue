@@ -2,7 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import {Link} from '@inertiajs/vue3'
 import {defineProps, ref} from 'vue'
-import Mutate from './Mutate.vue'
+import Handler from './Handler.vue'
 import Modal from "@/Components/Modal.vue"
 
 const props = defineProps({
@@ -53,7 +53,7 @@ const deleteEventTemplate = (id) => {
                         @close="showEventTemplateModal = false"
                         :max-width="'7xl'"
                     >
-                        <Mutate
+                        <Handler
                             @created="showEventTemplateModal = false"
                             :event-template="selectedEventTemplate"
                             @submit="close"

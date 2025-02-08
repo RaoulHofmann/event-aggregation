@@ -44,6 +44,9 @@ const formatDate = (dateString) => {
                 <th v-for="col in columns" :key="col.field" class="px-4 py-2 bg-gray-200 text-left">
                     {{ col.header }}
                 </th>
+                <th v-if="$slots['actions']" class="w-28 bg-gray-200 text-center">
+                    Actions
+                </th>
             </tr>
             </thead>
             <tbody>
@@ -55,6 +58,9 @@ const formatDate = (dateString) => {
                     <template v-else>
                         {{ row[col.field] }}
                     </template>
+                </td>
+                <td>
+                    <slot name="actions" :row="row" />
                 </td>
             </tr>
             </tbody>

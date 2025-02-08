@@ -29,7 +29,7 @@ class FieldTemplateController extends Controller
         $validated = $request->validate([
             'label' => 'required|string|max:255|unique:field_templates,label',
             'field_id' => 'required|string|max:255|unique:field_templates,field_id',
-            'type' => 'required|in:text,number,date,datetime,email,url,select,boolean,textarea,decimal',
+            'type' => 'required|in:text,number,date,datetime,email,url,select,boolean,textarea,decimal,image',
             'required' => 'boolean',
             'validation_rules' => 'nullable|array',
             'options' => 'nullable|array',

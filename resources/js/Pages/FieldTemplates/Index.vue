@@ -2,7 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import {Link} from '@inertiajs/vue3'
 import {defineProps, ref} from 'vue'
-import Mutate from './Mutate.vue'
+import Handler from './Handler.vue'
 import Modal from "@/Components/Modal.vue"
 
 const props = defineProps({
@@ -53,7 +53,7 @@ const deleteFieldTemplate = (id) => {
                         @close="showFieldTemplateModal = false"
                         :max-width="'7xl'"
                     >
-                        <Mutate
+                        <Handler
                             @created="showFieldTemplateModal = false"
                             :field-template="selectedFieldTemplate"
                             @submit="close()"

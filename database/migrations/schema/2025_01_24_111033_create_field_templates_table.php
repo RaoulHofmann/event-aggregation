@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('field_id');
             $table->string('type'); // text, number, date, select, etc.
             $table->boolean('required')->default(false);
+            $table->boolean('multiple')->default(false);
             $table->jsonb('validation_rules')->nullable();
             $table->jsonb('options')->nullable();
             $table->timestamps();

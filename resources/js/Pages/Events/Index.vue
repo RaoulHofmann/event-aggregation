@@ -2,8 +2,12 @@
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { ref, computed } from 'vue'
 import Modal from "@/Components/Modal.vue"
-import Create from './Create.vue'
+import Handler from './Handler.vue'
 import Table from '@/Components/Table.vue'
+import ConfirmationModal from "@/Components/ConfirmationModal.vue";
+import DangerButton from "@/Components/DangerButton.vue";
+import SecondaryButton from "@/Components/SecondaryButton.vue";
+import {useForm} from "@inertiajs/vue3";
 
 const props = defineProps({
     events: Array,
@@ -12,6 +16,23 @@ const props = defineProps({
 })
 
 const showEventModal = ref(false)
+const selectedEvent = ref()
+const confirmingEventDeletion = ref(false)
+const deleteEventForm = useForm({})
+
+const handleEdit = (data) => {
+    selectedEvent.value = props.events.find(f => f.id === data.id)
+    showEventModal.value = true
+}
+
+const handleDelete = (id) => {
+    confirmingEventDeletion.value = true
+    deleteEventForm.id = id
+}
+
+const deleteTeam = () => {
+    deleteEventForm.delete(route('events.destroy', { event: deleteEventForm.id }))
+}
 
 const groupedEvents = computed(() => {
     const groups = {}
@@ -73,7 +94,7 @@ const getColumnsForTemplate = (template, events) => {
                     </button>
                 </div>
                 <Modal :show="showEventModal" @close="showEventModal = false" :max-width="'7xl'">
-                    <Create @submit="showEventModal = false" :custom-fields="fieldTemplates"/>
+                    <Handler @submit="showEventModal = false" :custom-fields="fieldTemplates" :event="selectedEvent"/>
                 </Modal>
                 <div v-for="(group, templateId) in groupedEvents" :key="templateId" class="mb-8">
                     <h3 class="text-lg font-semibold mb-4">{{ group.template.name }}</h3>
@@ -82,9 +103,40 @@ const getColumnsForTemplate = (template, events) => {
                         :columns="getColumnsForTemplate(group.template, group.events)"
                         :paginate="true"
                         :rows-per-page="10"
-                    />
+                    >
+                        <template #actions="{ row }">
+                            <button @click="handleEdit(row)" class="text-blue-500 hover:underline">Edit</button>
+                            <button @click="handleDelete(row.id)" class="text-red-500 hover:underline ml-2">Delete</button>
+                        </template>
+                    </Table>
                 </div>
             </div>
         </div>
+
+        <ConfirmationModal :show="confirmingEventDeletion" @close="confirmingEventDeletion = false">
+            <template #title>
+                Delete Event
+            </template>
+
+            <template #content>
+                Are you sure you want to delete this Event?
+            </template>
+
+            <template #footer>
+                <SecondaryButton @click="confirmingEventDeletion = false">
+                    Cancel
+                </SecondaryButton>
+
+                <DangerButton
+                    class="ms-3"
+                    :class="{ 'opacity-25': deleteEventForm.processing }"
+                    :disabled="deleteEventForm.processing"
+                    @click="deleteTeam"
+                >
+                    Delete Team
+                </DangerButton>
+            </template>
+        </ConfirmationModal>
+
     </AppLayout>
 </template>
