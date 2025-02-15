@@ -52,14 +52,14 @@ class DefaultEventTemplateSeeder extends Seeder
                 [
                     'label' => 'Start Date',
                     'field_id' => 'start_date',
-                    'type' => 'datetime-local',
+                    'type' => 'datetime',
                     'required' => true,
                     'system_field' => true,
                 ],
                 [
                     'label' => 'End Date',
                     'field_id' => 'end_date',
-                    'type' => 'datetime-local',
+                    'type' => 'datetime',
                     'required' => false,
                     'system_field' => true,
                 ],
@@ -100,7 +100,7 @@ class DefaultEventTemplateSeeder extends Seeder
                 [
                     'label' => 'Recurrence End Date',
                     'field_id' => 'recurrence_end_date',
-                    'type' => 'datetime-local',
+                    'type' => 'datetime',
                     'required' => false,
                     'validation_rules' => ['date'],
                     'system_field' => true,

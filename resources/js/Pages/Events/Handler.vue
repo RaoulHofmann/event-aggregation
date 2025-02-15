@@ -135,7 +135,7 @@ const getField = (fieldId) => {
                                         </option>
                                     </select>
                                 </template>
-                                <template v-else-if="getField(fieldId).type === 'boolean'">
+                                <template v-else-if="getField(fieldId).type === 'boolean' || getField(fieldId).type === 'checkbox'">
                                     <div class="flex items-center">
                                         <input type="checkbox" v-model="form.event_data[getField(fieldId).field_id]"
                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
@@ -157,7 +157,6 @@ const getField = (fieldId) => {
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </template>
                                 <template v-else-if="getField(fieldId).type === 'file'">
-                                    {{getField(fieldId).validation_rules[0] }}
                                     <input type="file" v-on:change="form.event_data[getField(fieldId).field_id]"
                                            :accept="getField(fieldId)?.validation_rules[0] ?? 'png' "
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
