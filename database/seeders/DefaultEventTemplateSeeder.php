@@ -185,6 +185,7 @@ class DefaultEventTemplateSeeder extends Seeder
                         'label' => $field['label'],
                         'type' => $field['type'],
                         'required' => $field['required'] ?? false,
+                        'system_field' => $field['system_field'] ?? false,
                         'validation_rules' => $field['validation_rules'] ?? null,
                         'options' => $field['options'] ?? null,
                     ]

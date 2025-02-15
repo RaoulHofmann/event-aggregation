@@ -9,6 +9,36 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @OA\Schema(
+ *     schema="Event",
+ *     type="object",
+ *     @OA\Property(
+ *         property="id",
+ *         type="integer",
+ *         example=1
+ *     ),
+ *     @OA\Property(
+ *         property="name",
+ *         type="string",
+ *         example="Sample Event"
+ *     ),
+ *     @OA\Property(
+ *         property="template",
+ *         type="object",
+ *         @OA\Property(
+ *             property="id",
+ *             type="integer",
+ *             example=1
+ *         ),
+ *         @OA\Property(
+ *             property="name",
+ *             type="string",
+ *             example="Sample Template"
+ *         )
+ *     )
+ * )
+ */
 class Event extends Model
 {
     use SoftDeletes, MultiTenantModel;
