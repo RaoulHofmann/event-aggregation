@@ -63,7 +63,6 @@ const handleTemplateChange = (newTemplateId) => {
 }
 
 const submit = () => {
-    console.log(editMode.value)
     const action = editMode.value ? 'put' : 'post'
     const routeName = editMode.value ?
         route('events.update', {event: form.id}) :
@@ -121,14 +120,17 @@ const getField = (fieldId) => {
                                     v-if="getField(fieldId).type === 'text' || getField(fieldId).type === 'email' || getField(fieldId).type === 'url'">
                                     <input :type="getField(fieldId).type"
                                            v-model="form.event_data[getField(fieldId).field_id]"
+                                           :required="getField(fieldId).required ?? false"
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </template>
                                 <template v-else-if="getField(fieldId).type === 'textarea'">
                                     <textarea v-model="form.event_data[getField(fieldId).field_id]" rows="3"
+                                              :required="getField(fieldId).required ?? false"
                                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                                 </template>
                                 <template v-else-if="getField(fieldId).type === 'select'">
                                     <select v-model="form.event_data[getField(fieldId).field_id]" :multiple="getField(fieldId).multiple ?? false"
+                                            :required="getField(fieldId).required ?? false"
                                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option v-for="option in getField(fieldId).options" :key="option"
                                                 :value="option">{{ option }}
@@ -138,6 +140,7 @@ const getField = (fieldId) => {
                                 <template v-else-if="getField(fieldId).type === 'boolean' || getField(fieldId).type === 'checkbox'">
                                     <div class="flex items-center">
                                         <input type="checkbox" v-model="form.event_data[getField(fieldId).field_id]"
+                                               :required="getField(fieldId).required ?? false"
                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                         <label class="ml-2 text-sm text-gray-700">{{ getField(fieldId).label }}</label>
                                     </div>
@@ -146,19 +149,23 @@ const getField = (fieldId) => {
                                     v-else-if="getField(fieldId).type === 'number' || getField(fieldId).type === 'decimal'">
                                     <input type="number" v-model="form.event_data[getField(fieldId).field_id]"
                                            :step="getField(fieldId).type === 'decimal' ? '0.01' : '1'"
+                                           :required="getField(fieldId).required ?? false"
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </template>
                                 <template v-else-if="getField(fieldId).type === 'datetime'">
                                     <input type="datetime-local" v-model="form.event_data[getField(fieldId).field_id]"
+                                           :required="getField(fieldId).required ?? false"
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </template>
                                 <template v-else-if="getField(fieldId).type === 'date'">
                                     <input type="date" v-model="form.event_data[getField(fieldId).field_id]"
+                                           :required="getField(fieldId).required ?? false"
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </template>
                                 <template v-else-if="getField(fieldId).type === 'file'">
                                     <input type="file" v-on:change="form.event_data[getField(fieldId).field_id]"
                                            :accept="getField(fieldId)?.validation_rules[0] ?? 'png' "
+                                           :required="getField(fieldId).required ?? false"
                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </template>
                                 <template v-else>

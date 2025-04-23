@@ -213,6 +213,11 @@ class EventController extends Controller
             'event_data' => 'required|array',
         ]);
 
+        // Convert image to base64 if it exists in fields
+//        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+//            $fields['image'] = base64_encode(file_get_contents($request->file('image')->path()));
+//        }
+
         // Update the event
         $event->update($validated);
 
