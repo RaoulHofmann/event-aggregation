@@ -16,66 +16,8 @@ EventNest is a modern event management platform designed to simplify event disco
 * **Database**: MySQL or PostgreSQL
 * **Other Tools**: Inertia.js, Vite
 
-## Getting Started
-
-### Prerequisites
-
-* PHP 8.1 or higher
-* Composer
-* Node.js 16 or higher
-* MySQL or PostgreSQL
-
-### Installation
-
-1. **Clone the Repository**:
-```bash
-git clone https://github.com/your-username/eventnest.git
-cd eventnest
-```
-
-2. **Install Backend Dependencies**:
-```bash
-composer install
-```
-
-3. **Install Frontend Dependencies**:
-```bash
-npm install
-```
-
-4. **Set Up Environment Variables**:
-   * Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-   * Update the `.env` file with your database credentials and other settings.
-
-5. **Generate Application Key**:
-```bash
-php artisan key:generate
-```
-
-6. **Run Migrations**:
-```bash
-php artisan migrate
-```
-
-7. **Seed the Database (Optional)**:
-```bash
-php artisan db:seed
-```
-
-8. **Compile Frontend Assets**:
-```bash
-npm run dev
-```
-
-9. **Start the Development Server**:
-```bash
-php artisan serve
-```
-
-10. **Access the Application**: Open your browser and navigate to `http://localhost:8000`.
+## Demo
+A demo is available under https://event-aggregator.fly.dev the server is set to shutdown whenever there is no traffic so the initial startup might be slow.
 
 ## Usage
 
