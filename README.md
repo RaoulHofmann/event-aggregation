@@ -1,51 +1,55 @@
 # EventNest
 
-EventNest is a modern event management platform designed to simplify event discovery, organization, and integration. Built with an API-first approach, EventNest allows developers to seamlessly integrate event data into their applications. The platform supports dynamic event templates, customizable fields, and real-time updates, making it a powerful tool for managing events of any scale.
+**EventNest** is a modern, multi-tenant event management platform designed to simplify event discovery, organization, and integration. Built with an API-first approach, EventNest enables teams to manage their events in isolated environments using **PostgreSQL schemas for per-team data separation**, ensuring secure and scalable multi-tenancy.
 
-## Features
+## Key Highlights
 
-* **API-First Design**: Easily integrate EventNest into your applications using our robust API.
-* **Dynamic Event Templates**: Create and manage custom event templates with flexible fields.
-* **Upcoming SDK**: Simplify integration with our upcoming SDK (coming soon).
-* **Customizable Fields**: Define custom fields for event templates to suit your specific needs.
+- **Multi-Tenant Architecture**: Supports isolated environments for each team using PostgreSQL schemas—each team gets its own schema, ensuring data separation and scalability.
+- **API-First Design**: Easily integrate EventNest into your applications with our robust and well-documented API.
+- **Dynamic Event Templates**: Create and manage custom event templates with flexible and dynamic fields.
+- **Customizable Fields**: Tailor events to your specific use case with configurable fields per template.
+- **Real-Time Updates**: Stay in sync with live updates and changes to event data.
+- **Upcoming SDK**: Developer-friendly SDK coming soon to further simplify integration.
 
 ## Technologies Used
 
-* **Frontend**: Vue.js, Tailwind CSS
-* **Backend**: Laravel (API)
-* **Database**: MySQL or PostgreSQL
-* **Other Tools**: Inertia.js, Vite
+- **Frontend**: Vue.js, Tailwind CSS  
+- **Backend**: Laravel (API)  
+- **Database**: PostgreSQL (multi-tenancy via schemas) or MySQL (single-tenant only)  
+- **Other Tools**: Inertia.js, Vite
 
 ## Demo
-A demo is available under https://event-aggregator.fly.dev the server is set to shutdown whenever there is no traffic so the initial startup might be slow.
+
+A live demo is available at: [https://event-aggregator.fly.dev](https://event-aggregator.fly.dev)  
+_⚠️ Note: The server uses on-demand hosting and may take a few seconds to spin up after inactivity._
 
 ## Usage
 
-1. **Create Event Templates**:
-   * Use the provided interface to create event templates with custom fields.
+1. **Create Event Templates**  
+   Use the web interface to define event templates with custom fields for each tenant or use case.
 
-2. **Add Events**:
-   * Add events using the dynamic forms generated from your event templates.
+2. **Add Events**  
+   Add events using dynamic forms generated from your configured templates.
 
-3. **View Events**:
-   * Events are grouped by their template, and each group is displayed in a dynamically generated table.
+3. **View Events**  
+   Events are displayed in automatically generated tables, grouped by their template.
 
-4. **Integrate with API**:
-   * Use the API to fetch, filter, and manage events programmatically.
+4. **Integrate with the API**  
+   Use the API to programmatically fetch, filter, and manage events across different tenants.
 
 ## API Documentation
 
-The API documentation is available at `/api/docs` (if using a tool like Swagger) or in the `docs` folder of the repository.
+API documentation is available at `/api/docs` (e.g., via Swagger) or can be found in the `docs` directory of the repository.
 
 ## Contributing
 
-We welcome contributions! Please follow these steps:
+We welcome contributions from the community:
 
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Commit your changes and push to your branch.
-4. Submit a pull request with a detailed description of your changes.
+1. Fork the repository.  
+2. Create a feature or bugfix branch.  
+3. Commit your changes and push the branch.  
+4. Submit a pull request with a detailed description.
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more information.
