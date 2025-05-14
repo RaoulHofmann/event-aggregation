@@ -23,6 +23,9 @@
 A live demo is available at: [https://event-aggregator.fly.dev](https://event-aggregator.fly.dev)  
 _⚠️ Note: The server uses on-demand hosting and may take a few seconds to spin up after inactivity._
 
+username: test@example.com
+password: password
+
 ## Usage
 
 1. **Create Event Templates**  
