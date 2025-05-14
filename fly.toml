@@ -29,6 +29,14 @@ console_command = 'php /var/www/html/artisan tinker'
   min_machines_running = 0
   processes = ['app']
 
+  # Add this checks section
+  [http_service.checks]
+    interval = '10s'
+    timeout = '2s'
+    grace_period = '5s'
+    method = 'get'
+    path = '/'
+
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'
