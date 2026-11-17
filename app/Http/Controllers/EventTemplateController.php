@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\EventTemplate;
+use App\Models\ProviderConnection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class EventTemplateController extends Controller
@@ -22,7 +24,13 @@ class EventTemplateController extends Controller
 
     private function data(Request $request, ?EventTemplate $template = null): array
     {
-        return $request->validate(['name' => ['required', 'string', 'max:255', Rule::unique('event_templates')->ignore($template?->id)], 'description' => ['nullable', 'string'], 'fields' => ['required', 'array', 'min:1'], 'fields.*' => ['integer', 'exists:field_templates,id'], 'layout' => ['required', 'array'], 'layout.*' => ['array']]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:255', Rule::unique('event_templates')->ignore($template?->id)], 'description' => ['nullable', 'string'], 'fields' => ['present', 'array'], 'fields.*' => ['integer', 'distinct', Rule::exists('field_templates', 'id')->whereNull('deleted_at')], 'layout' => ['required', 'array'], 'layout.*' => ['array'], 'layout.*.*' => ['integer', Rule::in($request->input('fields', []))]]);
+        $layoutFields = collect($data['layout'])->flatten()->all();
+        if (count($layoutFields) !== count(array_unique($layoutFields)) || array_diff($data['fields'], $layoutFields)) {
+            throw ValidationException::withMessages(['layout' => 'Place each selected custom field in exactly one column.']);
+        }
+
+        return $data;
     }
 
     public function store(Request $request)
@@ -45,7 +53,11 @@ class EventTemplateController extends Controller
         abort_unless($eventTemplate->source === 'eventnest', 403);
         if (Event::where('template_id', $eventTemplate->id)->exists()) {
             return back()->withErrors(['delete' => 'Remove the events using this template first.']);
-        }$eventTemplate->delete();
+        }
+        if (ProviderConnection::where('template_id', $eventTemplate->id)->exists()) {
+            return back()->withErrors(['delete' => 'Change the import template on the connection first.']);
+        }
+        $eventTemplate->delete();
 
         return back()->with('success', 'Template removed.');
     }

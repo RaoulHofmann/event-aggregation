@@ -27,7 +27,7 @@ Goal: create native EventNest events and connect external hosts, with one manage
 - [x] Versioned API with pagination, source/status/date filters and rate limiting.
 - [ ] Validate with an authorized Humanitix account and current official documentation.
 - [ ] Confirm cancellation, deletion and recurring-event semantics; add webhooks/incremental sync.
-- [ ] Decide whether to support write-back; currently inbound only.
+- [x] Humanitix is GET-only by requirement; no write-back. Existing-template mapping and protected local edits are supported.
 
 ## Follow-up
 - [ ] Second provider to validate connector design.
@@ -35,3 +35,17 @@ Goal: create native EventNest events and connect external hosts, with one manage
 - [ ] Monitoring and backup/restore verification.
 - [ ] Always-on worker/external scheduler decision for Fly, which currently scales to zero.
 - [ ] User review and publication of the restored cloud draft. Do not publish automatically.
+
+## Calendar and event editor
+- [x] Month/week/agenda/table views, date navigation, timezone selection, details and undated view.
+- [x] Optional templates for basic events, starter-template shortcuts, honoured column layouts and safer template switching.
+- [x] Finite native recurrence with preview, local wall-clock scheduling, count/until and stable occurrence API identities.
+- [x] Skip/reschedule a single occurrence; protect provider imports and existing series exceptions.
+- [ ] Guided migration of legacy custom dates/recurrence after timezone confirmation; original data remains intact.
+- [ ] “This and following” series splitting and exception undo/history UI.
+- [ ] Public embeds/ICS subscriptions and saved calendar preferences.
+
+## Editor usability and homepage studies
+- [x] Wide template editor with field search, column placement and live layout preview; wider custom-field editor with sample control preview.
+- [x] Three responsive public homepage studies at /designs/homepage; current homepage retained for comparison.
+- [ ] Choose a homepage direction before replacing the main landing page.

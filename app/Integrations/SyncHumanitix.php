@@ -7,6 +7,8 @@ use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
 use App\Models\ProviderConnection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class SyncHumanitix
 {
@@ -22,19 +24,50 @@ class SyncHumanitix
                 if ($active->status === 'disconnected') {
                     throw new HumanitixSyncException('This connection was disconnected.');
                 }
-                $template ??= $this->template($connection);
+                $template = $active->template_id ? EventTemplate::findOrFail($active->template_id) : $this->template($active);
                 $data = ['title' => $remote['name'], 'description' => strip_tags($remote['description'] ?? ''), 'starts_at' => $remote['startDate'] ?? null, 'ends_at' => $remote['endDate'] ?? null, 'timezone' => $remote['timezone'] ?? null, 'location' => $remote['eventLocation']['venueName'] ?? $remote['eventLocation']['address'] ?? $remote['eventLocation']['onlineUrl'] ?? null, 'status' => ($remote['published'] ?? false) ? 'published' : 'draft'];
                 $event = Event::withTrashed()->firstOrNew(['provider_connection_id' => $connection->id, 'external_id' => $remote['_id']]);
                 if ($event->exists && $event->trashed()) {
                     return;
                 }
-                $event->fill(['template_id' => $template->id, 'event_data' => array_combine(array_map(fn ($key) => 'humanitix_'.$key, array_keys($data)), array_values($data))]);
-                $event->forceFill($data + ['source' => 'humanitix', 'provider_connection_id' => $connection->id, 'external_id' => $remote['_id'], 'source_url' => isset($remote['url']) && filter_var($remote['url'], FILTER_VALIDATE_URL) && str_starts_with($remote['url'], 'https://') ? $remote['url'] : null, 'synced_at' => now()])->save();
+                $mapped = [];
+                $warnings = [];
+                if ($active->template_id) {
+                    $allowed = FieldTemplate::whereIn('id', $template->fields ?? [])->pluck('field_id')->all();
+                    foreach ($active->field_mapping ?? [] as $field => $source) {
+                        if (in_array($field, $allowed) && isset($data[$source])) {
+                            $mapped[$field] = $data[$source];
+                        }
+                    }
+                } else {
+                    $mapped = array_combine(array_map(fn ($key) => 'humanitix_'.$key, array_keys($data)), array_values($data));
+                }
+                if ($active->template_id) {
+                    foreach (FieldTemplate::whereIn('id', $template->fields ?? [])->get() as $field) {
+                        $type = match ($field->type) {
+                            'number' => 'integer', 'decimal' => 'numeric', 'boolean' => 'boolean', 'date', 'datetime' => 'date', 'email' => 'email', 'url', 'image' => 'url', default => 'string',
+                        };
+                        $rules = [$field->required ? 'required' : 'nullable', $type];
+                        if ($field->type === 'select') {
+                            $rules[] = Rule::in($field->options ?? []);
+                        }
+                        if (Validator::make(['value' => $mapped[$field->field_id] ?? null], ['value' => $rules])->fails()) {
+                            $warnings[] = 'Complete or correct '.$field->label.' in EventNest.';
+                            $mapped[$field->field_id] = null;
+                        }
+                    }
+                }
+                $overrides = $event->local_overrides ?? [];
+                $updates = $data + ['template_id' => $template->id, 'event_data' => $mapped];
+                foreach ($overrides as $key) {
+                    unset($updates[$key]);
+                }
+                $event->forceFill($updates + ['source_snapshot' => $data + ['mapping_warnings' => $warnings], 'source' => 'humanitix', 'provider_connection_id' => $connection->id, 'external_id' => $remote['_id'], 'source_url' => isset($remote['url']) && filter_var($remote['url'], FILTER_VALIDATE_URL) && str_starts_with($remote['url'], 'https://') ? $remote['url'] : null, 'synced_at' => now()])->save();
             });
             $count++;
         }
 
-return $count;
+        return $count;
     }
 
     private function template(ProviderConnection $connection): EventTemplate

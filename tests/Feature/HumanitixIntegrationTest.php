@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Integrations\SyncHumanitix;
 use App\Jobs\SyncHumanitixEvents;
 use App\Models\Event;
+use App\Models\EventTemplate;
+use App\Models\FieldTemplate;
 use App\Models\ProviderConnection;
 use App\Models\User;
 use App\Services\ProvisionTeam;
@@ -157,7 +159,56 @@ class HumanitixIntegrationTest extends TestCase
         (new SyncHumanitixEvents($team->id, $c->id))->failed(new \RuntimeException('sensitive-response-test-key'));
         $this->assertSame('public', DB::selectOne('SHOW search_path')->search_path);
         $this->setSchema($team->schema_name);
-        $this->assertSame('error',$c->fresh()->status);
-        $this->assertStringNotContainsString('sensitive-response-test-key',$c->fresh()->last_error);
+        $this->assertSame('error', $c->fresh()->status);
+        $this->assertStringNotContainsString('sensitive-response-test-key', $c->fresh()->last_error);
+    }
+
+    public function test_template_mapping_local_edits_and_deletes_never_write_to_humanitix(): void
+    {
+        [$user, $team, $connection] = $this->connection();
+        $field = FieldTemplate::create(['label' => 'Workshop heading', 'field_id' => 'workshop_heading', 'type' => 'text', 'required' => true]);
+        $template = EventTemplate::create(['name' => 'Existing workshop', 'fields' => [$field->id], 'layout' => [[$field->id], []]]);
+        Queue::fake();
+        DB::select("SELECT set_config('search_path','public',false)");
+        $this->actingAs($user)->put('/integrations/'.$connection->id, ['name' => 'Mapped account', 'template_id' => $template->id, 'field_mapping' => ['workshop_heading' => 'title']])->assertRedirect();
+        $this->setSchema($team->schema_name);
+        $connection->refresh();
+        $this->assertSame('test-key', $connection->credentials['api_key']);
+        Http::preventStrayRequests();
+        $changed = $this->remote('Remote changed heading');
+        $changed['eventLocation']['venueName'] = 'New venue';
+        Http::fake(['api.humanitix.com/*' => Http::sequence()->push($this->page([$this->remote()]))->push($this->page([$changed]))->push($this->page([$changed]))]);
+        app(SyncHumanitix::class)->sync($connection);
+        $event = Event::firstOrFail();
+        $this->assertSame($template->id, $event->template_id);
+        $this->assertSame('Humanitix workshop', $event->event_data['workshop_heading']);
+        DB::select("SELECT set_config('search_path','public',false)");
+        $this->put('/events/'.$event->id, ['title' => 'Local heading', 'template_id' => $template->id, 'event_data' => ['workshop_heading' => 'Local custom answer'], 'starts_at' => '2026-12-01T10:00', 'ends_at' => '2026-12-01T11:00', 'timezone' => 'Australia/Perth', 'status' => 'published', 'description' => 'Workshop details', 'location' => 'Perth venue'])->assertRedirect();
+        $this->setSchema($team->schema_name);
+
+        app(SyncHumanitix::class)->sync($connection);
+        $event->refresh();
+        $this->assertSame('Local heading', $event->title);
+        $this->assertSame('Local custom answer', $event->event_data['workshop_heading']);
+        $this->assertSame('New venue', $event->location);
+        $this->assertSame('Remote changed heading', $event->source_snapshot['title']);
+        DB::select("SELECT set_config('search_path','public',false)");
+        $this->delete('/events/'.$event->id)->assertRedirect();
+        $this->setSchema($team->schema_name);
+        app(SyncHumanitix::class)->sync($connection);
+        $this->assertSame(0, Event::count());
+        Http::assertSentCount(3);
+        Http::assertNotSent(fn ($request) => $request->method() !== 'GET');
+    }
+
+    public function test_mapping_rejects_fields_outside_selected_template(): void
+    {
+        [$user] = $this->connection();
+        $template = EventTemplate::create(['name' => 'Basic', 'fields' => [], 'layout' => [[], []]]);
+        DB::select("SELECT set_config('search_path','public',false)");
+        Queue::fake();
+        $this->actingAs($user)->put('/integrations/1', ['name' => 'Invalid mapping', 'template_id' => $template->id, 'field_mapping' => ['foreign_field' => 'title']])->assertSessionHasErrors('field_mapping');
+        Queue::assertNothingPushed();
+        Http::assertNothingSent();
     }
 }

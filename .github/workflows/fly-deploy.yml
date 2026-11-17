@@ -67,6 +67,7 @@ jobs:
           curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 https://event-aggregator.fly.dev/ -o /tmp/eventnest-home.html
           python3 - <<'PY'
           from pathlib import Path
-          assert 'integrations.index' in Path('/tmp/eventnest-home.html').read_text(), 'Restored application routes were not served'
+          html = Path('/tmp/eventnest-home.html').read_text()
+          assert all(name in html for name in ['integrations.index', 'api.v1.occurrences', 'designs.homepage']), 'Updated application routes were not served'
           print('Deployed health and restored-route checks passed.')
           PY

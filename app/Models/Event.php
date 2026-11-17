@@ -14,7 +14,7 @@ class Event extends Model
     protected $fillable = ['template_id', 'event_data'];
 
     protected $casts = [
-        'event_data' => 'array', 'starts_at' => 'datetime', 'ends_at' => 'datetime', 'synced_at' => 'datetime',
+        'local_overrides' => 'array', 'source_snapshot' => 'array', 'all_day' => 'boolean', 'recurrence' => 'array', 'event_data' => 'array', 'starts_at' => 'datetime', 'ends_at' => 'datetime', 'synced_at' => 'datetime',
     ];
 
     public function template(): BelongsTo
