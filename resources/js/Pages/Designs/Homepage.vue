@@ -364,8 +364,8 @@ const events = [
                 <span class="n-number">01—03</span>
                 <div>
                     <h2>
-                        The less glamorous<br />part of a great event?<br /><span
-                            >Getting it organised.</span
+                        Behind every<br />full programme:<br /><span
+                            >A lot of organising.</span
                         >
                     </h2>
                     <p>

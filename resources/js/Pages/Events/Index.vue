@@ -165,6 +165,18 @@ const tableFilters = () => {
         { preserveState: true, preserveScroll: true, replace: true },
     );
 };
+const setUndated = (undated) =>
+    router.get(
+        route("events.index"),
+        {
+            search: search.value,
+            source: source.value,
+            template: template.value,
+            status: status.value,
+            undated: undated ? 1 : undefined,
+        },
+        { preserveState: true, preserveScroll: true },
+    );
 let timer;
 watch([search, source, template, status], () => {
     clearTimeout(timer);
@@ -365,11 +377,7 @@ const remove = (event) => {
                         class="workspace-secondary"
                         @click="
                             view = 'table';
-                            router.get(
-                                route('events.index'),
-                                { undated: 1 },
-                                { preserveState: true },
-                            );
+                            setUndated(true);
                         "
                     >
                         Undated ({{ undatedCount }})
@@ -516,13 +524,7 @@ const remove = (event) => {
                 <button
                     v-if="filters.undated"
                     class="m-4 workspace-secondary"
-                    @click="
-                        router.get(
-                            route('events.index'),
-                            {},
-                            { preserveState: true },
-                        )
-                    "
+                    @click="setUndated(false)"
                 >
                     Show dated and undated events
                 </button>
