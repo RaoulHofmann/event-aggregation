@@ -48,4 +48,7 @@ Goal: create native EventNest events and connect external hosts, with one manage
 ## Editor usability and homepage studies
 - [x] Wide template editor with field search, column placement and live layout preview; wider custom-field editor with sample control preview.
 - [x] Three responsive public homepage studies at /designs/homepage; current homepage retained for comparison.
-- [ ] Choose a homepage direction before replacing the main landing page.
+- [x] Noticeboard selected and promoted to the main homepage, with API examples/docs and WIP/free-access disclosure.
+
+- [x] Template-aware event editor with section navigation, wider layout, local import notices and validation routing.
+- [x] Minimal dashboard retained with subtle warm brand accents.

@@ -37,3 +37,11 @@
         @apply text-xs font-semibold uppercase tracking-widest text-slate-500;
     }
 }
+
+/* Warm brand accents without changing the workspace's neutral surfaces. */
+#main-content .workspace-primary {
+    background: #3b3029;
+}
+#main-content .workspace-primary:hover {
+    background: #7d392b;
+}

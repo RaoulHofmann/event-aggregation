@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from "vue";
+import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import {
     CalendarDays,
     LayoutDashboard,
@@ -15,11 +15,11 @@ import {
     LogOut,
     Check,
     Plus,
-} from 'lucide-vue-next';
-import EventNestMark from '@/Components/EventNestMark.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-defineProps({ title: { type: String, default: 'Workspace' } });
+} from "lucide-vue-next";
+import EventNestMark from "@/Components/EventNestMark.vue";
+import Dropdown from "@/Components/Dropdown.vue";
+import DropdownLink from "@/Components/DropdownLink.vue";
+defineProps({ title: { type: String, default: "Workspace" } });
 const page = usePage(),
     user = computed(() => page.props.auth.user),
     mobileOpen = ref(false);
@@ -28,23 +28,32 @@ watch(
     () => (mobileOpen.value = false),
 );
 const items = [
-    ['Overview', LayoutDashboard, 'dashboard', 'dashboard'],
-    ['Events', CalendarDays, 'events.index', 'events.*'],
-    ['Event templates', Layers, 'event-templates.index', 'event-templates.*'],
-    ['Custom fields', SlidersHorizontal, 'field-templates.index', 'field-templates.*'],
-    ['Integrations', PlugZap, 'integrations.index', 'integrations.*'],
-    ['API access', KeyRound, 'api-tokens.index', 'api-tokens.*'],
+    ["Overview", LayoutDashboard, "dashboard", "dashboard"],
+    ["Events", CalendarDays, "events.index", "events.*"],
+    ["Event templates", Layers, "event-templates.index", "event-templates.*"],
+    [
+        "Custom fields",
+        SlidersHorizontal,
+        "field-templates.index",
+        "field-templates.*",
+    ],
+    ["Integrations", PlugZap, "integrations.index", "integrations.*"],
+    ["API access", KeyRound, "api-tokens.index", "api-tokens.*"],
 ];
 const initials = computed(() =>
     user.value.name
-        .split(' ')
+        .split(" ")
         .map((n) => n[0])
         .slice(0, 2)
-        .join('')
+        .join("")
         .toUpperCase(),
 );
 const switchTeam = (t) =>
-    router.put(route('current-team.update'), { team_id: t.id }, { preserveState: false });
+    router.put(
+        route("current-team.update"),
+        { team_id: t.id },
+        { preserveState: false },
+    );
 </script>
 <template>
     <div class="min-h-screen bg-slate-50" @keydown.esc="mobileOpen = false">
@@ -60,17 +69,29 @@ const switchTeam = (t) =>
         />
         <aside
             id="workspace-navigation"
-            :class="mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-            class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-slate-950 text-slate-300 transition-transform motion-reduce:transition-none"
+            :class="
+                mobileOpen
+                    ? 'translate-x-0'
+                    : '-translate-x-full lg:translate-x-0'
+            "
+            class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-[#27231f] text-slate-300 transition-transform motion-reduce:transition-none"
         >
             <div class="flex h-24 items-center justify-between px-7">
-                <Link :href="route('dashboard')" class="flex items-center gap-3 text-xl font-bold text-white"
+                <Link
+                    :href="route('dashboard')"
+                    class="flex items-center gap-3 text-xl font-bold text-white"
                     ><EventNestMark class="size-9" />EventNest</Link
-                ><button class="p-2 lg:hidden" aria-label="Close navigation" @click="mobileOpen = false">
+                ><button
+                    class="p-2 lg:hidden"
+                    aria-label="Close navigation"
+                    @click="mobileOpen = false"
+                >
                     <X class="size-5" />
                 </button>
             </div>
-            <p class="px-7 pb-3 pt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            <p
+                class="px-7 pb-3 pt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500"
+            >
                 Workspace
             </p>
             <nav aria-label="Main navigation" class="space-y-1 px-4">
@@ -78,14 +99,18 @@ const switchTeam = (t) =>
                     v-for="item in items"
                     :key="item[2]"
                     :href="route(item[2])"
-                    :aria-current="route().current(item[3]) ? 'page' : undefined"
+                    :aria-current="
+                        route().current(item[3]) ? 'page' : undefined
+                    "
                     :class="
                         route().current(item[3])
-                            ? 'bg-emerald-400/10 text-emerald-300'
+                            ? 'bg-white/10 text-[#f4d5a9]'
                             : 'text-slate-400 hover:bg-white/5 hover:text-white'
                     "
                     class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium"
-                    ><component :is="item[1]" class="size-[18px]" />{{ item[0] }}</Link
+                    ><component :is="item[1]" class="size-[18px]" />{{
+                        item[0]
+                    }}</Link
                 >
             </nav>
             <div class="mx-7 my-7 border-t border-slate-800" />
@@ -106,13 +131,18 @@ const switchTeam = (t) =>
                                 class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold"
                                 >{{ initials }}</span
                             ><span class="min-w-0 flex-1"
-                                ><span class="block truncate text-sm text-white">{{ user.name }}</span
-                                ><span class="block truncate text-xs text-slate-500">{{
-                                    user.email
-                                }}</span></span
+                                ><span
+                                    class="block truncate text-sm text-white"
+                                    >{{ user.name }}</span
+                                ><span
+                                    class="block truncate text-xs text-slate-500"
+                                    >{{ user.email }}</span
+                                ></span
                             ><ChevronDown class="size-4" /></button></template
                     ><template #content
-                        ><DropdownLink :href="route('profile.show')">Your profile</DropdownLink>
+                        ><DropdownLink :href="route('profile.show')"
+                            >Your profile</DropdownLink
+                        >
                         <form @submit.prevent="router.post(route('logout'))">
                             <DropdownLink as="button">Log out</DropdownLink>
                         </form></template
@@ -133,20 +163,31 @@ const switchTeam = (t) =>
                         @click="mobileOpen = true"
                     >
                         <Menu class="size-5" /></button
-                    ><span class="hidden text-sm text-slate-400 sm:inline">Workspace /</span
-                    ><span class="truncate text-sm font-medium">{{ title }}</span>
+                    ><span class="hidden text-sm text-slate-400 sm:inline"
+                        >Workspace /</span
+                    ><span class="truncate text-sm font-medium">{{
+                        title
+                    }}</span>
                 </div>
-                <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" width="60"
+                <Dropdown
+                    v-if="$page.props.jetstream.hasTeamFeatures"
+                    width="60"
                     ><template #trigger
                         ><button
                             class="flex max-w-[220px] items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
                         >
-                            <span class="size-2 shrink-0 rounded-full bg-emerald-500" /><span
-                                class="truncate"
-                                >{{ user.current_team?.name || 'Choose workspace' }}</span
-                            ><ChevronDown class="size-4 shrink-0" /></button></template
+                            <span
+                                class="size-2 shrink-0 rounded-full bg-emerald-500"
+                            /><span class="truncate">{{
+                                user.current_team?.name || "Choose workspace"
+                            }}</span
+                            ><ChevronDown
+                                class="size-4 shrink-0"
+                            /></button></template
                     ><template #content
-                        ><p class="px-4 py-2 text-xs text-slate-500">Switch workspace</p>
+                        ><p class="px-4 py-2 text-xs text-slate-500">
+                            Switch workspace
+                        </p>
                         <button
                             v-for="team in user.all_teams"
                             :key="team.id"
@@ -185,7 +226,9 @@ const switchTeam = (t) =>
                 >
                     {{ $page.props.flash.error }}
                 </p>
-                <div v-if="$slots.header" class="mb-7"><slot name="header" /></div>
+                <div v-if="$slots.header" class="mb-7">
+                    <slot name="header" />
+                </div>
                 <slot />
             </main>
         </div>

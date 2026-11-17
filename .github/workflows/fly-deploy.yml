@@ -68,6 +68,6 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           html = Path('/tmp/eventnest-home.html').read_text()
-          assert all(name in html for name in ['integrations.index', 'api.v1.occurrences', 'designs.homepage']), 'Updated application routes were not served'
+          assert all(name in html for name in ['integrations.index', 'api.v1.occurrences', 'designs.homepage', 'docs.api']), 'Updated application routes were not served'
           print('Deployed health and restored-route checks passed.')
           PY

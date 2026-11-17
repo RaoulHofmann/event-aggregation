@@ -66,7 +66,7 @@ class EventController extends Controller
 
     public function preview(Request $request, EventOccurrences $occurrences)
     {
-        $data = $this->data($request);
+        $data = $this->data($request, false);
         $event = (new Event($data))->forceFill($this->canonical($request, $data['event_data']));
         $start = $event->starts_at ? CarbonImmutable::instance($event->starts_at) : now()->toImmutable();
 
@@ -105,7 +105,7 @@ class EventController extends Controller
         return EventResource::collection($events);
     }
 
-    private function data(Request $request): array
+    private function data(Request $request, bool $validateCustom = true): array
     {
         $data = $request->validate(['template_id' => ['nullable', Rule::exists('event_templates', 'id')->whereNull('deleted_at')], 'event_data' => ['present', 'array'], 'title' => ['sometimes', 'nullable', 'string', 'max:255'], 'description' => ['sometimes', 'nullable', 'string', 'max:100000'], 'location' => ['sometimes', 'nullable', 'string', 'max:5000'], 'status' => ['sometimes', 'in:draft,published,cancelled'], 'starts_at' => ['sometimes', 'nullable', 'date'], 'ends_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:starts_at'], 'timezone' => ['sometimes', 'nullable', 'timezone'], 'all_day' => ['sometimes', 'boolean'], 'recurrence' => ['nullable', 'array:frequency,interval,weekdays,monthly_mode,count,until'], 'recurrence.frequency' => ['required_with:recurrence', 'in:daily,weekly,monthly,yearly'], 'recurrence.interval' => ['required_with:recurrence', 'integer', 'min:1', 'max:100'], 'recurrence.count' => ['required_with:recurrence', 'integer', 'min:1', 'max:1000'], 'recurrence.until' => ['nullable', 'date_format:Y-m-d'], 'recurrence.weekdays' => ['sometimes', 'array', 'min:1', 'max:7'], 'recurrence.weekdays.*' => ['integer', 'between:1,7', 'distinct'], 'recurrence.monthly_mode' => ['sometimes', 'in:date,weekday']]);
         $template = ! empty($data['template_id']) ? EventTemplate::findOrFail($data['template_id']) : null;
@@ -129,16 +129,20 @@ class EventController extends Controller
         }
         $request->merge(['event_data' => $data['event_data']]);
         $rules = [];
+        $attributes = [];
         foreach (FieldTemplate::whereIn('id', $template?->fields ?? [])->get() as $field) {
             $type = match ($field->type) {
-                'number' => 'integer','decimal' => 'numeric','boolean' => 'boolean','date','datetime' => 'date','email' => 'email','url','image' => 'url',default => 'string'
+                'number' => 'integer','decimal' => 'numeric','boolean', 'checkbox' => 'boolean','date','datetime' => 'date','email' => 'email','url','image','file' => 'url',default => 'string'
             };
-            $rules['event_data.'.$field->field_id] = [$field->required && $field->type !== 'boolean' ? 'required' : 'nullable', $type];
+            $attributes['event_data.'.$field->field_id] = $field->label;
+            $rules['event_data.'.$field->field_id] = [$field->required && ! in_array($field->type, ['boolean', 'checkbox']) ? 'required' : 'nullable', $type];
             if ($field->type === 'select') {
                 $rules['event_data.'.$field->field_id][] = Rule::in(is_array($field->options) ? $field->options : (json_decode($field->options ?? '[]', true) ?: []));
             }
         }
-        $request->validate($rules);
+        if ($validateCustom) {
+            $request->validate($rules, [], $attributes);
+        }
 
         if ($request->input('status') === 'published' || $request->filled('recurrence')) {
             $request->validate(['title' => ['required', 'string'], 'starts_at' => ['required', 'date'], 'timezone' => ['required', 'timezone']]);

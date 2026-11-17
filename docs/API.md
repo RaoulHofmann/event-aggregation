@@ -6,7 +6,7 @@ Filters: `source=eventnest|humanitix`, `status=draft|published|cancelled`, inclu
 
 Each event includes canonical title, description, start/end timestamps, IANA timezone, location, status, source metadata, template and custom fields. UTC timestamps and the event timezone are separate. Drafts are included for authenticated integrations; use `status=published` for a public listing.
 
-The legacy `/api/events` remains available with template ID/name filtering and grouped responses. Native events are managed in EventNest. Imported events are edited at their source. Regenerate Swagger documentation with `php artisan l5-swagger:generate`.
+The legacy `/api/events` remains available with template ID/name filtering and grouped responses. Native events are managed in EventNest. Imported events can be edited locally with protected overrides; no changes are sent to Humanitix. Regenerate Swagger documentation with `php artisan l5-swagger:generate`.
 
 ### Calendar occurrences
 

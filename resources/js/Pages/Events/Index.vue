@@ -612,7 +612,7 @@ const remove = (event) => {
                 </nav>
             </div>
         </section>
-        <Modal :show="showForm" max-width="3xl" @close="showForm = false"
+        <Modal :show="showForm" max-width="7xl" @close="showForm = false"
             ><Handler
                 v-if="showForm"
                 :event="selected"

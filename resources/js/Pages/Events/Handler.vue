@@ -2,7 +2,13 @@
 import { computed, ref, watch } from "vue";
 import axios from "axios";
 import { Link, useForm } from "@inertiajs/vue3";
-import { CalendarDays, X, ArrowRight } from "lucide-vue-next";
+import { CalendarDays, X, ArrowRight, Layers } from "lucide-vue-next";
+const section = ref("details");
+const sections = [
+    { id: "details", label: "Event details" },
+    { id: "schedule", label: "Schedule & repeat" },
+    { id: "custom", label: "Custom fields" },
+];
 const props = defineProps({
         event: Object,
         templates: Array,
@@ -27,7 +33,9 @@ const form = useForm({
         props.event?.event_data?.title ||
         props.event?.event_data?.name ||
         "",
-    template_id: props.event?.template_id || "",
+    template_id: props.templates.some((t) => t.id === props.event?.template_id)
+        ? props.event.template_id
+        : "",
     event_data: JSON.parse(JSON.stringify(props.event?.event_data || {})),
     starts_at:
         local(props.event?.starts_at) ||
@@ -145,21 +153,45 @@ watch(repeat, (value) => {
         weekdays.value = [d.getDay() || 7];
     }
 });
-const fieldPosition = (f) => {
-    const column = template.value?.layout?.[1]?.includes(f.id) ? 1 : 0;
-    const list = activeFields.value.filter(
-        (item) =>
-            (template.value?.layout?.[1]?.includes(item.id) ? 1 : 0) === column,
-    );
-    return {
-        "--field-column": column + 1,
-        "--field-row": list.findIndex((item) => item.id === f.id) + 1,
-    };
+const fieldColumns = computed(() =>
+    [0, 1].map((column) =>
+        activeFields.value.filter(
+            (f) =>
+                (template.value?.layout?.[1]?.includes(f.id) ? 1 : 0) ===
+                column,
+        ),
+    ),
+);
+const hasBothColumns = computed(() =>
+    fieldColumns.value.every((column) => column.length),
+);
+const scheduleSummary = computed(() =>
+    form.starts_at ? form.starts_at.replace("T", " at ") : "No date set",
+);
+const showErrors = (errors) => {
+    section.value = errors.title
+        ? "details"
+        : Object.keys(errors).some((k) => k.startsWith("event_data."))
+          ? "custom"
+          : Object.keys(errors).some((k) =>
+                  [
+                      "starts_at",
+                      "ends_at",
+                      "timezone",
+                      "recurrence",
+                      "all_day",
+                  ].some((name) => k.startsWith(name)),
+              )
+            ? "schedule"
+            : "details";
 };
 const inputType = (f) =>
-        ({ datetime: "datetime-local", decimal: "number", image: "url" })[
-            f.type
-        ] || f.type,
+        ({
+            datetime: "datetime-local",
+            decimal: "number",
+            image: "url",
+            file: "url",
+        })[f.type] || f.type,
     options = (f) => {
         if (Array.isArray(f.options)) return f.options;
         try {
@@ -185,7 +217,10 @@ const previewDates = async () => {
     setRule();
     previewError.value = "";
     try {
-        const { data } = await axios.post(route("events.preview"), form.data());
+        const { data } = await axios.post(route("events.preview"), {
+            ...form.data(),
+            title: form.title || "Schedule preview",
+        });
         preview.value = data.data;
     } catch (e) {
         preview.value = [];
@@ -196,413 +231,983 @@ const previewDates = async () => {
     }
 };
 const submit = () => {
+    if (!form.title.trim()) {
+        form.setError("title", "Enter an event title.");
+        section.value = "details";
+        return;
+    }
     setRule();
     form[props.event?.id ? "put" : "post"](
         route(
             props.event?.id ? "events.update" : "events.store",
             props.event?.id,
         ),
-        { preserveScroll: true, onSuccess: () => emit("submit") },
+        {
+            preserveScroll: true,
+            onSuccess: () => emit("submit"),
+            onError: showErrors,
+        },
     );
 };
 </script>
 <template>
-    <div class="bg-white">
-        <div
-            class="flex items-center justify-between border-b border-slate-100 p-6"
-        >
-            <div class="flex items-center gap-3">
-                <CalendarDays class="size-5 text-emerald-700" />
-                <div>
-                    <h2 class="text-lg font-semibold">
-                        {{ event?.id ? "Edit event" : "Create an event" }}
-                    </h2>
-                    <p class="mt-1 text-xs text-slate-500">
-                        Give your next event a home in EventNest.
-                    </p>
-                </div>
-            </div>
-            <button aria-label="Close event form" @click="emit('cancel')">
-                <X class="size-5 text-slate-400" />
-            </button>
-        </div>
-        <form @submit.prevent="submit">
-            <div class="max-h-[65vh] space-y-6 overflow-y-auto p-6">
-                <p
-                    v-if="event?.source === 'humanitix'"
-                    class="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"
-                >
-                    Local EventNest edit. Changed fields are protected from
-                    future imports. No changes are sent to Humanitix.
+    <div class="event-editor">
+        <header class="editor-header">
+            <div>
+                <p class="editor-eyebrow">YOUR PROGRAMME</p>
+                <h2>{{ event?.id ? "Edit event" : "Create an event" }}</h2>
+                <p>
+                    Choose a template, set the date, and make the details yours.
                 </p>
-                <ul
-                    v-if="event?.source_snapshot?.mapping_warnings?.length"
-                    class="list-inside list-disc text-sm text-amber-800"
-                >
-                    <li
-                        v-for="warning in event.source_snapshot
-                            .mapping_warnings"
-                        :key="warning"
-                    >
-                        {{ warning }}
-                    </li>
-                </ul>
-                <div>
-                    <label for="event-title" class="workspace-label"
-                        >Event title *</label
-                    ><input
-                        id="event-title"
-                        v-model="form.title"
-                        class="workspace-input"
-                        required
-                        maxlength="255"
-                    />
-                </div>
-                <div>
-                    <label for="event-template" class="workspace-label"
-                        >Event template</label
-                    ><select
-                        id="event-template"
-                        :value="form.template_id"
-                        class="workspace-input"
-                        @change="switchTemplate"
-                    >
-                        <option value="">Basic event — no custom fields</option>
-                        <option
-                            v-for="t in templates"
-                            :key="t.id"
-                            :value="t.id"
+            </div>
+            <button
+                type="button"
+                aria-label="Close event form"
+                class="close-editor"
+                @click="emit('cancel')"
+            >
+                <X class="size-6" />
+            </button>
+        </header>
+        <form novalidate @submit.prevent="submit">
+            <div class="editor-workspace">
+                <aside class="editor-sidebar">
+                    <section>
+                        <label for="event-template" class="workspace-label"
+                            >Event template</label
+                        ><select
+                            id="event-template"
+                            :value="form.template_id"
+                            class="workspace-input"
+                            @change="switchTemplate"
                         >
-                            {{ t.name }}
-                        </option>
-                    </select>
-                </div>
-                <details open class="rounded-xl border border-slate-200 p-4">
-                    <summary class="cursor-pointer text-sm font-medium">
-                        Schedule and event details
-                    </summary>
-                    <div class="mt-5 grid gap-5 sm:grid-cols-2">
-                        <label
-                            class="flex items-center gap-2 text-sm sm:col-span-2"
-                            ><input
-                                v-model="form.all_day"
-                                type="checkbox"
-                                class="rounded text-emerald-700"
-                            />All-day event (end date is exclusive)</label
-                        >
-                        <div>
-                            <label for="event-start" class="workspace-label"
-                                >Starts</label
-                            ><input
-                                id="event-start"
-                                :value="
-                                    form.all_day
-                                        ? form.starts_at.slice(0, 10)
-                                        : form.starts_at
-                                "
-                                :type="form.all_day ? 'date' : 'datetime-local'"
-                                @input="
-                                    form.starts_at =
-                                        $event.target.value +
-                                        (form.all_day ? 'T00:00' : '')
-                                "
-                                class="workspace-input"
-                            />
-                        </div>
-                        <div>
-                            <label for="event-end" class="workspace-label"
-                                >Ends</label
-                            ><input
-                                id="event-end"
-                                :value="
-                                    form.all_day
-                                        ? form.ends_at.slice(0, 10)
-                                        : form.ends_at
-                                "
-                                :type="form.all_day ? 'date' : 'datetime-local'"
-                                @input="
-                                    form.ends_at =
-                                        $event.target.value +
-                                        (form.all_day ? 'T00:00' : '')
-                                "
-                                class="workspace-input"
-                            />
-                        </div>
-                        <div>
-                            <label for="event-timezone" class="workspace-label"
-                                >Timezone</label
-                            ><input
-                                id="event-timezone"
-                                v-model="form.timezone"
-                                class="workspace-input"
-                                placeholder="Australia/Perth"
-                            />
-                        </div>
-                        <div>
-                            <label for="event-status" class="workspace-label"
-                                >Status</label
-                            ><select
-                                id="event-status"
-                                v-model="form.status"
-                                class="workspace-input"
+                            <option value="">
+                                Basic event — no custom fields
+                            </option>
+                            <option
+                                v-for="t in templates"
+                                :key="t.id"
+                                :value="t.id"
                             >
-                                <option value="draft">Draft</option>
-                                <option value="published">Published</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label for="event-location" class="workspace-label"
-                                >Location</label
-                            ><input
-                                id="event-location"
-                                v-model="form.location"
-                                class="workspace-input"
-                            />
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label
-                                for="event-description"
-                                class="workspace-label"
-                                >Description</label
-                            ><textarea
-                                id="event-description"
-                                v-model="form.description"
-                                class="workspace-input"
-                                rows="3"
-                            />
-                        </div>
-                    </div>
-                </details>
-                <fieldset
-                    class="space-y-4 rounded-xl border border-slate-200 p-4"
-                >
-                    <legend class="px-1 text-sm font-medium">Repeat</legend>
-                    <label for="repeat-frequency" class="workspace-label"
-                        >Frequency</label
-                    >
-                    <select
-                        id="repeat-frequency"
-                        v-model="repeat"
-                        class="workspace-input"
-                    >
-                        <option value="">Does not repeat</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                    <div v-if="repeat" class="space-y-4">
-                        <p class="text-xs text-slate-500">
-                            Repeats at the same local time in
-                            {{ form.timezone }}. Invalid month-end or leap dates
-                            are skipped.
-                        </p>
-                        <label class="workspace-label"
-                            >Every N periods<input
-                                v-model="interval"
-                                type="number"
-                                min="1"
-                                max="100"
-                                required
-                                class="workspace-input"
-                        /></label>
-                        <div
-                            v-if="repeat === 'weekly'"
-                            class="flex flex-wrap gap-3"
-                        >
-                            <label
-                                v-for="(day, i) in [
-                                    'Mon',
-                                    'Tue',
-                                    'Wed',
-                                    'Thu',
-                                    'Fri',
-                                    'Sat',
-                                    'Sun',
-                                ]"
-                                :key="day"
-                                class="text-sm"
-                                ><input
-                                    v-model="weekdays"
-                                    type="checkbox"
-                                    :value="i + 1"
-                                />
-                                {{ day }}</label
-                            >
-                        </div>
-                        <label
-                            v-if="repeat === 'monthly'"
-                            class="workspace-label"
-                            >Monthly pattern<select
-                                v-model="monthlyMode"
-                                class="workspace-input"
-                            >
-                                <option value="date">Same day of month</option>
-                                <option value="weekday">
-                                    Same weekday position (for example, second
-                                    Tuesday)
-                                </option>
-                            </select></label
-                        >
-                        <label class="workspace-label"
-                            >Maximum occurrences<input
-                                v-model="count"
-                                type="number"
-                                min="1"
-                                max="1000"
-                                required
-                                class="workspace-input"
-                        /></label>
-                        <label class="workspace-label"
-                            >Until date (optional)<input
-                                v-model="until"
-                                type="date"
-                                class="workspace-input"
-                        /></label>
-                        <button
-                            type="button"
-                            class="workspace-secondary"
-                            @click="previewDates"
-                        >
-                            Preview next occurrences
-                        </button>
-                        <p
-                            v-if="previewError"
-                            role="alert"
-                            class="text-sm text-red-700"
-                        >
-                            {{ previewError }}
-                        </p>
-                        <ol
-                            v-if="preview.length"
-                            class="list-inside list-decimal text-sm text-slate-600"
-                        >
-                            <li v-for="p in preview" :key="p.id">
-                                {{
-                                    new Date(p.starts_at).toLocaleString(
-                                        undefined,
-                                        { timeZone: form.timezone },
-                                    )
-                                }}
-                                · {{ form.timezone }}
-                            </li>
-                        </ol>
-                        <p class="text-sm text-emerald-800">
-                            {{ repeat }} · every {{ interval }} · up to
-                            {{ count }} occurrences{{
-                                until ? `, ending by ${until}` : ""
+                                {{ t.name }}
+                            </option>
+                        </select>
+                        <p class="template-description">
+                            {{
+                                template?.description ||
+                                "Start with the essentials. Add a template when you need custom information."
                             }}
                         </p>
-                    </div>
-                </fieldset>
-                <p
-                    v-if="
-                        event &&
-                        !event.starts_at &&
-                        event.event_data?.start_date
-                    "
-                    role="status"
-                    class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900"
-                >
-                    This event has a legacy custom date. Confirm its start, end
-                    and timezone above before adding it to the calendar.
-                    Original custom data is preserved.
-                </p>
-                <div class="grid gap-5 sm:grid-cols-2">
-                    <div
-                        v-for="f in activeFields"
-                        :key="f.id"
-                        class="event-custom-field"
-                        :style="fieldPosition(f)"
-                    >
-                        <label
-                            :for="`event-field-${f.id}`"
-                            class="workspace-label"
-                            >{{ f.label }}{{ f.required ? " *" : "" }}</label
-                        ><textarea
-                            v-if="f.type === 'textarea'"
-                            :id="`event-field-${f.id}`"
-                            v-model="form.event_data[f.field_id]"
-                            :required="f.required"
-                            class="workspace-input"
-                            rows="4"
-                        /><select
-                            v-else-if="f.type === 'select'"
-                            :id="`event-field-${f.id}`"
-                            v-model="form.event_data[f.field_id]"
-                            class="workspace-input"
-                            :required="f.required"
-                        >
-                            <option value="">Choose an option</option>
-                            <option
-                                v-for="option in options(f)"
-                                :key="option"
-                                :value="option"
-                            >
-                                {{ option }}
-                            </option></select
-                        ><input
-                            v-else-if="f.type === 'boolean'"
-                            :id="`event-field-${f.id}`"
-                            v-model="form.event_data[f.field_id]"
-                            type="checkbox"
-                            class="rounded text-emerald-700"
-                        /><input
-                            v-else
-                            :id="`event-field-${f.id}`"
-                            v-model="form.event_data[f.field_id]"
-                            :type="inputType(f)"
-                            :required="f.required"
-                            :step="f.type === 'decimal' ? 'any' : undefined"
-                            class="workspace-input"
-                        />
-                        <p
-                            v-if="form.errors[`event_data.${f.field_id}`]"
-                            role="alert"
-                            class="mt-2 text-xs text-red-700"
-                        >
-                            {{ form.errors[`event_data.${f.field_id}`] }}
+                        <p class="template-count">
+                            {{ activeFields.length }} custom fields
                         </p>
+                    </section>
+                    <section>
+                        <label for="event-status" class="workspace-label"
+                            >Status</label
+                        ><select
+                            id="event-status"
+                            v-model="form.status"
+                            class="workspace-input"
+                        >
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <p class="template-description">
+                            Drafts can stay undated. Published events need a
+                            start date and timezone.
+                        </p>
+                    </section>
+                    <section class="editor-summary">
+                        <p class="editor-eyebrow">AT A GLANCE</p>
+                        <strong>{{ form.title || "Your next event" }}</strong>
+                        <p>{{ scheduleSummary }}</p>
+                        <p>{{ form.timezone }}</p>
+                        <p>
+                            {{ repeat ? "Repeats " + repeat : "One-off event" }}
+                        </p>
+                    </section>
+                    <p v-if="event?.source === 'humanitix'" class="import-note">
+                        Imported from Humanitix. Changed fields stay local and
+                        are protected on refresh. Nothing is sent back.
+                    </p>
+                    <p
+                        v-if="
+                            event &&
+                            !event.starts_at &&
+                            event.event_data?.start_date
+                        "
+                        class="import-note"
+                    >
+                        This event has a legacy custom date. Confirm its
+                        schedule and timezone before adding it to the calendar.
+                    </p>
+                </aside>
+                <div class="editor-main">
+                    <nav class="editor-tabs" aria-label="Event form sections">
+                        <button
+                            v-for="tab in sections"
+                            :key="tab.id"
+                            type="button"
+                            :aria-pressed="section === tab.id"
+                            :aria-controls="`event-section-${tab.id}`"
+                            @click="section = tab.id"
+                        >
+                            {{ tab.label
+                            }}<span v-if="tab.id === 'custom'">{{
+                                activeFields.length
+                            }}</span>
+                        </button>
+                    </nav>
+                    <div class="editor-content">
+                        <section
+                            v-show="section === 'details'"
+                            id="event-section-details"
+                            class="editor-section"
+                        >
+                            <div class="section-heading">
+                                <p class="editor-eyebrow">
+                                    01 / THE ESSENTIALS
+                                </p>
+                                <h3>What’s happening?</h3>
+                                <p>
+                                    The details people need to find your event.
+                                </p>
+                            </div>
+                            <div>
+                                <label for="event-title" class="workspace-label"
+                                    >Event title *</label
+                                ><input
+                                    id="event-title"
+                                    v-model="form.title"
+                                    class="workspace-input event-title-input"
+                                    maxlength="255"
+                                    placeholder="Give your event a name"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    for="event-description"
+                                    class="workspace-label"
+                                    >Description</label
+                                ><textarea
+                                    id="event-description"
+                                    v-model="form.description"
+                                    class="workspace-input"
+                                    rows="6"
+                                    placeholder="What can people expect?"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    for="event-location"
+                                    class="workspace-label"
+                                    >Location</label
+                                ><input
+                                    id="event-location"
+                                    v-model="form.location"
+                                    class="workspace-input"
+                                    placeholder="Venue, address or online location"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                class="workspace-secondary"
+                                @click="section = 'schedule'"
+                            >
+                                Next: schedule & repeat
+                                <ArrowRight class="size-4" />
+                            </button>
+                        </section>
+                        <section
+                            v-show="section === 'schedule'"
+                            id="event-section-schedule"
+                            class="editor-section"
+                        >
+                            <div class="section-heading">
+                                <p class="editor-eyebrow">02 / SAVE THE DATE</p>
+                                <h3>When is it on?</h3>
+                                <p>
+                                    Keep a single date or plan a repeating
+                                    series.
+                                </p>
+                            </div>
+                            <label class="all-day-toggle"
+                                ><input
+                                    v-model="form.all_day"
+                                    type="checkbox"
+                                />All-day event<span v-if="form.all_day"
+                                    >End date is exclusive.</span
+                                ></label
+                            >
+                            <div class="schedule-grid">
+                                <div>
+                                    <label
+                                        for="event-start"
+                                        class="workspace-label"
+                                        >Starts</label
+                                    ><input
+                                        id="event-start"
+                                        :value="
+                                            form.all_day
+                                                ? form.starts_at.slice(0, 10)
+                                                : form.starts_at
+                                        "
+                                        :type="
+                                            form.all_day
+                                                ? 'date'
+                                                : 'datetime-local'
+                                        "
+                                        class="workspace-input"
+                                        @input="
+                                            form.starts_at =
+                                                $event.target.value +
+                                                (form.all_day ? 'T00:00' : '')
+                                        "
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        for="event-end"
+                                        class="workspace-label"
+                                        >Ends</label
+                                    ><input
+                                        id="event-end"
+                                        :value="
+                                            form.all_day
+                                                ? form.ends_at.slice(0, 10)
+                                                : form.ends_at
+                                        "
+                                        :type="
+                                            form.all_day
+                                                ? 'date'
+                                                : 'datetime-local'
+                                        "
+                                        class="workspace-input"
+                                        @input="
+                                            form.ends_at =
+                                                $event.target.value +
+                                                (form.all_day ? 'T00:00' : '')
+                                        "
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label
+                                    for="event-timezone"
+                                    class="workspace-label"
+                                    >Timezone</label
+                                ><input
+                                    id="event-timezone"
+                                    v-model="form.timezone"
+                                    class="workspace-input"
+                                    placeholder="Australia/Perth"
+                                />
+                            </div>
+                            <fieldset class="repeat-settings">
+                                <legend>Repeat settings</legend>
+                                <label
+                                    for="repeat-frequency"
+                                    class="workspace-label"
+                                    >Frequency</label
+                                ><select
+                                    id="repeat-frequency"
+                                    v-model="repeat"
+                                    class="workspace-input"
+                                >
+                                    <option value="">Does not repeat</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                                <div v-if="repeat" class="repeat-controls">
+                                    <p>
+                                        Repeats at the same local time in
+                                        {{ form.timezone }}. Invalid month-end
+                                        or leap dates are skipped.
+                                    </p>
+                                    <div class="schedule-grid">
+                                        <label class="workspace-label"
+                                            >Every N periods<input
+                                                v-model="interval"
+                                                type="number"
+                                                min="1"
+                                                max="100"
+                                                class="workspace-input" /></label
+                                        ><label class="workspace-label"
+                                            >Maximum occurrences<input
+                                                v-model="count"
+                                                type="number"
+                                                min="1"
+                                                max="1000"
+                                                class="workspace-input"
+                                        /></label>
+                                    </div>
+                                    <fieldset
+                                        v-if="repeat === 'weekly'"
+                                        class="weekday-options"
+                                    >
+                                        <legend>Repeat on</legend>
+                                        <label
+                                            v-for="(day, i) in [
+                                                'Mon',
+                                                'Tue',
+                                                'Wed',
+                                                'Thu',
+                                                'Fri',
+                                                'Sat',
+                                                'Sun',
+                                            ]"
+                                            :key="day"
+                                            ><input
+                                                v-model="weekdays"
+                                                type="checkbox"
+                                                :value="i + 1"
+                                            />{{ day }}</label
+                                        >
+                                    </fieldset>
+                                    <label
+                                        v-if="repeat === 'monthly'"
+                                        class="workspace-label"
+                                        >Monthly pattern<select
+                                            v-model="monthlyMode"
+                                            class="workspace-input"
+                                        >
+                                            <option value="date">
+                                                Same day of month
+                                            </option>
+                                            <option value="weekday">
+                                                Same weekday position (for
+                                                example, second Tuesday)
+                                            </option>
+                                        </select></label
+                                    ><label class="workspace-label"
+                                        >Until date (optional)<input
+                                            v-model="until"
+                                            type="date"
+                                            class="workspace-input" /></label
+                                    ><button
+                                        type="button"
+                                        class="workspace-secondary"
+                                        @click="previewDates"
+                                    >
+                                        Preview next occurrences
+                                    </button>
+                                    <p
+                                        v-if="previewError"
+                                        role="alert"
+                                        class="editor-error"
+                                    >
+                                        {{ previewError }}
+                                    </p>
+                                    <ol
+                                        v-if="preview.length"
+                                        class="occurrence-preview"
+                                    >
+                                        <li v-for="p in preview" :key="p.id">
+                                            {{
+                                                new Date(
+                                                    p.starts_at,
+                                                ).toLocaleString(undefined, {
+                                                    timeZone: form.timezone,
+                                                })
+                                            }}
+                                            · {{ form.timezone }}
+                                        </li>
+                                    </ol>
+                                </div>
+                            </fieldset>
+                            <button
+                                type="button"
+                                class="workspace-secondary"
+                                @click="section = 'custom'"
+                            >
+                                Next: custom fields
+                                <ArrowRight class="size-4" />
+                            </button>
+                        </section>
+                        <section
+                            v-show="section === 'custom'"
+                            id="event-section-custom"
+                            class="editor-section"
+                        >
+                            <div class="section-heading">
+                                <p class="editor-eyebrow">03 / YOUR TEMPLATE</p>
+                                <h3>
+                                    {{ template?.name || "Custom information" }}
+                                </h3>
+                                <p>
+                                    Fields follow your template’s layout.
+                                    Required fields are marked with an asterisk.
+                                </p>
+                            </div>
+                            <ul
+                                v-if="
+                                    event?.source_snapshot?.mapping_warnings
+                                        ?.length &&
+                                    !event?.local_overrides?.includes(
+                                        'event_data',
+                                    )
+                                "
+                                class="mapping-notes"
+                            >
+                                <li
+                                    v-for="warning in event.source_snapshot
+                                        .mapping_warnings"
+                                    :key="warning"
+                                >
+                                    {{ warning }}
+                                </li>
+                            </ul>
+                            <div
+                                v-if="!activeFields.length"
+                                class="no-custom-fields"
+                            >
+                                <Layers class="size-8" />
+                                <h4>The essentials are already covered.</h4>
+                                <p>
+                                    Use a basic event as it is, or choose a
+                                    template with custom fields from the panel.
+                                </p>
+                                <Link :href="route('event-templates.index')"
+                                    >Manage event templates
+                                    <ArrowRight class="size-4"
+                                /></Link>
+                            </div>
+                            <div
+                                v-else
+                                class="template-field-columns"
+                                :class="{ 'two-columns': hasBothColumns }"
+                            >
+                                <div
+                                    v-for="(column, i) in fieldColumns.filter(
+                                        (c) => c.length,
+                                    )"
+                                    :key="i"
+                                    class="template-field-column"
+                                >
+                                    <div
+                                        v-for="f in column"
+                                        :key="f.id"
+                                        @input="
+                                            form.clearErrors(
+                                                `event_data.${f.field_id}`,
+                                            )
+                                        "
+                                    >
+                                        <label
+                                            :for="`event-field-${f.id}`"
+                                            class="workspace-label"
+                                            >{{ f.label
+                                            }}{{
+                                                ["image", "file"].includes(
+                                                    f.type,
+                                                )
+                                                    ? " URL"
+                                                    : ""
+                                            }}{{
+                                                f.required ? " *" : ""
+                                            }}</label
+                                        ><textarea
+                                            v-if="f.type === 'textarea'"
+                                            :id="`event-field-${f.id}`"
+                                            v-model="
+                                                form.event_data[f.field_id]
+                                            "
+                                            class="workspace-input"
+                                            rows="5"
+                                        /><select
+                                            v-else-if="f.type === 'select'"
+                                            :id="`event-field-${f.id}`"
+                                            v-model="
+                                                form.event_data[f.field_id]
+                                            "
+                                            class="workspace-input"
+                                        >
+                                            <option value="">
+                                                Choose an option
+                                            </option>
+                                            <option
+                                                v-for="option in options(f)"
+                                                :key="option"
+                                                :value="option"
+                                            >
+                                                {{ option }}
+                                            </option></select
+                                        ><label
+                                            v-else-if="
+                                                [
+                                                    'boolean',
+                                                    'checkbox',
+                                                ].includes(f.type)
+                                            "
+                                            class="boolean-field"
+                                            ><input
+                                                :id="`event-field-${f.id}`"
+                                                v-model="
+                                                    form.event_data[f.field_id]
+                                                "
+                                                type="checkbox"
+                                            />Yes</label
+                                        ><input
+                                            v-else
+                                            :id="`event-field-${f.id}`"
+                                            v-model="
+                                                form.event_data[f.field_id]
+                                            "
+                                            :type="inputType(f)"
+                                            :step="
+                                                f.type === 'decimal'
+                                                    ? 'any'
+                                                    : undefined
+                                            "
+                                            class="workspace-input"
+                                        />
+                                        <p
+                                            v-if="
+                                                ['image', 'file'].includes(
+                                                    f.type,
+                                                )
+                                            "
+                                            class="field-help"
+                                        >
+                                            Link to a hosted image.
+                                        </p>
+                                        <p
+                                            v-if="
+                                                form.errors[
+                                                    `event_data.${f.field_id}`
+                                                ]
+                                            "
+                                            role="alert"
+                                            class="editor-error"
+                                        >
+                                            {{
+                                                form.errors[
+                                                    `event_data.${f.field_id}`
+                                                ]
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <div
+                            v-if="Object.keys(form.errors).length"
+                            class="validation-summary"
+                            role="alert"
+                        >
+                            <strong>Check these details before saving:</strong>
+                            <p v-for="(error, key) in form.errors" :key="key">
+                                {{ error }}
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <p
-                    v-for="(error, key) in form.errors"
-                    :key="key"
-                    role="alert"
-                    class="text-sm text-red-700"
-                >
-                    {{ error }}
-                </p>
             </div>
-            <div
-                class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5"
-            >
-                <button
-                    type="button"
-                    class="workspace-secondary"
-                    @click="emit('cancel')"
+            <footer class="editor-footer">
+                <span
+                    >{{
+                        form.status === "published"
+                            ? "Publish to your workspace and API"
+                            : "Save to your workspace"
+                    }}{{ repeat ? " · Repeating series" : "" }}</span
                 >
-                    Cancel</button
-                ><button class="workspace-primary" :disabled="form.processing">
-                    {{
-                        form.processing
-                            ? "Saving…"
-                            : event?.id
-                              ? "Save changes"
-                              : "Create event"
-                    }}
-                </button>
-            </div>
+                <div>
+                    <button
+                        type="button"
+                        class="workspace-secondary"
+                        @click="emit('cancel')"
+                    >
+                        Cancel</button
+                    ><button
+                        class="workspace-primary"
+                        :disabled="form.processing"
+                    >
+                        {{
+                            form.processing
+                                ? "Saving…"
+                                : event?.id
+                                  ? "Save changes"
+                                  : form.status === "published"
+                                    ? "Publish event"
+                                    : "Create event"
+                        }}
+                    </button>
+                </div>
+            </footer>
         </form>
     </div>
 </template>
-
 <style scoped>
-@media (min-width: 640px) {
-    .event-custom-field {
-        grid-column: var(--field-column);
-        grid-row: var(--field-row);
+.event-editor {
+    background: #fff4e4;
+    color: #27231f;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.event-editor .workspace-primary {
+    background: #3b3029;
+}
+.event-editor .workspace-primary:hover {
+    background: #7d392b;
+}
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 24px 30px;
+    border-bottom: 2px solid #27231f;
+}
+.editor-eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin: 0 0 10px;
+}
+.editor-header h2 {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.9px;
+    line-height: 1.2;
+    margin: 0 0 8px;
+}
+.editor-header > div > p:last-child {
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+    color: #66533d;
+}
+.close-editor {
+    padding: 8px;
+}
+.editor-workspace {
+    display: grid;
+    grid-template-columns: 290px minmax(0, 1fr);
+    max-height: calc(100dvh - 250px);
+    min-height: min(460px, calc(100dvh - 250px));
+    overflow-y: auto;
+}
+.editor-sidebar {
+    border-right: 1px solid #c7b596;
+    padding: 25px;
+    background: #f3e2c8;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    align-self: stretch;
+}
+.template-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #66533d;
+    margin-top: 14px;
+}
+.template-count {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 15px;
+}
+.editor-summary {
+    border-top: 2px solid #27231f;
+    padding-top: 20px;
+}
+.editor-summary > strong {
+    font-size: 20px;
+    line-height: 1.3;
+    display: block;
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
+}
+.editor-summary > p:not(.editor-eyebrow) {
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 5px 0;
+    overflow-wrap: anywhere;
+}
+.import-note {
+    font-size: 14px;
+    line-height: 1.8;
+    border: 1px solid #a7834d;
+    background: #f5d494;
+    padding: 15px;
+}
+.editor-main {
+    min-width: 0;
+}
+.editor-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #c7b596;
+    background: #fff4e4;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.editor-tabs button {
+    padding: 20px;
+    font-size: 15px;
+    font-weight: 700;
+    border-right: 1px solid #c7b596;
+    border-bottom: 3px solid transparent;
+    flex: 1;
+    white-space: nowrap;
+}
+.editor-tabs button[aria-pressed="true"] {
+    background: #f5be28;
+    border-bottom-color: #27231f;
+}
+.editor-tabs span {
+    display: inline-block;
+    font-size: 11px;
+    margin-left: 7px;
+}
+.editor-content {
+    padding: 30px;
+}
+.editor-section {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+.editor-section[style*="display: none"] {
+    display: none !important;
+}
+.section-heading h3 {
+    font-size: 27px;
+    line-height: 1.2;
+    letter-spacing: -0.9px;
+    font-weight: 900;
+    margin: 0 0 12px;
+}
+.section-heading > p:last-child {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #66533d;
+    margin: 0;
+}
+.event-title-input {
+    font-size: 20px;
+}
+.editor-section > .workspace-secondary {
+    align-self: flex-start;
+}
+.schedule-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.all-day-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+}
+.all-day-toggle > span {
+    font-size: 13px;
+    color: #66533d;
+}
+.repeat-settings {
+    border: 1px solid #ad9878;
+    padding: 20px;
+}
+.repeat-settings > legend {
+    font-weight: 700;
+    font-size: 16px;
+    padding: 0 8px;
+}
+.repeat-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    margin-top: 20px;
+}
+.repeat-controls > p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #66533d;
+}
+.weekday-options {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.weekday-options legend {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+.weekday-options label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 14px;
+}
+.occurrence-preview {
+    list-style: decimal;
+    padding-left: 22px;
+    font-size: 15px;
+    line-height: 1.9;
+}
+.template-field-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+}
+.template-field-columns.two-columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.template-field-column {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 26px;
+}
+.field-help {
+    font-size: 13px;
+    line-height: 1.7;
+    margin-top: 8px;
+    color: #66533d;
+}
+.boolean-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+.no-custom-fields {
+    padding: 28px;
+    border: 1px dashed #a7834d;
+    background: #f7e8d0;
+}
+.no-custom-fields h4 {
+    font-size: 21px;
+    line-height: 1.3;
+    font-weight: 800;
+    margin: 18px 0 15px;
+}
+.no-custom-fields p {
+    font-size: 16px;
+    line-height: 1.8;
+}
+.no-custom-fields a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: underline;
+    margin-top: 20px;
+}
+.mapping-notes {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #8b4017;
+    padding: 15px;
+    background: #f5dfb0;
+}
+.editor-error {
+    font-size: 14px;
+    color: #a42c19;
+    line-height: 1.7;
+    margin-top: 8px;
+}
+.validation-summary {
+    margin-top: 25px;
+    padding: 18px;
+    border: 1px solid #b5331e;
+    color: #9d2d1c;
+    font-size: 14px;
+    line-height: 1.8;
+}
+.editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    border-top: 2px solid #27231f;
+    padding: 18px 30px;
+    background: #fff4e4;
+}
+.editor-footer > span {
+    font-size: 13px;
+    color: #66533d;
+}
+.editor-footer > div {
+    display: flex;
+    gap: 12px;
+}
+.editor-workspace input[type="checkbox"] {
+    accent-color: #b5331e;
+    color: #b5331e;
+    border-radius: 2px;
+}
+@media (min-width: 1000px) {
+    .editor-sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        min-height: 100%;
+    }
+}
+@media (max-width: 800px) {
+    .editor-workspace {
+        grid-template-columns: 1fr;
+        max-height: calc(100dvh - 230px);
+        min-height: 0;
+    }
+    .editor-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid #c7b596;
+        padding: 20px;
+        gap: 20px;
+    }
+    .editor-summary {
+        display: none;
+    }
+    .editor-main {
+        overflow: visible;
+    }
+    .editor-content {
+        padding: 25px 20px;
+    }
+    .editor-tabs button {
+        padding: 16px 8px;
+        font-size: 13px;
+    }
+    .editor-header {
+        padding: 20px;
+    }
+    .editor-header h2 {
+        font-size: 25px;
+    }
+    .editor-header > div > p:last-child {
+        font-size: 14px;
+    }
+    .editor-footer {
+        padding: 15px 20px;
+    }
+    .editor-footer > span {
+        display: none;
+    }
+    .editor-footer > div {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .template-field-columns.two-columns,
+    .schedule-grid {
+        grid-template-columns: 1fr;
+    }
+    .all-day-toggle {
+        flex-wrap: wrap;
+    }
+    .editor-section {
+        gap: 22px;
+    }
+    .section-heading h3 {
+        font-size: 25px;
     }
 }
 </style>

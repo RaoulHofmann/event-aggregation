@@ -171,4 +171,16 @@ class EventCalendarTest extends TestCase
         $this->postJson('/events', ['title' => 'DST gap', 'event_data' => [], 'starts_at' => '2027-03-14T02:30', 'timezone' => 'America/New_York'])->assertUnprocessable()->assertJsonValidationErrors('starts_at');
         $this->postJson('/event-templates', ['name' => 'Invalid layout', 'fields' => [$field->id], 'layout' => [[], []]])->assertUnprocessable()->assertJsonValidationErrors('layout');
     }
+
+    public function test_schedule_preview_does_not_require_unfinished_custom_answers(): void
+    {
+        $this->workspace();
+        $field = FieldTemplate::create(['label' => 'Audience', 'field_id' => 'audience', 'type' => 'text', 'required' => true]);
+        $template = EventTemplate::create(['name' => 'Workshop', 'fields' => [$field->id], 'layout' => [[$field->id], []]]);
+        DB::select("SELECT set_config('search_path','public',false)");
+        $payload = ['title' => 'Preview only', 'template_id' => $template->id, 'event_data' => [], 'starts_at' => '2026-11-21T10:00', 'ends_at' => '2026-11-21T12:00', 'timezone' => 'Australia/Perth', 'recurrence' => ['frequency' => 'weekly', 'weekdays' => [6], 'interval' => 1, 'count' => 3]];
+        $this->postJson('/events/preview', $payload)->assertOk()->assertJsonCount(3, 'data');
+        $this->postJson('/events', $payload)->assertUnprocessable()->assertJsonValidationErrors('event_data.audience');
+        $this->getJson('/api/v1/events')->assertJsonPath('meta.total', 0);
+    }
 }

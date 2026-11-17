@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from "vue";
+import NoticeboardHome from "@/Components/NoticeboardHome.vue";
 import { Head } from "@inertiajs/vue3";
 import { ArrowUpRight, ArrowDown } from "lucide-vue-next";
 const choices = [
@@ -297,100 +298,7 @@ const events = [
                 /></a>
             </footer>
         </main>
-        <main v-else class="noticeboard">
-            <header class="n-header">
-                <a href="/" class="n-logo"
-                    >eventnest<span
-                        ><ArrowUpRight
-                            class="inline-arrow"
-                            aria-hidden="true" /></span></a
-                ><span>GOOD THINGS NEED ORGANISING.</span>
-                <nav>
-                    <a href="/login">Sign in</a
-                    ><a href="/register"
-                        >Come on in
-                        <ArrowUpRight class="inline-arrow" aria-hidden="true"
-                    /></a>
-                </nav>
-            </header>
-            <section class="n-hero">
-                <div class="n-statement">
-                    <p>FOR EVERYONE WHO PUTS SOMETHING ON.</p>
-                    <h1>ONE DIARY.<br />ALL YOUR<br /><em>EVENTS.</em></h1>
-                    <p class="n-deck">
-                        A night at the gallery. A workshop round the corner. The
-                        big annual thing. Keep the whole lot together.
-                    </p>
-                    <a href="/register" class="n-button"
-                        >Get organised
-                        <ArrowUpRight class="inline-arrow" aria-hidden="true"
-                    /></a>
-                </div>
-                <div class="n-posters" aria-label="Example events">
-                    <article class="n-poster n-poster-one">
-                        <div>
-                            <span>SAT / 21 NOV</span><span>EXAMPLE EVENT</span>
-                        </div>
-                        <h2>AFTER<br />HOURS.</h2>
-                        <p>Art. A drink. A good look around.</p>
-                        <footer>
-                            <span>NORTHBRIDGE / 6 PM</span
-                            ><span
-                                >Humanitix
-                                <ArrowUpRight
-                                    class="inline-arrow"
-                                    aria-hidden="true"
-                            /></span>
-                        </footer>
-                    </article>
-                    <article class="n-poster n-poster-two">
-                        <div>
-                            <span>SUN / 22 NOV</span><span>EXAMPLE EVENT</span>
-                        </div>
-                        <h2>Pull up<br />a chair.</h2>
-                        <footer>
-                            <span>FREMANTLE / NOON</span
-                            ><span>Made in EventNest</span>
-                        </footer>
-                    </article>
-                </div>
-            </section>
-            <section class="n-strip">
-                <span>MAKE IT HERE.</span><span aria-hidden="true">×</span
-                ><span>BRING IT FROM HUMANITIX.</span
-                ><span aria-hidden="true">×</span><span>KEEP IT TOGETHER.</span>
-            </section>
-            <section class="n-explainer">
-                <span class="n-number">01—03</span>
-                <div>
-                    <h2>
-                        Behind every<br />full programme:<br /><span
-                            >A lot of organising.</span
-                        >
-                    </h2>
-                    <p>
-                        EventNest gives you one workspace for the dates,
-                        descriptions, venues and custom details. Import from
-                        Humanitix or start from scratch. Edit locally, plan the
-                        repeats, and share the data through one API.
-                    </p>
-                    <a href="/register" class="n-button"
-                        >Give your programme a home
-                        <ArrowUpRight class="inline-arrow" aria-hidden="true"
-                    /></a>
-                </div>
-            </section>
-            <footer class="n-footer">
-                <a href="/"
-                    >eventnest
-                    <ArrowUpRight class="inline-arrow" aria-hidden="true" /></a
-                ><span>FOR THE THINGS THAT BRING PEOPLE OUT.</span
-                ><a href="/login"
-                    >Already here? Sign in
-                    <ArrowUpRight class="inline-arrow" aria-hidden="true"
-                /></a>
-            </footer>
-        </main>
+        <NoticeboardHome v-else />
         <div class="study-footnote">
             {{ choices.find((c) => c.id === concept).description }} Sample event
             listings are illustrative.
