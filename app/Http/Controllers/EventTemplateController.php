@@ -2,75 +2,51 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\EventTemplate;
-use App\Models\FieldTemplate;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class EventTemplateController extends Controller
 {
     public function index()
     {
-        return Inertia::render('EventTemplates/Index', [
-            'event-templates' => EventTemplate::orderBy('name')->get()->values(),
-        ]);
+        return Inertia::render('EventTemplates/Index', ['eventTemplates' => EventTemplate::orderBy('name')->get()]);
     }
 
     public function get()
     {
-        return EventTemplate::orderBy('name')->get()->values();
+        return EventTemplate::orderBy('name')->get();
+    }
+
+    private function data(Request $request, ?EventTemplate $template = null): array
+    {
+        return $request->validate(['name' => ['required', 'string', 'max:255', Rule::unique('event_templates')->ignore($template?->id)], 'description' => ['nullable', 'string'], 'fields' => ['required', 'array', 'min:1'], 'fields.*' => ['integer', 'exists:field_templates,id'], 'layout' => ['required', 'array'], 'layout.*' => ['array']]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:event_templates,name',
-            'description' => 'nullable|string',
-            'fields' => 'required|array',
-            'fields.*' => 'exists:field_templates,id',
-            'layout' => 'required|array',
-        ]);
+        EventTemplate::create($this->data($request));
 
-        $fields = $validated['fields'];
-
-        // Convert image to base64 if it exists in fields
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $fields['image'] = base64_encode(file_get_contents($request->file('image')->path()));
-        }
-
-        EventTemplate::create([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'fields' => $fields,
-            'layout' => $validated['layout'],
-        ]);
-
-        session()->flash('success', 'Event template created successfully.');
+        return to_route('event-templates.index')->with('success', 'Template created.');
     }
 
     public function update(Request $request, EventTemplate $eventTemplate)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:event_templates,name,' . $eventTemplate->id,
-            'description' => 'nullable|string',
-            'fields' => 'required|array',
-            'fields.*' => 'exists:field_templates,id',
-        ]);
+        abort_unless($eventTemplate->source === 'eventnest', 403);
+        $eventTemplate->update($this->data($request, $eventTemplate));
 
-        $eventTemplate->update([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'fields' => $validated['fields'],
-        ]);
-
-        session()->flash('success', 'Event template updated successfully.');
+        return to_route('event-templates.index')->with('success', 'Template updated.');
     }
 
     public function destroy(EventTemplate $eventTemplate)
     {
-        $eventTemplate->delete();
+        abort_unless($eventTemplate->source === 'eventnest', 403);
+        if (Event::where('template_id', $eventTemplate->id)->exists()) {
+            return back()->withErrors(['delete' => 'Remove the events using this template first.']);
+        }$eventTemplate->delete();
 
-        return redirect()->route('event-templates.index')
-            ->with('success', 'Event template deleted successfully.');
+        return back()->with('success', 'Template removed.');
     }
 }

@@ -18,6 +18,12 @@
 - **Database**: PostgreSQL (multi-tenancy via schemas) or MySQL (single-tenant only)  
 - **Other Tools**: Inertia.js, Vite
 
+## Development and roadmap
+
+Requires PHP 8.5, Composer 2, Node/npm, and PostgreSQL for workspace schemas. Set `DB_CONNECTION=pgsql` and `DATABASE_URL` in an ignored local .env file, preserving APP_KEY. Run `composer install`, `npm ci`, `php artisan migrate`, `php artisan teams:migrate`, and `npm run build`. Start Laravel, the queue worker and scheduler as described in [docs/HUMANITIX.md](docs/HUMANITIX.md).
+
+Run tests only against a separate database: RefreshDatabase resets tables. See [TODO.md](TODO.md), [docs/API.md](docs/API.md), and [docs/HUMANITIX.md](docs/HUMANITIX.md). Humanitix is fixture-tested; live validation requires network access and an authorized key.
+
 ## Demo
 
 A live demo is available at: [https://event-aggregator.fly.dev](https://event-aggregator.fly.dev)  

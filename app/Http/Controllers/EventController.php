@@ -2,230 +2,100 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EventResource;
 use App\Models\Event;
-use App\Models\EventField;
 use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 class EventController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Events/Index', [
-            'events' => Event::latest()->get(),
-            'event-templates' => EventTemplate::orderBy('name')->get()->values(),
-            'field-templates' => FieldTemplate::orderBy('label')->get()->values(),
-        ]);
+        return Inertia::render('Events/Index', ['events' => Event::latest()->get(), 'eventTemplates' => EventTemplate::orderBy('name')->get(), 'fieldTemplates' => FieldTemplate::orderBy('label')->get(), 'openCreate' => request()->boolean('create')]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/events",
-     *     summary="Get a list of events",
-     *     description="Retrieves a list of events, optionally filtered by template ID or template name, and grouped by template name if no filters are applied.",
-     *     operationId="getEvents",
-     *     tags={"Events"},
-     *     security={{"apiKey": {}}},
-     *     @OA\Parameter(
-     *         name="template_id",
-     *         in="query",
-     *         description="Filter events by template ID",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="template_name",
-     *         in="query",
-     *         description="Filter events by template name (partial match)",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="limit",
-     *         in="query",
-     *         description="Limit the number of events returned",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="status",
-     *                 type="integer",
-     *                 example=200
-     *             ),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="boolean",
-     *                 example=false
-     *             ),
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string",
-     *                 example="Success"
-     *             ),
-     *             @OA\Property(
-     *                 property="total",
-     *                 type="integer",
-     *                 example=10
-     *             ),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\AdditionalProperties(
-     *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Event")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=204,
-     *         description="No events found",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="status",
-     *                 type="integer",
-     *                 example=204
-     *             ),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="boolean",
-     *                 example=false
-     *             ),
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string",
-     *                 example="No events found"
-     *             ),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items()
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Internal server error",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="status",
-     *                 type="integer",
-     *                 example=500
-     *             ),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="boolean",
-     *                 example=true
-     *             ),
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string",
-     *                 example="Internal server error"
-     *             ),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items()
-     *             )
-     *         )
-     *     )
-     * )
-     */
-    public function get(): JsonResponse
+    public function get(Request $request)
     {
-        try {
-            $events = Event::latest()
-                ->with('template:id,name')
-                ->when(request('template_id'), function($query, $templateId) {
-                    return $query->where('template_id', $templateId);
-                })
-                ->when(request('template_name'), function($query, $templateName) {
-                    return $query->whereHas('eventTemplate', function($q) use ($templateName) {
-                        $q->where('name', 'LIKE', "%{$templateName}%");
-                    });
-                })
-                ->latest()
-                ->when(request('limit'), function($query, $limit) {
-                    return $query->limit($limit);
-                })
-                ->get();
-
-            if ($events->isEmpty()) {
-                return response()->json([
-                    'status' => 204,
-                    'error' => false,
-                    'message' => 'No events found',
-                    'data' => []
-                ]);
-            }
-
-            $data = request('template_id') || request('template_name')
-                ? $events
-                : $events->groupBy('template.name');
-
-            return response()->json([
-                'status' => 200,
-                'error' => false,
-                'message' => 'Success',
-                'total' => $events->count(),
-                'data' => $data
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Event fetch failed: ' . $e->getMessage());
-
-            return response()->json([
-                'status' => 500,
-                'error' => true,
-                'message' => $e->getMessage(),
-                'data' => []
-            ], 500);
+        $filters = $request->validate(['template_id' => ['nullable', 'integer', 'min:1'], 'template_name' => ['nullable', 'string', 'max:255'], 'limit' => ['nullable', 'integer', 'min:1', 'max:1000']]);
+        $events = Event::with('template:id,name')->latest()
+            ->when($filters['template_id'] ?? null, fn ($q, $v) => $q->where('template_id', $v))
+            ->when($filters['template_name'] ?? null, fn ($q, $v) => $q->whereHas('template', fn ($q) => $q->where('name', 'LIKE', '%'.$v.'%')))
+            ->when($filters['limit'] ?? null, fn ($q, $v) => $q->limit($v))->get();
+        if ($events->isEmpty()) {
+            return response()->json(['status' => 204, 'error' => false, 'message' => 'No events found', 'data' => []]);
         }
+
+        return response()->json(['status' => 200, 'error' => false, 'message' => 'Success', 'total' => $events->count(), 'data' => ($filters['template_id'] ?? null) || ($filters['template_name'] ?? null) ? $events : $events->groupBy('template.name')]);
+    }
+
+    public function versioned(Request $request)
+    {
+        $filters = $request->validate(['source' => ['nullable', 'in:eventnest,humanitix'], 'status' => ['nullable', 'in:draft,published,cancelled'], 'starts_after' => ['nullable', 'date'], 'starts_before' => ['nullable', 'date'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'page' => ['nullable', 'integer', 'min:1']]);
+        $events = Event::with('template:id,name')
+            ->when($filters['source'] ?? null, fn ($q, $v) => $q->where('source', $v))
+            ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
+            ->when($filters['starts_after'] ?? null, fn ($q, $v) => $q->where('starts_at', '>=', $v))
+            ->when($filters['starts_before'] ?? null, fn ($q, $v) => $q->where('starts_at', '<=', $v))
+            ->orderByDesc('id')->paginate($filters['per_page'] ?? 25)->withQueryString();
+
+        return EventResource::collection($events);
+    }
+
+    private function data(Request $request): array
+    {
+        $data = $request->validate(['template_id' => ['required', 'exists:event_templates,id'], 'event_data' => ['required', 'array'], 'title' => ['sometimes', 'nullable', 'string', 'max:255'], 'description' => ['sometimes', 'nullable', 'string', 'max:100000'], 'location' => ['sometimes', 'nullable', 'string', 'max:5000'], 'status' => ['sometimes', 'in:draft,published,cancelled'], 'starts_at' => ['sometimes', 'nullable', 'date'], 'ends_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:starts_at'], 'timezone' => ['sometimes', 'nullable', 'timezone']]);
+        $template = EventTemplate::findOrFail($data['template_id']);
+        abort_unless($template->source === 'eventnest', 403, 'This template is managed by its provider.');
+        $rules = [];
+        foreach (FieldTemplate::whereIn('id', $template->fields ?? [])->get() as $field) {
+            $type = match ($field->type) {
+                'number' => 'integer','decimal' => 'numeric','boolean' => 'boolean','date','datetime' => 'date','email' => 'email','url','image' => 'url',default => 'string'
+            };
+            $rules['event_data.'.$field->field_id] = [$field->required && $field->type !== 'boolean' ? 'required' : 'nullable', $type];
+            if ($field->type === 'select') {
+                $rules['event_data.'.$field->field_id][] = Rule::in(is_array($field->options) ? $field->options : (json_decode($field->options ?? '[]', true) ?: []));
+            }
+        }
+        $request->validate($rules);
+
+        return ['template_id' => $data['template_id'], 'event_data' => $data['event_data']];
+    }
+
+    private function canonical(Request $request, array $data): array
+    {
+        $title = $request->input('title') ?: ($data['title'] ?? $data['name'] ?? null);
+
+        return ['title' => is_string($title) ? mb_substr($title, 0, 255) : null, 'description' => $request->input('description'), 'location' => $request->input('location'), 'status' => $request->input('status', 'draft'), 'timezone' => $request->input('timezone'),
+            'starts_at' => $request->filled('starts_at') ? CarbonImmutable::parse($request->input('starts_at'), $request->input('timezone') ?: 'UTC')->utc() : null,
+            'ends_at' => $request->filled('ends_at') ? CarbonImmutable::parse($request->input('ends_at'), $request->input('timezone') ?: 'UTC')->utc() : null];
     }
 
     public function store(Request $request)
     {
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'template_id' => 'required|exists:event_templates,id',
-            'event_data' => 'required|array',
-        ]);
+        $data = $this->data($request);
+        DB::transaction(fn () => Event::create($data)->forceFill($this->canonical($request, $data['event_data']))->save());
 
-        Event::create($validated);
-
-        return redirect()->route('events.index')->with('success', 'Event created successfully.');
+        return to_route('events.index')->with('success', 'Event created successfully.');
     }
 
     public function update(Request $request, Event $event)
     {
-        $validated = $request->validate([
-            'template_id' => 'required|exists:event_templates,id',
-            'event_data' => 'required|array',
-        ]);
+        abort_unless($event->source === 'eventnest', 403, 'Edit this event at its source provider.');
+        $data = $this->data($request);
+        $event->fill($data)->forceFill($this->canonical($request, $data['event_data']))->save();
 
-        // Update the event
-        $event->update($validated);
-
-        return redirect()->route('events.index')->with('success', 'Event updated successfully.');
+        return to_route('events.index')->with('success', 'Event updated successfully.');
     }
 
-    // Remove the specified event from storage
     public function destroy(Event $event)
     {
-        // Delete the event
         $event->delete();
 
-        // Redirect back with a success message
-        return redirect()->route('events.index')->with('success', 'Event deleted successfully.');
+        return to_route('events.index')->with('success','Event removed from EventNest.');
     }
 }

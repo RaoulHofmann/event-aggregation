@@ -2,104 +2,58 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
-use App\Models\Team;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 trait SchemaManagement
 {
-    /**
-     * Create a new schema for the team if it doesn't exist.
-     *
-     * @param string $schemaName
-     * @return void
-     */
-    public function createSchema(string $schemaName): void
+    private function safeSchema(string $name): void
     {
-        // Check if schema already exists
-        if ($this->schemaExists($schemaName)) {
-            Log::info("Schema '$schemaName' already exists.");
-            return;
+        if ($name === '' || in_array($name, ['public', 'information_schema']) || str_starts_with($name, 'pg_')) {
+            throw new \InvalidArgumentException('Reserved schemas cannot be used as workspaces.');
         }
-
-        // Create the schema
-        DB::statement("CREATE SCHEMA IF NOT EXISTS \"$schemaName\"");
-
-        // Create the migration table for the schema
-        DB::statement("CREATE TABLE IF NOT EXISTS \"$schemaName\".migrations (
-            id serial PRIMARY KEY,
-            migration varchar(255) NOT NULL,
-            batch int NOT NULL
-        )");
-
-        Log::info("Schema '$schemaName' created successfully.");
     }
 
-    /**
-     * Check if the schema exists.
-     *
-     * @param string $schemaName
-     * @return bool
-     */
     public function schemaExists(string $schemaName): bool
     {
-        $result = DB::select("SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?", [$schemaName]);
-
-        return !empty($result);
+        return (bool) DB::select('SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?', [$schemaName]);
     }
 
-    /**
-     * Set the search path to the provided schema.
-     *
-     * @param string $schemaName
-     * @return void
-     */
+    public function isTenantSchema(string $name): bool
+    {
+        return $name !== '' && ! in_array($name, ['public', 'information_schema']) && ! str_starts_with($name, 'pg_') && $this->schemaExists($name);
+    }
+
     public function setSchema(string $schemaName): void
     {
-        DB::statement("SET search_path TO \"$schemaName\", public");
+        $this->safeSchema($schemaName);
+        DB::select("SELECT set_config('search_path', ?, false)", ['"'.str_replace('"', '""', $schemaName).'", public']);
     }
 
-    /**
-     * Run migrations for the given schema.
-     *
-     * @param string $schemaName
-     * @return void
-     */
+    public function createSchema(string $schemaName): void
+    {
+        $this->safeSchema($schemaName);
+        $name = str_replace('"', '""', $schemaName);
+        DB::statement('CREATE SCHEMA IF NOT EXISTS "'.$name.'"');
+        DB::statement('CREATE TABLE IF NOT EXISTS "'.$name.'".migrations (id serial PRIMARY KEY, migration varchar(255) NOT NULL, batch int NOT NULL)');
+    }
+
     public function runMigrations(string $schemaName): void
     {
-        $this->setSchema($schemaName);
-
-        // Run migrations for the schema
-        Artisan::call('migrate', [
-            '--path' => 'database/migrations/schema',
-            '--force' => true,
-        ]);
-
-        Log::info("Migrations ran successfully for schema '$schemaName'.");
+        $previous = DB::selectOne("SELECT current_setting('search_path') AS path")->path;
+        try {
+            $this->setSchema($schemaName);
+            if (Artisan::call('migrate', ['--path' => 'database/migrations/schema', '--force' => true]) !== 0) {
+                throw new \RuntimeException('Workspace provisioning failed.');
+            }
+        } finally {
+            DB::select("SELECT set_config('search_path', ?, false)", [$previous]);
+        }
     }
 
-    /**
-     * Delete the schema and its associated tables.
-     *
-     * @param string $schemaName
-     * @return void
-     */
     public function deleteSchema(string $schemaName): void
     {
-        DB::statement("DROP SCHEMA IF EXISTS \"$schemaName\" CASCADE");
-
-        Log::info("Schema '$schemaName' deleted successfully.");
-    }
-
-    /**
-     * Check if the team already exists.
-     *
-     * @param string $teamName
-     * @return bool
-     */
-    public function teamExists(string $teamName): bool
-    {
-        return Team::where('name', $teamName)->exists();
+        $this->safeSchema($schemaName);
+        DB::statement('DROP SCHEMA IF EXISTS "'.str_replace('"', '""', $schemaName).'" CASCADE');
     }
 }

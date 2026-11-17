@@ -10,7 +10,10 @@ import PrimeVue from 'primevue/config';
 // PrimeVue styles
 import 'primeicons/primeicons.css';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName =
+    import.meta.env.VITE_APP_NAME && import.meta.env.VITE_APP_NAME !== 'Laravel'
+        ? import.meta.env.VITE_APP_NAME
+        : 'EventNest';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

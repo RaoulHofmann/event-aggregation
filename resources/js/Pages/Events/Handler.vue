@@ -1,182 +1,200 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3'
-import {ref, computed, onMounted, defineProps} from "vue"
-
-const EVENT_TEMPLATES_API = 'api/event-templates'
-const FIELD_TEMPLATES_API = 'api/field-templates'
-
-const emit = defineEmits(['submit'])
-const props = defineProps({event: Object})
-
-const editMode = ref(!!props.event)
-const templates = ref([])
-const customFields = ref([])
-const loading = ref(true)
-
-const form = useForm( props.event ?? {
-    template_id: '',
-    event_data: {},
-})
-
-const fetchData = async (apiUrl) => (await axios.get(apiUrl)).data;
-
-
-onMounted(async () => {
-    try {
-        templates.value = await fetchData(EVENT_TEMPLATES_API)
-        customFields.value = await fetchData(FIELD_TEMPLATES_API)
-
-        if (props.event) {
-            form.template_id = props.event.template_id || '' // Fallback value
-            form.event_data = props.event.event_data || {}
+import { computed } from 'vue';
+import { Link, useForm } from '@inertiajs/vue3';
+import { CalendarDays, X, ArrowRight } from 'lucide-vue-next';
+const props = defineProps({ event: Object, templates: Array, fields: Array }),
+    emit = defineEmits(['submit', 'cancel']);
+const timezone = props.event?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    local = (v) =>
+        v ? new Date(v).toLocaleString('sv-SE', { timeZone: timezone }).slice(0, 16).replace(' ', 'T') : '';
+const form = useForm({
+    title: props.event?.title || props.event?.event_data?.title || props.event?.event_data?.name || '',
+    template_id: props.event?.template_id || '',
+    event_data: JSON.parse(JSON.stringify(props.event?.event_data || {})),
+    starts_at: local(props.event?.starts_at),
+    ends_at: local(props.event?.ends_at),
+    timezone,
+    status: props.event?.status || 'draft',
+    description: props.event?.description || '',
+    location: props.event?.location || '',
+});
+const template = computed(() => props.templates.find((t) => t.id === Number(form.template_id))),
+    activeFields = computed(() =>
+        (template.value?.fields || []).map((id) => props.fields.find((f) => f.id === id)).filter(Boolean),
+    );
+const inputType = (f) => ({ datetime: 'datetime-local', decimal: 'number', image: 'url' })[f.type] || f.type,
+    options = (f) => {
+        if (Array.isArray(f.options)) return f.options;
+        try {
+            return JSON.parse(f.options || '[]');
+        } catch {
+            return [];
         }
-    } catch (error) {
-        console.error('Failed to fetch data:', error)
-    }
-    loading.value = false
-})
-
-const findTemplateById = (id) => templates.value.find(template => template.id === id)
-const findCustomFieldById = (id) => customFields.value.find(field => field.id === id)
-
-const getTemplateFieldsData = (fieldIds) =>
-    fieldIds
-        .map(id => findCustomFieldById(id))
-        .filter(field => field)
-
-// Computed properties for form fields and layout
-const formFields = computed(() => {
-    const selectedTemplate = findTemplateById(form.template_id)
-    return selectedTemplate ? getTemplateFieldsData(selectedTemplate.fields) : []
-})
-
-const formLayout = computed(() => {
-    const selectedTemplate = findTemplateById(form.template_id)
-    return selectedTemplate?.layout || [[], []]
-})
-
-const handleTemplateChange = (newTemplateId) => {
-    form.event_data = formFields.value.reduce((eventData, field) => {
-        eventData[field.field_id] = field.default || ''
-        return eventData
-    }, {})
-}
-
-const submit = () => {
-    console.log(editMode.value)
-    const action = editMode.value ? 'put' : 'post'
-    const routeName = editMode.value ?
-        route('events.update', {event: form.id}) :
-        route('events.store')
-
-    form[action](routeName, {
-        preserveScroll: true,
-        onSuccess: () => {
-            form.reset()
-            emit('submit')
-        }
-    })
-}
-
-const getField = (fieldId) => {
-    return customFields.value.find(field => field.id === fieldId)
-}
+    };
+const submit = () =>
+    form[props.event ? 'put' : 'post'](
+        route(props.event ? 'events.update' : 'events.store', props.event?.id),
+        { preserveScroll: true, onSuccess: () => emit('submit') },
+    );
 </script>
-
 <template>
-    <div class="max-w-7xl mx-auto p-6 rounded-lg shadow bg-white">
-        <form @submit.prevent="submit" class="space-y-6">
-            <!-- Template Selection -->
-            <div>
-
-                <div v-if="loading" class="flex items-center justify-center">
-                    <span class="loader border-t-2 border-blue-500 rounded-full w-4 h-4 animate-spin"></span>
-                    <span class="ml-2 text-sm text-gray-500">Loading...</span>
+    <div class="bg-white">
+        <div class="flex items-center justify-between border-b border-slate-100 p-6">
+            <div class="flex items-center gap-3">
+                <CalendarDays class="size-5 text-emerald-700" />
+                <div>
+                    <h2 class="text-lg font-semibold">{{ event ? 'Edit event' : 'Create an event' }}</h2>
+                    <p class="mt-1 text-xs text-slate-500">Give your next event a home in EventNest.</p>
                 </div>
-                <template v-else>
-                    <label for="template" class="block text-sm font-medium text-gray-700">Select Template</label>
-                    <select  v-model="form.template_id" @change="handleTemplateChange"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Select Template</option>
-                        <option v-for="template in templates" :key="template.id" :value="template.id">
-                            {{ template.name }}
-                        </option>
-                    </select>
-                </template>
             </div>
-
-            <!-- Event Data Fields -->
-            <div v-if="formFields.length" class="space-y-6">
-                <h2 class="text-xl font-semibold text-gray-800">Event Data</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div v-for="(column, columnIndex) in formLayout" :key="columnIndex" class="space-y-4">
-                        <div v-for="fieldId in column" :key="fieldId" class="space-y-2">
-                            <template v-if="getField(fieldId)">
-                                <label class="block text-sm font-medium text-gray-700">{{
-                                        getField(fieldId).label
-                                    }}</label>
-
-                                <!-- Handle all field types -->
-                                <template
-                                    v-if="getField(fieldId).type === 'text' || getField(fieldId).type === 'email' || getField(fieldId).type === 'url'">
-                                    <input :type="getField(fieldId).type"
-                                           v-model="form.event_data[getField(fieldId).field_id]"
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                </template>
-                                <template v-else-if="getField(fieldId).type === 'textarea'">
-                                    <textarea v-model="form.event_data[getField(fieldId).field_id]" rows="3"
-                                              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                                </template>
-                                <template v-else-if="getField(fieldId).type === 'select'">
-                                    <select v-model="form.event_data[getField(fieldId).field_id]" :multiple="getField(fieldId).multiple ?? false"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option v-for="option in getField(fieldId).options" :key="option"
-                                                :value="option">{{ option }}
-                                        </option>
-                                    </select>
-                                </template>
-                                <template v-else-if="getField(fieldId).type === 'boolean' || getField(fieldId).type === 'checkbox'">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" v-model="form.event_data[getField(fieldId).field_id]"
-                                               class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                        <label class="ml-2 text-sm text-gray-700">{{ getField(fieldId).label }}</label>
-                                    </div>
-                                </template>
-                                <template
-                                    v-else-if="getField(fieldId).type === 'number' || getField(fieldId).type === 'decimal'">
-                                    <input type="number" v-model="form.event_data[getField(fieldId).field_id]"
-                                           :step="getField(fieldId).type === 'decimal' ? '0.01' : '1'"
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                </template>
-                                <template v-else-if="getField(fieldId).type === 'datetime'">
-                                    <input type="datetime-local" v-model="form.event_data[getField(fieldId).field_id]"
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                </template>
-                                <template v-else-if="getField(fieldId).type === 'date'">
-                                    <input type="date" v-model="form.event_data[getField(fieldId).field_id]"
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                </template>
-                                <template v-else-if="getField(fieldId).type === 'file'">
-                                    <input type="file" v-on:change="form.event_data[getField(fieldId).field_id]"
-                                           :accept="getField(fieldId)?.validation_rules[0] ?? 'png' "
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                </template>
-                                <template v-else>
-                                    <p class="text-red-500 text-sm">Unsupported field type: {{
-                                            getField(fieldId).type
-                                        }}</p>
-                                </template>
-                            </template>
+            <button aria-label="Close event form" @click="emit('cancel')">
+                <X class="size-5 text-slate-400" />
+            </button>
+        </div>
+        <div v-if="!templates.length" class="p-8 text-center">
+            <p class="text-sm text-slate-500">Create an event template first.</p>
+            <Link :href="route('event-templates.index')" class="workspace-primary mt-5"
+                >Manage templates<ArrowRight class="size-4"
+            /></Link>
+        </div>
+        <form v-else @submit.prevent="submit">
+            <div class="max-h-[65vh] space-y-6 overflow-y-auto p-6">
+                <div>
+                    <label for="event-title" class="workspace-label">Event title *</label
+                    ><input
+                        id="event-title"
+                        v-model="form.title"
+                        class="workspace-input"
+                        required
+                        maxlength="255"
+                    />
+                </div>
+                <div>
+                    <label for="event-template" class="workspace-label">Event template *</label
+                    ><select
+                        id="event-template"
+                        v-model="form.template_id"
+                        class="workspace-input"
+                        required
+                        @change="
+                            form.event_data = {};
+                            form.clearErrors();
+                        "
+                    >
+                        <option value="" disabled>Choose an event template</option>
+                        <option v-for="t in templates" :key="t.id" :value="t.id">{{ t.name }}</option>
+                    </select>
+                </div>
+                <details class="rounded-xl border border-slate-200 p-4">
+                    <summary class="cursor-pointer text-sm font-medium">Schedule and event details</summary>
+                    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label for="event-start" class="workspace-label">Starts</label
+                            ><input
+                                id="event-start"
+                                v-model="form.starts_at"
+                                type="datetime-local"
+                                class="workspace-input"
+                            />
+                        </div>
+                        <div>
+                            <label for="event-end" class="workspace-label">Ends</label
+                            ><input
+                                id="event-end"
+                                v-model="form.ends_at"
+                                type="datetime-local"
+                                class="workspace-input"
+                            />
+                        </div>
+                        <div>
+                            <label for="event-timezone" class="workspace-label">Timezone</label
+                            ><input
+                                id="event-timezone"
+                                v-model="form.timezone"
+                                class="workspace-input"
+                                placeholder="Australia/Perth"
+                            />
+                        </div>
+                        <div>
+                            <label for="event-status" class="workspace-label">Status</label
+                            ><select id="event-status" v-model="form.status" class="workspace-input">
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="event-location" class="workspace-label">Location</label
+                            ><input id="event-location" v-model="form.location" class="workspace-input" />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="event-description" class="workspace-label">Description</label
+                            ><textarea
+                                id="event-description"
+                                v-model="form.description"
+                                class="workspace-input"
+                                rows="3"
+                            />
                         </div>
                     </div>
+                </details>
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <div
+                        v-for="f in activeFields"
+                        :key="f.id"
+                        :class="f.type === 'textarea' ? 'sm:col-span-2' : ''"
+                    >
+                        <label :for="`event-field-${f.id}`" class="workspace-label"
+                            >{{ f.label }}{{ f.required ? ' *' : '' }}</label
+                        ><textarea
+                            v-if="f.type === 'textarea'"
+                            :id="`event-field-${f.id}`"
+                            v-model="form.event_data[f.field_id]"
+                            :required="f.required"
+                            class="workspace-input"
+                            rows="4"
+                        /><select
+                            v-else-if="f.type === 'select'"
+                            :id="`event-field-${f.id}`"
+                            v-model="form.event_data[f.field_id]"
+                            class="workspace-input"
+                            :required="f.required"
+                        >
+                            <option v-for="option in options(f)" :key="option" :value="option">
+                                {{ option }}
+                            </option></select
+                        ><input
+                            v-else-if="f.type === 'boolean'"
+                            :id="`event-field-${f.id}`"
+                            v-model="form.event_data[f.field_id]"
+                            type="checkbox"
+                            class="rounded text-emerald-700"
+                        /><input
+                            v-else
+                            :id="`event-field-${f.id}`"
+                            v-model="form.event_data[f.field_id]"
+                            :type="inputType(f)"
+                            :required="f.required"
+                            :step="f.type === 'decimal' ? 'any' : undefined"
+                            class="workspace-input"
+                        />
+                        <p
+                            v-if="form.errors[`event_data.${f.field_id}`]"
+                            role="alert"
+                            class="mt-2 text-xs text-red-700"
+                        >
+                            {{ form.errors[`event_data.${f.field_id}`] }}
+                        </p>
+                    </div>
                 </div>
+                <p v-for="(error, key) in form.errors" :key="key" role="alert" class="text-sm text-red-700">
+                    {{ error }}
+                </p>
             </div>
-
-            <!-- Submit Button -->
-            <div class="mt-6 flex justify-end">
-                <button :disabled="loading" type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md shadow-sm transition-colors">
-                    {{ editMode ? 'Update' : 'Create' }} Event
+            <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5">
+                <button type="button" class="workspace-secondary" @click="emit('cancel')">Cancel</button
+                ><button class="workspace-primary" :disabled="form.processing || !form.template_id">
+                    {{ form.processing ? 'Saving…' : event ? 'Save changes' : 'Create event' }}
                 </button>
             </div>
         </form>

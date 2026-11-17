@@ -1,0 +1,15 @@
+# Humanitix integration
+
+Humanitix is inbound-only. Workspace owners connect an API key through **Integrations**, where keys are masked, encrypted at rest and excluded from response serialization, validation flashes and queued payloads. Preserve the Laravel APP_KEY across restores. Never paste a real key into chat or commit it.
+
+The adapter calls the fixed HTTPS `api.humanitix.com/v1/events` endpoint using `x-api-key`, one-based `page`, `pageSize=100` and `inFutureOnly=false`. Redirects are disabled so keys cannot be forwarded to another host. Each page and its event identities are validated. The initial contract was checked against the public Humanitix OpenAPI 1.21.0 mirror at https://github.com/nrser/humanitix-client; current official documentation and live behavior still require verification.
+
+Mapping: `_id` to external ID, `name` to title, stripped description, startDate/endDate, timezone, eventLocation venue/address/online URL, published to published/draft status, and an HTTPS source URL. Imported events use a managed template and namespaced custom fields while also exposing the canonical v1 API fields. Identity is unique per connection/provider-event ID. Partial imports are safe to retry without duplicating completed records. Missing events are not inferred to be deleted or cancelled.
+
+Syncs run on the queue with three attempts and backoff. A unique job prevents overlapping work per connection. Terminal failures produce a safe visible error. Periodic refresh runs every 15 minutes while the scheduler is running. Disconnect removes the key and stops future syncs; imported records remain. Deleting an imported event hides it locally and later imports do not resurrect it. Updating an existing connection's key retains its IDs.
+
+After normal public migrations, run `php artisan teams:migrate` for existing workspaces. New workspaces are provisioned automatically. Development needs Laravel, `php artisan queue:work --sleep=3 --tries=3 --timeout=300`, and `php artisan schedule:work`. Queue visibility must exceed the job timeout; the default is 360 seconds. The production image includes supervised worker and scheduler processes. The Fly release command applies public and tenant migrations before the new version receives traffic. Up migrations are additive and retain existing custom event data.
+
+The Fly PHP version is pinned to 8.5. Existing scale-to-zero settings are unchanged: unattended scheduled refreshes require an always-on worker or external scheduler, with hosting costs reviewed before deployment. The old build-time wildcard proxy trust injection has been removed; configure explicit trusted proxies for a deployment when needed.
+
+Live Humanitix validation is pending. Allow `api.humanitix.com` and `platform.humanitix.com` in cloud network settings, then enter an authorized key through the app. Fixture tests are not a verified live integration. Cancellation/deletion signals, recurring-event expansion, webhooks and a second provider remain in TODO.md.

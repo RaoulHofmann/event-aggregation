@@ -4,39 +4,25 @@ namespace App\Http\Middleware;
 
 use App\Traits\SchemaManagement;
 use Closure;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class SetPostgresSchema
 {
     use SchemaManagement;
 
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
-     */
     public function handle($request, Closure $next)
     {
-        Log::info("Setting schema - Request path: " . $request->path());
+        DB::select("SELECT set_config('search_path', 'public', false)");
+        try {
+            $user = $request->user();
+            $team = $user?->currentTeam;
+            abort_unless($team && $user->belongsToTeam($team), 403, 'Select a workspace you belong to.');
+            abort_unless($this->isTenantSchema($team->schema_name), 403, 'Workspace not ready.');
+            $this->setSchema($team->schema_name);
 
-        if (Auth::check()) {
-            $user = Auth::user();
-            $team = $user->currentTeam;
-
-            if ($team) {
-                Log::info("Setting schema to: " . $team->schema_name);
-                $this->setSchema($team->schema_name);
-
-                // Let's verify the schema was set
-                $currentSchema = DB::select("SHOW search_path")[0]->search_path;
-                Log::info("Current schema is now: " . $currentSchema);
-            }
+            return $next($request);
+        } finally {
+            DB::select("SELECT set_config('search_path', 'public', false)");
         }
-
-        return $next($request);
     }
 }

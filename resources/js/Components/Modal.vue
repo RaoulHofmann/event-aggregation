@@ -16,23 +16,28 @@ const props = defineProps({
     },
 });
 
+let closeTimer;
 const emit = defineEmits(['close']);
 const dialog = ref();
 const showSlot = ref(props.show);
 
-watch(() => props.show, () => {
-    if (props.show) {
-        document.body.style.overflow = 'hidden';
-        showSlot.value = true;
-        dialog.value?.showModal();
-    } else {
-        document.body.style.overflow = null;
-        setTimeout(() => {
-            dialog.value?.close();
-            showSlot.value = false;
-        }, 200);
-    }
-});
+watch(
+    () => props.show,
+    () => {
+        clearTimeout(closeTimer);
+        if (props.show) {
+            document.body.style.overflow = 'hidden';
+            showSlot.value = true;
+            dialog.value?.showModal();
+        } else {
+            document.body.style.overflow = null;
+            closeTimer = setTimeout(() => {
+                dialog.value?.close();
+                showSlot.value = false;
+            }, 200);
+        }
+    },
+);
 
 const close = () => {
     if (props.closeable) {
@@ -50,32 +55,43 @@ const closeOnEscape = (e) => {
     }
 };
 
-onMounted(() => document.addEventListener('keydown', closeOnEscape));
+onMounted(() => {
+    document.addEventListener('keydown', closeOnEscape);
+    if (props.show) {
+        document.body.style.overflow = 'hidden';
+        dialog.value?.showModal();
+    }
+});
 
 onUnmounted(() => {
+    clearTimeout(closeTimer);
     document.removeEventListener('keydown', closeOnEscape);
     document.body.style.overflow = null;
 });
 
 const maxWidthClass = computed(() => {
     return {
-        'sm': 'sm:max-w-sm',
-        'md': 'sm:max-w-md',
-        'lg': 'sm:max-w-lg',
-        'xl': 'sm:max-w-xl',
+        sm: 'sm:max-w-sm',
+        md: 'sm:max-w-md',
+        lg: 'sm:max-w-lg',
+        xl: 'sm:max-w-xl',
         '2xl': 'sm:max-w-2xl',
         '3xl': 'sm:max-w-3xl',
         '4xl': 'sm:max-w-4xl',
         '5xl': 'sm:max-w-5xl',
         '6xl': 'sm:max-w-6xl',
         '7xl': 'sm:max-w-7xl',
-        '90': 'sm:max-w-90',
+        90: 'sm:max-w-90',
     }[props.maxWidth];
 });
 </script>
 
 <template>
-    <dialog class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent" ref="dialog">
+    <dialog
+        aria-label="EventNest dialog"
+        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+        ref="dialog"
+    >
         <div class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50" scroll-region>
             <transition
                 enter-active-class="ease-out duration-300"
@@ -98,8 +114,12 @@ const maxWidthClass = computed(() => {
                 leave-from-class="opacity-100 translate-y-0 sm:scale-100"
                 leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-                <div v-show="show" class="mb-6 container bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full sm:mx-auto" :class="maxWidthClass">
-                    <slot v-if="showSlot"/>
+                <div
+                    v-show="show"
+                    class="mb-6 container bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl transform transition-all sm:w-full sm:mx-auto"
+                    :class="maxWidthClass"
+                >
+                    <slot v-if="showSlot" />
                 </div>
             </transition>
         </div>

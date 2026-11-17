@@ -1,11 +1,11 @@
 <template>
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-        <div>
-            <slot name="logo" />
-        </div>
-
-        <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+    <main class="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-5 py-12">
+        <slot name="logo" />
+        <div
+            class="mt-8 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
+        >
             <slot />
         </div>
-    </div>
+        <p class="mt-6 text-xs text-slate-500">A home for all your events.</p>
+    </main>
 </template>

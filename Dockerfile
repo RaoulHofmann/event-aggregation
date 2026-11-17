@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:experimental
 
-ARG PHP_VERSION=8.2
+ARG PHP_VERSION=8.5
 ARG NODE_VERSION=18
 FROM ubuntu:22.04 as base
 LABEL fly_launch_runtime="laravel"
@@ -28,7 +28,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Prepare base container: 
 # 1. Install PHP, Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY .fly/php/ondrej_ubuntu_php.gpg /etc/apt/trusted.gpg.d/ondrej_ubuntu_php.gpg
+COPY --chmod=644 .fly/php/ondrej_ubuntu_php.gpg /etc/apt/trusted.gpg.d/ondrej_ubuntu_php.gpg
 ADD .fly/php/packages/${PHP_VERSION}.txt /tmp/php-packages.txt
 
 RUN apt-get update \
@@ -48,7 +48,7 @@ RUN apt-get update \
 COPY .fly/nginx/ /etc/nginx/
 COPY .fly/fpm/ /etc/php/${PHP_VERSION}/fpm/
 COPY .fly/supervisor/ /etc/supervisor/
-COPY .fly/entrypoint.sh /entrypoint
+COPY --chmod=755 .fly/entrypoint.sh /entrypoint
 COPY .fly/start-nginx.sh /usr/local/bin/start-nginx
 RUN chmod 754 /usr/local/bin/start-nginx
     
@@ -57,18 +57,12 @@ COPY . /var/www/html
 WORKDIR /var/www/html
 
 # 4. Setup application dependencies 
-RUN composer install --optimize-autoloader --no-dev \
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export COMPOSER_CAFILE=/run/secrets/proxy_ca; fi \
+    && composer install --optimize-autoloader --no-dev --no-interaction \
     && mkdir -p storage/logs \
-    && php artisan optimize:clear \
-    && chown -R www-data:www-data /var/www/html \
-    && echo "MAILTO=\"\"\n* * * * * www-data /usr/bin/php /var/www/html/artisan schedule:run" > /etc/cron.d/laravel \
-    && sed -i='' '/->withMiddleware(function (Middleware \$middleware) {/a\
-        \$middleware->trustProxies(at: "*");\
-    ' bootstrap/app.php; \ 
-    if [ -d .fly ]; then cp .fly/entrypoint.sh /entrypoint; chmod +x /entrypoint; fi;
-
-
-
+    && CACHE_STORE=array php artisan optimize:clear \
+    && chown -R www-data:www-data /var/www/html
 
 # Multi-stage build: Build static assets
 # This allows us to not include Node within the final container
@@ -85,7 +79,10 @@ COPY --from=base /var/www/html/vendor /app/vendor
 # lock file we might find. Defaults to
 # NPM if no lock file is found.
 # Note: We run "production" for Mix and "build" for Vite
-RUN if [ -f "vite.config.js" ]; then \
+RUN --mount=type=secret,id=proxy_ca \
+    set -e; \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    if [ -f "vite.config.js" ]; then \
         ASSET_CMD="build"; \
     else \
         ASSET_CMD="production"; \

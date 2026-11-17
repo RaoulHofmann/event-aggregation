@@ -1,92 +1,98 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Event Nest API",
-        "description": "API First Event Aggregator",
-        "contact": {
-            "email": "raoul@668558.xyz"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
-        "version": "0.0.1"
+        "title": "EventNest API",
+        "description": "Native and imported workspace events",
+        "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "https://event-aggregator.fly.dev/api",
-            "description": "API Server"
+            "url": "/",
+            "description": "Current EventNest server"
         }
     ],
     "paths": {
-        "/api/events": {
+        "/api/v1/events": {
             "get": {
-                "tags": [
-                    "Events"
-                ],
-                "summary": "Get a list of events",
-                "description": "Retrieves a list of events, optionally filtered by template ID or template name, and grouped by template name if no filters are applied.",
-                "operationId": "getEvents",
+                "summary": "List native and imported workspace events",
+                "operationId": "7f33096a817e7236930659cbf660accb",
                 "parameters": [
                     {
-                        "name": "template_id",
+                        "name": "source",
                         "in": "query",
-                        "description": "Filter events by template ID",
-                        "required": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string",
+                            "enum": [
+                                "eventnest",
+                                "humanitix"
+                            ]
                         }
                     },
                     {
-                        "name": "template_name",
+                        "name": "status",
                         "in": "query",
-                        "description": "Filter events by template name (partial match)",
-                        "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                                "draft",
+                                "published",
+                                "cancelled"
+                            ]
                         }
                     },
                     {
-                        "name": "limit",
+                        "name": "starts_after",
                         "in": "query",
-                        "description": "Limit the number of events returned",
-                        "required": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "starts_before",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 25,
+                            "maximum": 100,
+                            "minimum": 1
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful operation",
+                        "description": "Paginated events",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Success"
-                                        },
-                                        "total": {
-                                            "type": "integer",
-                                            "example": 10
-                                        },
                                         "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "array",
-                                                "items": {
-                                                    "$ref": "#/components/schemas/Event"
-                                                }
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CanonicalEvent"
                                             }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        },
+                                        "links": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -94,61 +100,33 @@
                             }
                         }
                     },
-                    "204": {
-                        "description": "No events found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "integer",
-                                            "example": 204
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "No events found"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {}
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "401": {
+                        "description": "Authentication required"
                     },
-                    "500": {
-                        "description": "Internal server error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "integer",
-                                            "example": 500
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Internal server error"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {}
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "403": {
+                        "description": "Read permission and workspace membership required"
+                    },
+                    "422": {
+                        "description": "Invalid filters"
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/events": {
+            "get": {
+                "summary": "Legacy template-grouped event listing",
+                "operationId": "90fe1c0b0cd23e4cf375c9229468c779",
+                "responses": {
+                    "200": {
+                        "description": "Legacy event response"
                     }
                 },
                 "security": [
@@ -161,27 +139,65 @@
     },
     "components": {
         "schemas": {
-            "Event": {
+            "CanonicalEvent": {
                 "properties": {
                     "id": {
-                        "type": "integer",
-                        "example": 1
+                        "type": "integer"
                     },
-                    "name": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
                         "type": "string",
-                        "example": "Sample Event"
+                        "nullable": true
                     },
-                    "template": {
+                    "starts_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "ends_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "cancelled"
+                        ]
+                    },
+                    "source": {
                         "properties": {
-                            "id": {
-                                "type": "integer",
-                                "example": 1
-                            },
-                            "name": {
+                            "provider": {
                                 "type": "string",
-                                "example": "Sample Template"
+                                "enum": [
+                                    "eventnest",
+                                    "humanitix"
+                                ]
+                            },
+                            "external_id": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "url": {
+                                "type": "string",
+                                "nullable": true
                             }
                         },
+                        "type": "object"
+                    },
+                    "custom_fields": {
                         "type": "object"
                     }
                 },
@@ -190,16 +206,10 @@
         },
         "securitySchemes": {
             "apiKey": {
-                "type": "apiKey",
-                "name": "Authorization",
-                "in": "header"
+                "type": "http",
+                "bearerFormat": "Sanctum token",
+                "scheme": "bearer"
             }
         }
-    },
-    "tags": [
-        {
-            "name": "Events",
-            "description": "API Endpoints for Events"
-        }
-    ]
+    }
 }

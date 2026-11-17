@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps({
+    upward: Boolean,
     align: {
         type: String,
         default: 'right',
@@ -29,7 +30,8 @@ onUnmounted(() => document.removeEventListener('keydown', closeOnEscape));
 
 const widthClass = computed(() => {
     return {
-        '48': 'w-48',
+        48: 'w-48',
+        60: 'w-60',
     }[props.width.toString()];
 });
 
@@ -48,7 +50,7 @@ const alignmentClasses = computed(() => {
 
 <template>
     <div class="relative">
-        <div @click="open = ! open">
+        <div @click="open = !open">
             <slot name="trigger" />
         </div>
 
@@ -66,8 +68,8 @@ const alignmentClasses = computed(() => {
             <div
                 v-show="open"
                 class="absolute z-50 mt-2 rounded-md shadow-lg"
-                :class="[widthClass, alignmentClasses]"
-                style="display: none;"
+                :class="[widthClass, alignmentClasses, upward ? 'bottom-full mb-2' : 'top-full']"
+                style="display: none"
                 @click="open = false"
             >
                 <div class="rounded-md ring-1 ring-black ring-opacity-5" :class="contentClasses">

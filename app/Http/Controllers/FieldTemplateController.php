@@ -2,89 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class FieldTemplateController extends Controller
 {
     public function index()
     {
-        return Inertia::render('FieldTemplates/Index', [
-            'field-templates' => FieldTemplate::orderBy('system_field', 'desc')->orderBy('label')->get()->values(),
-        ]);
+        return Inertia::render('FieldTemplates/Index', ['fieldTemplates' => FieldTemplate::orderBy('label')->get()]);
     }
 
     public function get()
     {
-        return FieldTemplate::orderBy('label')->get()->values();
+        return FieldTemplate::orderBy('label')->get();
+    }
+
+    private function data(Request $request, ?FieldTemplate $field = null): array
+    {
+        $rules = ['label' => ['required', 'string', 'max:255', Rule::unique('field_templates')->ignore($field?->id)], 'type' => ['required', 'in:text,number,date,datetime,email,url,select,boolean,textarea,decimal,image'], 'required' => ['boolean'], 'validation_rules' => ['nullable', 'array'], 'options' => ['nullable', 'array'], 'options.*' => ['string', 'max:255']];
+        if (! $field) {
+            $rules['field_id'] = ['required', 'string', 'max:255', 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/', 'unique:field_templates,field_id'];
+        }
+
+        return $request->validate($rules);
     }
 
     public function store(Request $request)
     {
-        // Log all request data to check what's coming through
-        Log::alert("Request Data", $request->all());
+        FieldTemplate::create($this->data($request));
 
-        $validated = $request->validate([
-            'label' => 'required|string|max:255|unique:field_templates,label',
-            'field_id' => 'required|string|max:255|unique:field_templates,field_id',
-            'type' => 'required|in:text,number,date,datetime,email,url,select,boolean,textarea,decimal,image',
-            'required' => 'boolean',
-            'validation_rules' => 'nullable|array',
-            'options' => 'nullable|array',
-            'options.*' => 'string|max:255',
-        ]);
-
-        // Create the new field template
-        FieldTemplate::create([
-            'label' => $validated['label'],
-            'field_id' => strtolower($validated['field_id']),
-            'type' => $validated['type'],
-            'required' => $validated['required'] ?? false,
-            'validation_rules' => $validated['validation_rules'] ?? null,
-            'options' => $validated['type'] === 'select'
-                ? json_encode($validated['options'])
-                : null,
-        ]);
-
-        // Flash success message
-        session()->flash('success', 'Field template created successfully.');
-
-        // Redirect back to the index page
-        return redirect()->route('field-templates.index');
+        return to_route('field-templates.index')->with('success', 'Field created.');
     }
 
     public function update(Request $request, FieldTemplate $fieldTemplate)
     {
-        $validated = $request->validate([
-            'label' => 'required|string|max:255|unique:field_templates,label,' . $fieldTemplate->id,
-            'type' => 'required|in:text,number,date,datetime,email,url,select,boolean,textarea,decimal',
-            'required' => 'boolean',
-            'validation_rules' => 'nullable|array',
-            'options' => 'nullable|array',
-            'options.*' => 'string|max:255',
-        ]);
+        abort_if($fieldTemplate->system_field, 403);
+        $fieldTemplate->update($this->data($request, $fieldTemplate));
 
-        $fieldTemplate->update([
-            'label' => $validated['label'],
-            'type' => $validated['type'],
-            'required' => $validated['required'] ?? false,
-            'validation_rules' => $validated['validation_rules'] ?? null,
-            'options' => $validated['type'] === 'select'
-                ? json_encode($validated['options'])
-                : null,
-        ]);
-
-        return redirect()->route('field-templates.index')
-            ->with('success', 'Field template updated successfully.');
+        return to_route('field-templates.index')->with('success', 'Field updated.');
     }
 
     public function destroy(FieldTemplate $fieldTemplate)
     {
-        $fieldTemplate->delete();
+        abort_if($fieldTemplate->system_field, 403);
+        if (EventTemplate::whereJsonContains('fields', $fieldTemplate->id)->exists()) {
+            return back()->withErrors(['delete' => 'Remove this field from its templates first.']);
+        }$fieldTemplate->delete();
 
-        return redirect()->route('field-templates.index')
-            ->with('success', 'Field template deleted successfully.');
+        return back()->with('success', 'Field removed.');
     }
 }
