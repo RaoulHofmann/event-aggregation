@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed } from "vue";
-import { ArrowUpRight, RotateCcw } from "lucide-vue-next";
+import { ArrowUpRight } from "lucide-vue-next";
+import EventProgrammeDemo from "@/Components/EventProgrammeDemo.vue";
 import ApiExample from "@/Components/ApiExample.vue";
-const replay = ref(0),
-    exampleType = ref("workshop");
+const exampleType = ref("workshop");
 const exampleFields = computed(() =>
     exampleType.value === "workshop"
         ? [
@@ -51,58 +51,7 @@ const exampleFields = computed(() =>
                         >Building with event data? Start with the API.</a
                     >
                 </div>
-                <div class="programme">
-                    <button
-                        type="button"
-                        class="replay-events"
-                        @click="replay++"
-                        aria-label="Replay example event animation"
-                    >
-                        Replay arrangement <RotateCcw aria-hidden="true" />
-                    </button>
-                    <div :key="replay" class="animated-programme">
-                        <div class="programme-caption">
-                            <span>A WEEKEND IN THE DIARY</span
-                            ><span>Example events</span>
-                        </div>
-                        <article class="event-poster garden">
-                            <div class="event-date">
-                                <span>SATURDAY</span><strong>21 NOV</strong
-                                ><span>10 AM–12 PM</span>
-                            </div>
-                            <div class="event-information">
-                                <p class="event-type">WORKSHOP</p>
-                                <h2>Community garden<br />workshop</h2>
-                                <p>
-                                    Learn the basics of seasonal planting at
-                                    Fremantle Community Garden.
-                                </p>
-                                <div class="event-footer">
-                                    <span>Fremantle, WA</span
-                                    ><span>Created in EventNest</span>
-                                </div>
-                            </div>
-                        </article>
-                        <article class="event-poster market">
-                            <div class="event-date">
-                                <span>SUNDAY</span><strong>22 NOV</strong
-                                ><span>9 AM–1 PM</span>
-                            </div>
-                            <div class="event-information">
-                                <p class="event-type">COMMUNITY MARKET</p>
-                                <h2>Local makers<br />market</h2>
-                                <p>
-                                    Ceramics, prints and small-batch goods at
-                                    Perth Town Hall.
-                                </p>
-                                <div class="event-footer">
-                                    <span>Perth, WA</span
-                                    ><span>Imported event</span>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                </div>
+                <EventProgrammeDemo />
             </section>
             <section id="how-it-works" class="working-together">
                 <div>
@@ -947,5 +896,62 @@ const exampleFields = computed(() =>
     .replay-events {
         margin-bottom: 16px;
     }
+}
+</style>
+
+<style scoped>
+.noticeboard-home {
+    background: #fff0dc;
+}
+.hero em,
+.api-copy em {
+    color: #b34b33;
+}
+.work-in-progress {
+    background: #f2dfb5;
+    border-color: #d3bc90;
+}
+.working-together {
+    background: #efdfc6;
+    color: #34302a;
+    border-color: #c8b699;
+}
+.early-access {
+    background: #dfe3f0;
+    border-color: #c5c8d7;
+}
+.template-story h2 {
+    font-weight: 850;
+}
+.demo-topline {
+    background: #f1e4cc;
+}
+.template-switch button[aria-pressed="true"] {
+    background: #f0cf6d;
+    border-color: #c5a954;
+}
+.template-demo {
+    border-color: #bfb198;
+    border-radius: 4px;
+}
+.template-demo .demo-caption {
+    background: #faf0df;
+}
+.api-first {
+    background: #fff8ec;
+}
+.home-header,
+.api-first {
+    border-color: #cdbb9f;
+}
+.home-footer {
+    background: #302b25;
+}
+.home-header .wordmark {
+    font-weight: 900;
+}
+.hero {
+    align-items: center;
+    gap: 5vw;
 }
 </style>

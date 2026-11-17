@@ -57,3 +57,5 @@ Goal: create native EventNest events and connect external hosts, with one manage
 - [x] Softer homepage palette, reduced-motion-aware event-card animation, interactive template example and fewer registration calls to action.
 - [x] Pricing page: currently free access/usage plus two greyed-out TBD future plans.
 - [x] Neutral event modal and a dashboard with restrained colour, useful dates and richer event/API panels.
+
+- [x] Restore Noticeboard character while keeping large background colours restrained; replace entrance-only motion with a cycling event-to-API demo, pause/manual controls and reduced-motion support.
