@@ -1,6 +1,22 @@
 <script setup>
-import { ArrowUpRight } from "lucide-vue-next";
+import { ref, computed } from "vue";
+import { ArrowUpRight, RotateCcw } from "lucide-vue-next";
 import ApiExample from "@/Components/ApiExample.vue";
+const replay = ref(0),
+    exampleType = ref("workshop");
+const exampleFields = computed(() =>
+    exampleType.value === "workshop"
+        ? [
+              ["Audience", "All experience levels"],
+              ["Equipment", "Gloves provided"],
+              ["Session format", "Hands-on workshop"],
+          ]
+        : [
+              ["Entry", "Free entry"],
+              ["Accessibility", "Step-free access"],
+              ["Organiser", "Local community group"],
+          ],
+);
 </script>
 <template>
     <div class="noticeboard-home">
@@ -10,10 +26,8 @@ import ApiExample from "@/Components/ApiExample.vue";
             /></a>
             <nav aria-label="Main navigation">
                 <a href="#how-it-works">How it works</a
-                ><a href="/docs/api">API docs</a><a href="/login">Sign in</a
-                ><a href="/register" class="nav-cta"
-                    >Get started <ArrowUpRight aria-hidden="true"
-                /></a>
+                ><a href="/docs/api">API docs</a><a href="/pricing">Pricing</a
+                ><a href="/login">Sign in</a>
             </nav>
         </header>
         <div class="work-in-progress" role="note">
@@ -38,46 +52,56 @@ import ApiExample from "@/Components/ApiExample.vue";
                     >
                 </div>
                 <div class="programme">
-                    <div class="programme-caption">
-                        <span>A WEEKEND IN THE DIARY</span
-                        ><span>Example events</span>
+                    <button
+                        type="button"
+                        class="replay-events"
+                        @click="replay++"
+                        aria-label="Replay example event animation"
+                    >
+                        Replay arrangement <RotateCcw aria-hidden="true" />
+                    </button>
+                    <div :key="replay" class="animated-programme">
+                        <div class="programme-caption">
+                            <span>A WEEKEND IN THE DIARY</span
+                            ><span>Example events</span>
+                        </div>
+                        <article class="event-poster garden">
+                            <div class="event-date">
+                                <span>SATURDAY</span><strong>21 NOV</strong
+                                ><span>10 AM–12 PM</span>
+                            </div>
+                            <div class="event-information">
+                                <p class="event-type">WORKSHOP</p>
+                                <h2>Community garden<br />workshop</h2>
+                                <p>
+                                    Learn the basics of seasonal planting at
+                                    Fremantle Community Garden.
+                                </p>
+                                <div class="event-footer">
+                                    <span>Fremantle, WA</span
+                                    ><span>Created in EventNest</span>
+                                </div>
+                            </div>
+                        </article>
+                        <article class="event-poster market">
+                            <div class="event-date">
+                                <span>SUNDAY</span><strong>22 NOV</strong
+                                ><span>9 AM–1 PM</span>
+                            </div>
+                            <div class="event-information">
+                                <p class="event-type">COMMUNITY MARKET</p>
+                                <h2>Local makers<br />market</h2>
+                                <p>
+                                    Ceramics, prints and small-batch goods at
+                                    Perth Town Hall.
+                                </p>
+                                <div class="event-footer">
+                                    <span>Perth, WA</span
+                                    ><span>Imported event</span>
+                                </div>
+                            </div>
+                        </article>
                     </div>
-                    <article class="event-poster garden">
-                        <div class="event-date">
-                            <span>SATURDAY</span><strong>21 NOV</strong
-                            ><span>10 AM–12 PM</span>
-                        </div>
-                        <div class="event-information">
-                            <p class="event-type">WORKSHOP</p>
-                            <h2>Community garden<br />workshop</h2>
-                            <p>
-                                Learn the basics of seasonal planting at
-                                Fremantle Community Garden.
-                            </p>
-                            <div class="event-footer">
-                                <span>Fremantle, WA</span
-                                ><span>Created in EventNest</span>
-                            </div>
-                        </div>
-                    </article>
-                    <article class="event-poster market">
-                        <div class="event-date">
-                            <span>SUNDAY</span><strong>22 NOV</strong
-                            ><span>9 AM–1 PM</span>
-                        </div>
-                        <div class="event-information">
-                            <p class="event-type">COMMUNITY MARKET</p>
-                            <h2>Local makers<br />market</h2>
-                            <p>
-                                Ceramics, prints and small-batch goods at Perth
-                                Town Hall.
-                            </p>
-                            <div class="event-footer">
-                                <span>Perth, WA</span
-                                ><span>Imported event</span>
-                            </div>
-                        </div>
-                    </article>
                 </div>
             </section>
             <section id="how-it-works" class="working-together">
@@ -92,45 +116,72 @@ import ApiExample from "@/Components/ApiExample.vue";
                     original host.
                 </p>
             </section>
-            <section class="organising">
-                <div class="section-heading">
-                    <p class="eyebrow">THE EVERYDAY WORK, IN ONE PLACE</p>
-                    <h2>From the first idea<br />to the final details.</h2>
+            <section class="template-story">
+                <div>
+                    <p class="eyebrow">YOUR FIELDS. YOUR PROGRAMME.</p>
+                    <h2>The same details,<br />wherever it started.</h2>
+                    <p>
+                        A workshop needs different information from a community
+                        event. Build a template around those details, then use
+                        it for events you create and listings you import.
+                    </p>
+                    <p>
+                        Map the fields a connected host supplies. Fill in the
+                        rest locally, and keep your edits when the source
+                        refreshes.
+                    </p>
+                    <p class="integration-note">
+                        Humanitix is the first supported connection. More event
+                        hosts are planned.
+                    </p>
                 </div>
-                <div class="organising-list">
-                    <article>
-                        <span>01</span>
-                        <div>
-                            <h3>Make the event your own.</h3>
-                            <p>
-                                Start with a title, date and location. Add
-                                custom fields and reusable templates for the
-                                information your team needs.
-                            </p>
+                <div class="template-demo">
+                    <div class="demo-topline">
+                        <span>EXAMPLE TEMPLATE</span
+                        ><span>EventNest workspace</span>
+                    </div>
+                    <div
+                        class="template-switch"
+                        role="group"
+                        aria-label="Example event template"
+                    >
+                        <button
+                            type="button"
+                            :aria-pressed="exampleType === 'workshop'"
+                            @click="exampleType = 'workshop'"
+                        >
+                            Workshop</button
+                        ><button
+                            type="button"
+                            :aria-pressed="exampleType === 'community'"
+                            @click="exampleType = 'community'"
+                        >
+                            Community event
+                        </button>
+                    </div>
+                    <div class="demo-title">
+                        <span>EVENT TITLE</span>
+                        <h3>
+                            {{
+                                exampleType === "workshop"
+                                    ? "Community garden workshop"
+                                    : "Neighbourhood open day"
+                            }}
+                        </h3>
+                    </div>
+                    <dl>
+                        <div
+                            v-for="[label, value] in exampleFields"
+                            :key="label"
+                        >
+                            <dt>{{ label }}</dt>
+                            <dd>{{ value }}</dd>
                         </div>
-                    </article>
-                    <article>
-                        <span>02</span>
-                        <div>
-                            <h3>Bring your listings together.</h3>
-                            <p>
-                                Match imported events to your templates and edit
-                                the local copy. Humanitix is the first supported
-                                integration; more event hosts are planned.
-                            </p>
-                        </div>
-                    </article>
-                    <article>
-                        <span>03</span>
-                        <div>
-                            <h3>See what’s coming up.</h3>
-                            <p>
-                                Plan in month, week or agenda view. Preview
-                                repeating dates, skip an occurrence, or move it
-                                to another day.
-                            </p>
-                        </div>
-                    </article>
+                    </dl>
+                    <p class="demo-caption">
+                        One template for native and imported events. Extra
+                        details can be completed in EventNest.
+                    </p>
                 </div>
             </section>
             <section id="api-first" class="api-first">
@@ -178,12 +229,6 @@ import ApiExample from "@/Components/ApiExample.vue";
                     and future pricing is still to be determined.
                 </p>
             </section>
-            <section class="closing">
-                <h2>Give the whole<br />programme a home.</h2>
-                <a href="/register" class="dark-button"
-                    >Create your workspace <ArrowUpRight aria-hidden="true"
-                /></a>
-            </section>
         </main>
         <footer class="home-footer">
             <a href="/" class="wordmark"
@@ -191,7 +236,8 @@ import ApiExample from "@/Components/ApiExample.vue";
             /></a>
             <p>For the things that bring people out.</p>
             <nav aria-label="Footer navigation">
-                <a href="/docs/api">API documentation</a
+                <a href="/pricing">Pricing & early access</a
+                ><a href="/docs/api">API documentation</a
                 ><a href="/login">Sign in</a>
             </nav>
         </footer>
@@ -199,7 +245,7 @@ import ApiExample from "@/Components/ApiExample.vue";
 </template>
 <style scoped>
 .noticeboard-home {
-    background: #ffe9cf;
+    background: #faf8f3;
     color: #27231f;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 18px;
@@ -222,7 +268,7 @@ import ApiExample from "@/Components/ApiExample.vue";
 .work-in-progress {
     padding: 14px 5vw;
     border-bottom: 1px solid #a78d69;
-    background: #f5be28;
+    background: #eee2bc;
     font-size: 15px;
     line-height: 1.7;
 }
@@ -237,7 +283,7 @@ import ApiExample from "@/Components/ApiExample.vue";
 .early-access {
     padding: 55px 7vw;
     border-bottom: 2px solid #27231f;
-    background: #bbc5e7;
+    background: #dfe3ed;
 }
 .early-access h2 {
     font-size: 38px;
@@ -278,7 +324,7 @@ import ApiExample from "@/Components/ApiExample.vue";
 }
 .home-header .nav-cta {
     background: #27231f;
-    color: #ffe9cf;
+    color: #faf8f3;
     padding: 10px 16px;
 }
 .hero {
@@ -306,7 +352,7 @@ import ApiExample from "@/Components/ApiExample.vue";
 .hero em,
 .api-copy em {
     font-style: normal;
-    color: #b5331e;
+    color: #90624f;
 }
 .intro {
     font-size: 21px;
@@ -320,7 +366,7 @@ import ApiExample from "@/Components/ApiExample.vue";
     justify-content: center;
     gap: 20px;
     background: #27231f;
-    color: #fff4e4 !important;
+    color: #fffdf9 !important;
     padding: 16px 22px;
     font-size: 17px;
     font-weight: 700;
@@ -355,11 +401,11 @@ import ApiExample from "@/Components/ApiExample.vue";
     margin-bottom: 20px;
 }
 .garden {
-    background: #f5be28;
+    background: #eee2bc;
     transform: rotate(-1deg);
 }
 .market {
-    background: #bbc5e7;
+    background: #dfe3ed;
     transform: rotate(1deg);
     margin-left: 18px;
     margin-bottom: 0;
@@ -420,8 +466,8 @@ import ApiExample from "@/Components/ApiExample.vue";
     grid-template-columns: 1fr 1fr;
     gap: 8vw;
     padding: 48px 7vw;
-    background: #b5331e;
-    color: #fff4e4;
+    background: #90624f;
+    color: #fffdf9;
     border-top: 2px solid #27231f;
     border-bottom: 2px solid #27231f;
     align-items: center;
@@ -488,7 +534,7 @@ import ApiExample from "@/Components/ApiExample.vue";
     align-items: start;
     gap: 6vw;
     padding: 70px 7vw;
-    background: #fff4e4;
+    background: #fffdf9;
     border-top: 2px solid #27231f;
     border-bottom: 2px solid #27231f;
 }
@@ -516,7 +562,7 @@ import ApiExample from "@/Components/ApiExample.vue";
     align-items: center;
     gap: 30px;
     padding: 55px 7vw;
-    background: #f5be28;
+    background: #eee2bc;
 }
 .closing h2 {
     margin: 0;
@@ -528,7 +574,7 @@ import ApiExample from "@/Components/ApiExample.vue";
     align-items: center;
     gap: 25px;
     background: #27231f;
-    color: #ffe9cf;
+    color: #faf8f3;
     padding: 32px 5vw;
 }
 .home-footer p {
@@ -702,6 +748,204 @@ import ApiExample from "@/Components/ApiExample.vue";
     }
     .home-footer nav {
         font-size: 15px;
+    }
+}
+</style>
+
+<style scoped>
+.working-together {
+    background: #eeeae2;
+    color: #34332f;
+    border-color: #cec8bc;
+}
+.work-in-progress {
+    background: #f1ead8;
+    border-color: #d7cfbd;
+}
+.event-poster {
+    border-color: #b5ad9b;
+    animation: poster-arrive 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    --poster-angle: -1deg;
+}
+.market {
+    --poster-angle: 1deg;
+    animation-delay: 0.15s;
+}
+.event-date {
+    border-color: #b5ad9b;
+}
+.event-poster:hover {
+    translate: 0 -4px;
+    transition: translate 0.2s ease;
+}
+.replay-events {
+    display: block;
+    margin: 0 0 12px auto;
+    font-size: 12px;
+    color: #756957;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+.template-story {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 7vw;
+    padding: 70px 7vw;
+    max-width: 1600px;
+    margin: auto;
+    align-items: center;
+}
+.template-story h2 {
+    font-size: clamp(32px, 3.5vw, 48px);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    margin: 0 0 25px;
+}
+.template-story > div > p:not(.eyebrow) {
+    font-size: 18px;
+    line-height: 1.85;
+    margin-bottom: 20px;
+}
+.template-story .integration-note {
+    font-size: 14px !important;
+    color: #70675b;
+}
+.template-demo {
+    border: 1px solid #c9c4b8;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 12px 35px #34332f08;
+}
+.demo-topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 18px 24px;
+    background: #f0eee8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+.demo-topline > span + span {
+    font-weight: 400;
+}
+.template-switch {
+    display: flex;
+    padding: 20px 24px 0;
+    gap: 8px;
+}
+.template-switch button {
+    padding: 8px 14px;
+    border: 1px solid #d6d0c3;
+    border-radius: 5px;
+    font-size: 14px;
+}
+.template-switch button[aria-pressed="true"] {
+    background: #eee2bc;
+    border-color: #c6b88b;
+}
+.demo-title {
+    padding: 24px 24px 15px;
+}
+.demo-title > span {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #756957;
+}
+.demo-title h3 {
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.5px;
+    margin-top: 8px;
+}
+.template-demo dl {
+    padding: 0 24px;
+}
+.template-demo dl > div {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 15px;
+    padding: 16px 0;
+    border-top: 1px solid #e8e4da;
+    font-size: 15px;
+}
+.template-demo dt {
+    color: #756957;
+}
+.template-demo dd {
+    font-weight: 500;
+}
+.demo-caption {
+    font-size: 13px;
+    line-height: 1.8;
+    margin: 0;
+    padding: 18px 24px;
+    background: #f6f5f1;
+    color: #70675b;
+}
+.early-access {
+    background: #eeedf2;
+    border-color: #d2cdd5;
+}
+.home-header,
+.api-first {
+    border-color: #cec8bc;
+}
+.early-access h2 {
+    font-size: 32px;
+}
+.home-footer {
+    background: #34332f;
+}
+.home-header .nav-cta {
+    background: transparent;
+    color: #34332f;
+    border: 1px solid #c5bdae;
+}
+.hero em,
+.api-copy em {
+    color: #90624f;
+}
+@keyframes poster-arrive {
+    from {
+        opacity: 0;
+        transform: translateY(22px) rotate(0deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) rotate(var(--poster-angle));
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .event-poster {
+        animation: none;
+        transform: rotate(var(--poster-angle));
+    }
+    .event-poster:hover {
+        translate: 0 0;
+        transition: none;
+    }
+}
+@media (max-width: 800px) {
+    .template-story {
+        grid-template-columns: 1fr;
+        padding: 45px 6vw;
+        gap: 30px;
+    }
+    .template-story h2 {
+        font-size: 37px;
+    }
+    .template-demo dl > div {
+        font-size: 14px;
+    }
+    .home-header nav {
+        gap: 14px;
+    }
+    .replay-events {
+        margin-bottom: 16px;
     }
 }
 </style>

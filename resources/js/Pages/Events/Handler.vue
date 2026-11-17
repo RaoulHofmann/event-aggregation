@@ -1211,3 +1211,164 @@ const submit = () => {
     }
 }
 </style>
+
+<style scoped>
+.event-editor {
+    background: #fff;
+    color: #29313b;
+    font-family: inherit;
+}
+.editor-header {
+    padding: 22px 30px;
+    border-bottom: 1px solid #e3e6ea;
+    background: #fff;
+}
+.editor-header h2 {
+    font-size: 25px;
+    font-weight: 650;
+    letter-spacing: -0.5px;
+}
+.editor-header > div > p:last-child {
+    color: #657184;
+    font-size: 14px;
+}
+.editor-eyebrow {
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    color: #737f8d;
+    font-size: 10px;
+}
+.editor-sidebar {
+    background: #f8f9fa;
+    border-color: #e3e6ea;
+}
+.template-description,
+.editor-summary > p:not(.editor-eyebrow) {
+    color: #657184;
+}
+.template-count {
+    color: #5a6676;
+    font-weight: 500;
+}
+.editor-summary {
+    border-top: 1px solid #e1e5e9;
+}
+.editor-summary > strong {
+    font-size: 18px;
+    font-weight: 600;
+}
+.editor-tabs {
+    background: #fff;
+    border-color: #e3e6ea;
+}
+.editor-tabs button {
+    border-right: 0;
+    padding: 18px 16px;
+    color: #687486;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+.editor-tabs button[aria-pressed="true"] {
+    background: #faf8f4;
+    color: #806048;
+    border-bottom-color: #ad8b6b;
+}
+.section-heading h3 {
+    font-size: 23px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+}
+.section-heading > p:last-child {
+    color: #657184;
+    font-size: 14px;
+}
+.editor-section {
+    gap: 23px;
+}
+.event-title-input {
+    font-size: 17px;
+}
+.editor-content {
+    padding: 28px 30px;
+}
+.editor-footer {
+    background: #fff;
+    border-top: 1px solid #e3e6ea;
+}
+.editor-footer > span {
+    color: #687486;
+}
+.repeat-settings {
+    border-color: #e1e5e9;
+    border-radius: 8px;
+}
+.repeat-settings > legend {
+    font-size: 14px;
+    font-weight: 600;
+}
+.event-editor .workspace-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #536173;
+}
+.event-editor .workspace-input {
+    border-color: #d7dde5;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px #29313b05;
+}
+.event-editor .workspace-primary {
+    font-weight: 600;
+    background: #4e443b;
+}
+.event-editor .workspace-secondary {
+    font-weight: 500;
+}
+.no-custom-fields {
+    background: #fafbfc;
+    border-color: #d9dfe6;
+    border-radius: 8px;
+}
+.no-custom-fields h4 {
+    font-weight: 600;
+    font-size: 19px;
+}
+.import-note {
+    background: #fcf7ed;
+    border-color: #e3d8c3;
+    border-radius: 6px;
+    color: #72634e;
+}
+.editor-workspace input[type="checkbox"] {
+    accent-color: #8b7159;
+    color: #8b7159;
+}
+.editor-error,
+.validation-summary {
+    color: #a43d30;
+}
+.validation-summary {
+    border-radius: 6px;
+    border-color: #e0b9af;
+    background: #fffaf8;
+}
+.field-help,
+.repeat-controls > p {
+    color: #657184;
+}
+@media (max-width: 800px) {
+    .editor-content {
+        padding: 24px 20px;
+    }
+    .editor-tabs button {
+        font-size: 12px;
+        padding: 16px 8px;
+    }
+    .editor-header {
+        padding: 20px;
+    }
+    .editor-header h2 {
+        font-size: 23px;
+    }
+}
+</style>

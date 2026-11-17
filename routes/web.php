@@ -9,6 +9,8 @@ use App\Http\Middleware\SetPostgresSchema;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/pricing', fn () => Inertia::render('Pricing'))->name('pricing');
+
 Route::get('/docs/api', fn () => Inertia::render('Docs/Api'))->name('docs.api');
 
 Route::get('/designs/homepage', fn () => Inertia::render('Designs/Homepage'))->name('designs.homepage');
