@@ -119,7 +119,7 @@ const exampleFields = computed(() =>
                                         >Published</span
                                     >
                                 </div>
-                                <Transition name="sample-change" mode="out-in"
+                                <Transition name="sample-change"
                                     ><div
                                         :key="exampleType"
                                         class="sample-paper"
@@ -550,10 +550,12 @@ const exampleFields = computed(() =>
     grid-template-columns: minmax(270px, 1fr) minmax(0, 1.8fr);
 }
 .event-sample {
+    display: grid;
+    grid-template-rows: auto minmax(220px, 1fr) auto auto;
     padding: 30px;
     border-right: 1px solid #e6e0e9;
     background: #f7edce;
-    transition: background 0.25s;
+    transition: background 0.5s ease;
 }
 .event-sample.community {
     background: #e8ecdc;
@@ -593,6 +595,10 @@ const exampleFields = computed(() =>
     font-weight: 650;
     line-height: 1.8;
     letter-spacing: 0.05em;
+}
+.sample-paper {
+    grid-area: 2 / 1;
+    min-height: 220px;
 }
 .sample-paper h3 {
     font-size: 28px;
@@ -674,7 +680,9 @@ const exampleFields = computed(() =>
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 25px 22px;
-    min-height: 190px;
+    position: relative;
+    align-content: start;
+    min-height: 225px;
 }
 .workbench-fields .wide-field {
     grid-column: 1 / -1;
@@ -746,8 +754,8 @@ const exampleFields = computed(() =>
 .sample-change-enter-active,
 .sample-change-leave-active {
     transition:
-        opacity 0.15s,
-        transform 0.2s;
+        opacity 0.45s ease,
+        transform 0.5s ease;
 }
 .sample-change-enter-from {
     opacity: 0;
@@ -760,8 +768,12 @@ const exampleFields = computed(() =>
 .field-change-enter-active,
 .field-change-leave-active {
     transition:
-        opacity 0.2s,
-        transform 0.2s;
+        opacity 0.45s ease,
+        transform 0.5s ease;
+}
+.field-change-leave-active {
+    position: absolute;
+    pointer-events: none;
 }
 .field-change-enter-from,
 .field-change-leave-to {
@@ -1011,6 +1023,7 @@ const exampleFields = computed(() =>
     }
     .workbench-fields {
         grid-template-columns: 1fr;
+        min-height: 310px;
         gap: 20px;
     }
     .workbench-fields .wide-field {
@@ -1081,9 +1094,7 @@ const exampleFields = computed(() =>
     .template-story {
         padding: 40px 0;
     }
-    .workbench-fields {
-        min-height: 0;
-    }
+
     .integration-caption {
         font-size: 11px;
     }

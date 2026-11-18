@@ -56,7 +56,7 @@ const scene = ref(0),
     root = ref(null);
 const event = computed(() => events[Math.min(1, Math.floor(scene.value / 2))]),
     isApi = computed(() => scene.value % 2 === 1 || scene.value === 4);
-const durations = [1400, 2400, 1600, 2400, 3200];
+const durations = [3500, 4800, 3500, 4800, 5500];
 const labels = [
     "Created event",
     "Event API",
@@ -751,21 +751,21 @@ onUnmounted(() => {
 }
 .programme-scene-enter-active {
     transition:
-        opacity 0.24s ease,
-        transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity 0.55s ease,
+        transform 0.65s cubic-bezier(0.22, 0.7, 0.3, 1);
 }
 .programme-scene-leave-active {
     transition:
-        opacity 0.14s ease,
-        transform 0.18s ease;
+        opacity 0.4s ease,
+        transform 0.45s ease;
 }
 .programme-scene-enter-from {
     opacity: 0;
-    transform: translateX(42px) rotateY(-14deg) rotate(3deg) scale(0.94);
+    transform: translateX(14px) rotate(0.6deg) scale(0.99);
 }
 .programme-scene-leave-to {
     opacity: 0;
-    transform: translateX(-38px) rotateY(12deg) rotate(-3deg) scale(0.95);
+    transform: translateX(-12px) rotate(-0.5deg) scale(0.99);
 }
 .scene-progress {
     height: 3px;
@@ -789,7 +789,7 @@ onUnmounted(() => {
     margin-top: 11px;
 }
 .response-code {
-    animation: response-reveal 0.35s steps(7, end) both;
+    animation: response-reveal 0.65s ease-out both;
 }
 .demo-api header > span:last-child {
     animation: status-in 0.3s ease-out 0.1s both;
