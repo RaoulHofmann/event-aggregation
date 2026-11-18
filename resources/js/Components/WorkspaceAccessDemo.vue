@@ -134,9 +134,10 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     display: grid;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
     overflow: hidden;
-    border: 1px solid #b5bca8;
+    border: 1px solid #bfae91;
     border-radius: 12px;
-    background: #fcfdf8;
+    background: #fffcf6;
+    box-shadow: 0 14px 30px #3c342017;
 }
 .workspace-picker,
 .workspace-preview {
@@ -146,8 +147,8 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     display: grid;
     align-content: start;
     gap: 10px;
-    background: #e1e7d7;
-    border-right: 1px solid #b5bca8;
+    background: #f1dfc0;
+    border-right: 1px solid #bfae91;
 }
 .workspace-picker button {
     display: flex;
@@ -155,14 +156,14 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     gap: 12px;
     min-width: 0;
     padding: 10px 12px;
-    border: 1px solid #b5bca8;
+    border: 1px solid #baaa8f;
     border-radius: 7px;
     text-align: left;
     color: #29251f;
 }
 .workspace-picker button[aria-pressed="true"] {
-    border-color: #535f46;
-    background: #fbfdf6;
+    border-color: #8e7047;
+    background: #fff8ed;
 }
 .workspace-initials,
 .workspace-role {
@@ -275,7 +276,7 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     }
     .workspace-picker {
         border-right: 0;
-        border-bottom: 1px solid #b5bca8;
+        border-bottom: 1px solid #bfae91;
     }
 }
 </style>

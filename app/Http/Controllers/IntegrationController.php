@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\GoogleCalendarClient;
+use App\Integrations\Inbound\InboundSources;
+use App\Jobs\SyncInboundEvents;
 use App\Jobs\SyncGoogleCalendarEvents;
 use App\Jobs\SyncHumanitixEvents;
 use App\Models\EventTemplate;
@@ -67,7 +69,7 @@ class IntegrationController extends Controller
         $this->owner($request);
         $record = DB::transaction(function () use ($connection) {
             $record = ProviderConnection::whereKey($connection)->lockForUpdate()->firstOrFail();
-            abort_unless(in_array($record->provider, ['humanitix', 'google_calendar']), 404);
+            abort_unless(in_array($record->provider, ['humanitix', 'google_calendar', ...InboundSources::SCHEDULED], true), 404);
             abort_if(in_array($record->status, ['disconnected', 'reconnect_required', 'needs_configuration']), 422, 'Configure or reconnect this account first.');
             $record->update(['status' => 'queued', 'last_error' => null]);
 
@@ -75,8 +77,10 @@ class IntegrationController extends Controller
         });
         if ($record->provider === 'google_calendar') {
             SyncGoogleCalendarEvents::dispatch($request->user()->current_team_id, $record->id);
-        } else {
+        } elseif ($record->provider === 'humanitix') {
             SyncHumanitixEvents::dispatch($request->user()->current_team_id, $record->id);
+        } else {
+            SyncInboundEvents::dispatch($request->user()->current_team_id, $record->id);
         }
 
         return back()->with('success', 'Sync queued.');
@@ -87,8 +91,9 @@ class IntegrationController extends Controller
         $this->owner($request);
         DB::transaction(function () use ($connection) {
             $record = ProviderConnection::whereKey($connection)->lockForUpdate()->firstOrFail();
+            abort_if($record->provider === 'csv', 404);
             $updates = ['status' => 'disconnected', 'credentials' => [], 'last_error' => null];
-            if ($record->provider === 'google_calendar') {
+            if (in_array($record->provider, ['google_calendar', ...InboundSources::SCHEDULED], true)) {
                 $updates['settings'] = array_replace($record->settings ?? [], ['revision' => (string) Str::uuid()]);
             }
             $record->update($updates);

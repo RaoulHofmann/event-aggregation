@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Integrations\Inbound\InboundSources;
+
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\EventTemplate;
@@ -18,7 +20,7 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = $request->validate(['search' => ['nullable', 'string', 'max:255'], 'source' => ['nullable', 'in:eventnest,humanitix,google_calendar'], 'template' => ['nullable', 'integer'], 'status' => ['nullable', 'in:draft,published,cancelled'], 'undated' => ['nullable', 'boolean']]);
+        $filters = $request->validate(['search' => ['nullable', 'string', 'max:255'], 'source' => ['nullable', 'in:'.implode(',', InboundSources::EVENT_SOURCES)], 'template' => ['nullable', 'integer'], 'status' => ['nullable', 'in:draft,published,cancelled'], 'undated' => ['nullable', 'boolean']]);
         $query = Event::latest()->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'ilike', '%'.$v.'%'))
             ->when($filters['source'] ?? null, fn ($q, $v) => $q->where('source', $v))
             ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
@@ -30,7 +32,7 @@ class EventController extends Controller
 
     public function occurrences(Request $request, EventOccurrences $occurrences)
     {
-        $data = $request->validate(['from' => ['required', 'date'], 'to' => ['required', 'date', 'after:from'], 'search' => ['nullable', 'string', 'max:255'], 'source' => ['nullable', 'in:eventnest,humanitix,google_calendar'], 'template' => ['nullable', 'integer'], 'status' => ['nullable', 'in:draft,published,cancelled']]);
+        $data = $request->validate(['from' => ['required', 'date'], 'to' => ['required', 'date', 'after:from'], 'search' => ['nullable', 'string', 'max:255'], 'source' => ['nullable', 'in:'.implode(',', InboundSources::EVENT_SOURCES)], 'template' => ['nullable', 'integer'], 'status' => ['nullable', 'in:draft,published,cancelled']]);
         $from = CarbonImmutable::parse($data['from'])->utc();
         $to = CarbonImmutable::parse($data['to'])->utc();
         abort_if($from->diffInDays($to) > 93, 422, 'Choose a calendar window of 93 days or fewer.');
@@ -94,7 +96,7 @@ class EventController extends Controller
 
     public function versioned(Request $request)
     {
-        $filters = $request->validate(['source' => ['nullable', 'in:eventnest,humanitix,google_calendar'], 'status' => ['nullable', 'in:draft,published,cancelled'], 'starts_after' => ['nullable', 'date'], 'starts_before' => ['nullable', 'date'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'page' => ['nullable', 'integer', 'min:1']]);
+        $filters = $request->validate(['source' => ['nullable', 'in:'.implode(',', InboundSources::EVENT_SOURCES)], 'status' => ['nullable', 'in:draft,published,cancelled'], 'starts_after' => ['nullable', 'date'], 'starts_before' => ['nullable', 'date'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'page' => ['nullable', 'integer', 'min:1']]);
         $events = Event::with('template:id,name')
             ->when($filters['source'] ?? null, fn ($q, $v) => $q->where('source', $v))
             ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('status', $v))

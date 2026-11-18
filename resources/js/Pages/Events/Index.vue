@@ -75,6 +75,10 @@ const sourceNames = {
     eventnest: "EventJunction",
     humanitix: "Humanitix",
     google_calendar: "Google Calendar",
+    ics: "Calendar feed",
+    csv: "CSV import",
+    wordpress: "WordPress",
+    eventbrite: "Eventbrite",
 };
 const sourceName = (source) => sourceNames[source] || source;
 const matches = (e) =>
@@ -288,9 +292,7 @@ const remove = (event) => {
                     class="workspace-input sm:w-40"
                 >
                     <option value="">All sources</option>
-                    <option value="eventnest">EventJunction</option>
-                    <option value="humanitix">Humanitix</option>
-                    <option value="google_calendar">Google Calendar</option>
+                    <option v-for="(name, key) in sourceNames" :key="key" :value="key">{{ name }}</option>
                 </select>
                 <select
                     v-model="template"

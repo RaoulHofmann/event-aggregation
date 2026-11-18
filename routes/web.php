@@ -7,6 +7,7 @@ use App\Http\Controllers\EventTemplateController;
 use App\Http\Controllers\FieldTemplateController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\IntegrationController;
+use App\Http\Controllers\InboundImportController;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequirePlatformAdmin;
 use App\Support\PublicSite;
@@ -58,6 +59,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/integrations/google/callback', [GoogleCalendarController::class, 'callback'])->middleware('throttle:20,1')->name('integrations.google.callback');
     Route::get('/integrations/google/{connection}/edit', [GoogleCalendarController::class, 'edit'])->middleware('throttle:20,1')->name('integrations.google.edit');
     Route::put('/integrations/google/{connection}', [GoogleCalendarController::class, 'update'])->middleware('throttle:20,1')->name('integrations.google.update');
+    Route::prefix('/integrations/imports')->name('integrations.imports.')->group(function () {
+        Route::get('/', [InboundImportController::class, 'index'])->name('index');
+        Route::post('/csv/preview', [InboundImportController::class, 'previewCsv'])->middleware('throttle:20,1')->name('csv.preview');
+        Route::post('/csv', [InboundImportController::class, 'importCsv'])->middleware('throttle:10,1')->name('csv.store');
+        Route::post('/{provider}', [InboundImportController::class, 'store'])->middleware('throttle:20,1')->name('store');
+        Route::put('/{connection}', [InboundImportController::class, 'update'])->middleware('throttle:20,1')->name('update');
+    });
     Route::get('/integrations', [IntegrationController::class, 'index'])->name('integrations.index');
     Route::post('/integrations', [IntegrationController::class, 'store'])->name('integrations.store');
     Route::put('/integrations/{connection}', [IntegrationController::class, 'update'])->name('integrations.update');

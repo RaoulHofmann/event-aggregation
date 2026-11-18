@@ -25,7 +25,11 @@
                             "enum": [
                                 "eventnest",
                                 "humanitix",
-                                "google_calendar"
+                                "google_calendar",
+                                "ics",
+                                "csv",
+                                "wordpress",
+                                "eventbrite"
                             ]
                         }
                     },
@@ -185,7 +189,11 @@
                                 "enum": [
                                     "eventnest",
                                     "humanitix",
-                                    "google_calendar"
+                                    "google_calendar",
+                                    "ics",
+                                    "csv",
+                                    "wordpress",
+                                    "eventbrite"
                                 ]
                             },
                             "external_id": {

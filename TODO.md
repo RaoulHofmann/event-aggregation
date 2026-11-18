@@ -67,3 +67,9 @@ Goal: create native EventJunction events and connect external hosts, with one ma
 - [x] Calendar selection, optional existing-template mapping, paginated bounded imports, recurring instances/all-day dates, protected local edits and API source filtering.
 - [ ] Owner completes live Google consent and validates their calendars after deployment.
 - [ ] Incremental sync/webhooks and ongoing reconciliation outside the rolling import window.
+
+## Additional inbound sources
+- [x] Calendar feed imports with iCalendar recurrence and a public HTTPS download guard.
+- [x] CSV preview, row validation, and idempotent one-time import.
+- [x] WordPress The Events Calendar and Eventbrite organisation imports.
+- [ ] Verify live Eventbrite and representative feeds before enabling in production.

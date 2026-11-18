@@ -17,6 +17,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "resend/resend-php": "^1.0",
+        "sabre/vobject": "^4.5",
         "sentry/sentry-laravel": "^4.11",
         "tightenco/ziggy": "^2.0"
     },

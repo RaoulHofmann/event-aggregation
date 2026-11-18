@@ -5,6 +5,9 @@ import { ArrowUpRight, ArrowRight } from "lucide-vue-next";
 import EventProgrammeDemo from "@/Components/EventProgrammeDemo.vue";
 import ApiExample from "@/Components/ApiExample.vue";
 import WorkspaceAccessDemo from "@/Components/WorkspaceAccessDemo.vue";
+import ProviderSetupGuide from "@/Components/ProviderSetupGuide.vue";
+import { integrationGuides } from "@/Lib/integrationGuides";
+
 const exampleType = ref("workshop");
 const exampleOrigin = ref("native");
 const exampleFields = computed(() =>
@@ -29,6 +32,7 @@ const exampleFields = computed(() =>
             </a>
             <nav aria-label="Main navigation">
                 <a href="#templates">Templates</a>
+                <a href="#integrations">Integrations</a>
                 <a href="#workspaces">Workspaces</a>
                 <a href="/docs/api">API docs</a>
                 <a href="/pricing">Pricing</a>
@@ -69,9 +73,9 @@ const exampleFields = computed(() =>
                             <h2>Different events.<br />A shared workspace.</h2>
                         </div>
                         <p>
-                            Try a workshop or a community event. Your template
-                            keeps the right questions together, whether you
-                            create the event here or import it.
+                            Give workshops and community events their own
+                            fields. Choose an example below to see how a template
+                            works for events you create or import.
                         </p>
                     </header>
                     <div class="template-workbench">
@@ -205,15 +209,10 @@ const exampleFields = computed(() =>
                                         >Editable in EventJunction</span
                                     >
                                 </div>
-                                <TransitionGroup
-                                    name="field-change"
-                                    tag="dl"
-                                    class="workbench-fields"
-                                    ><div
-                                        v-for="(
-                                            [label, value], index
-                                        ) in exampleFields"
-                                        :key="label"
+                                <dl class="workbench-fields">
+                                    <div
+                                        v-for="([label, value], index) in exampleFields"
+                                        :key="index"
                                         :class="{ 'wide-field': index === 2 }"
                                     >
                                         <dt>
@@ -225,8 +224,8 @@ const exampleFields = computed(() =>
                                             }}</span>
                                         </dt>
                                         <dd>{{ value }}</dd>
-                                    </div></TransitionGroup
-                                >
+                                    </div>
+                                </dl>
                                 <div class="source-note">
                                     <ArrowRight
                                         aria-hidden="true"
@@ -243,16 +242,9 @@ const exampleFields = computed(() =>
                             </div>
                         </div>
                         <footer class="workbench-footer">
-                            <span
-                                >One consistent structure for native and
-                                imported events.</span
-                            ><span>No changes are sent back to Humanitix.</span>
+                            <span>You can use the same template for events you create and events you import.</span>
                         </footer>
                     </div>
-                    <p class="integration-caption">
-                        Humanitix is the first supported event-host connection.
-                        More integrations are planned.
-                    </p>
                 </section>
             </div>
             <WorkspaceAccessDemo />
@@ -294,6 +286,26 @@ const exampleFields = computed(() =>
                         </p>
                     </div>
                     <ApiExample />
+                </section>
+            </div>
+            <div class="integrations-band">
+                <section id="integrations" class="integrations-section" aria-labelledby="integrations-heading">
+                    <header class="integrations-heading">
+                        <div>
+                            <h2 id="integrations-heading">Available integrations</h2>
+                            <p>Workspace owners can set up imports under <strong>Integrations</strong>. Choose <strong>Browse event imports</strong> for calendar feeds, Eventbrite, WordPress and CSV. Edits you make in EventJunction stay here.</p>
+                        </div>
+                        <a class="integrations-link" href="/integrations">
+                            Open integrations <ArrowUpRight aria-hidden="true" />
+                        </a>
+                    </header>
+                    <ul class="integration-directory">
+                        <li v-for="(info, provider) in integrationGuides" :key="provider">
+                            <h3>{{ info.label }}</h3>
+                            <p>{{ info.text }}</p>
+                            <ProviderSetupGuide :provider="provider" />
+                        </li>
+                    </ul>
                 </section>
             </div>
             <div class="access-band">
@@ -355,6 +367,7 @@ const exampleFields = computed(() =>
 .work-in-progress,
 .hero,
 .template-story,
+.integrations-section,
 .api-first,
 .early-access,
 .home-footer {
@@ -381,6 +394,7 @@ const exampleFields = computed(() =>
 }
 .home-header nav {
     display: flex;
+    flex-wrap: wrap;
     gap: 28px;
     font-size: 16px;
     font-weight: 600;
@@ -460,6 +474,7 @@ const exampleFields = computed(() =>
     margin-bottom: 42px;
 }
 .template-story h2,
+.integrations-heading h2,
 .api-copy h2 {
     font-size: clamp(34px, 3.5vw, 48px);
     font-weight: 850;
@@ -476,11 +491,10 @@ const exampleFields = computed(() =>
 }
 .template-workbench {
     border: 1px solid #b9b2c6;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #fffdf9;
     overflow: hidden;
     box-shadow: 0 24px 48px #3d324c0d;
-    rotate: -0.35deg;
 }
 .workbench-top {
     display: flex;
@@ -739,40 +753,62 @@ const exampleFields = computed(() =>
     font-size: 10px;
     line-height: 1.8;
 }
-.integration-caption {
-    font-size: 12px;
-    color: #887c93;
-    line-height: 1.9;
-    margin: 26px 0 0;
-}
 .sample-change-enter-active,
 .sample-change-leave-active {
-    transition:
-        opacity 0.45s ease,
-        transform 0.5s ease;
+    transition: opacity 0.45s ease;
 }
-.sample-change-enter-from {
-    opacity: 0;
-    transform: translateY(8px);
-}
+.sample-change-enter-from,
 .sample-change-leave-to {
     opacity: 0;
-    transform: translateY(-8px);
 }
-.field-change-enter-active,
-.field-change-leave-active {
-    transition:
-        opacity 0.45s ease,
-        transform 0.5s ease;
+.integrations-band {
+    background: #e7ecdf;
+    border-bottom: 1px solid #c9d2c0;
 }
-.field-change-leave-active {
-    position: absolute;
-    pointer-events: none;
+.integrations-section {
+    padding: 58px 0;
 }
-.field-change-enter-from,
-.field-change-leave-to {
-    opacity: 0;
-    transform: translateY(6px);
+.integrations-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 24px;
+    margin-bottom: 27px;
+}
+.integrations-heading p {
+    color: #465645;
+    font-size: 17px;
+    max-width: 560px;
+    margin-top: 12px;
+}
+.integrations-link {
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+    text-decoration: underline !important;
+    text-underline-offset: 4px;
+}
+.integration-directory {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 14px;
+}
+.integration-directory > li {
+    border: 1px solid #c9d2c0;
+    border-radius: 12px;
+    background: #fbfcf7;
+    min-width: 0;
+    padding: 17px 20px;
+}
+.integration-directory h3 {
+    font-size: 18px;
+    font-weight: 750;
+}
+.integration-directory > li > p {
+    font-size: 15px;
+    color: #465645;
+    margin: 3px 0 12px;
 }
 .api-first {
     display: grid;
@@ -1037,9 +1073,6 @@ const exampleFields = computed(() =>
         font-size: 16px;
         max-width: none;
     }
-    .template-workbench {
-        rotate: 0;
-    }
     .workbench-body {
         grid-template-columns: 1fr;
     }
@@ -1085,27 +1118,24 @@ const exampleFields = computed(() =>
         flex-direction: column;
         gap: 7px;
     }
-    .template-story {
+    .template-story,
+    .integrations-section {
         padding: 40px 0;
     }
-
-    .integration-caption {
-        font-size: 11px;
+    .integrations-heading {
+        align-items: start;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .integration-directory {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 @media (prefers-reduced-motion: reduce) {
     .event-sample,
     .sample-change-enter-active,
-    .sample-change-leave-active,
-    .field-change-enter-active,
-    .field-change-leave-active {
+    .sample-change-leave-active {
         transition: none;
-    }
-    .sample-change-enter-from,
-    .sample-change-leave-to,
-    .field-change-enter-from,
-    .field-change-leave-to {
-        transform: none;
     }
 }
 </style>

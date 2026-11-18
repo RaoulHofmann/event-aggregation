@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import { useForm, usePoll } from "@inertiajs/vue3";
+import { Link, useForm, usePoll } from "@inertiajs/vue3";
 import {
     Plus,
     PlugZap,
@@ -10,6 +10,7 @@ import {
     X,
 } from "lucide-vue-next";
 import AppLayout from "@/Layouts/AppLayout.vue";
+import ProviderSetupGuide from "@/Components/ProviderSetupGuide.vue";
 import Modal from "@/Components/Modal.vue";
 import ConfirmationModal from "@/Components/ConfirmationModal.vue";
 const props = defineProps({
@@ -130,6 +131,7 @@ const save = () =>
                     >Inbound sync</span
                 >
             </div>
+            <ProviderSetupGuide class="mt-5 max-w-2xl" provider="humanitix" />
             <div
                 v-if="!connections.some((c) => c.provider === 'humanitix')"
                 class="mt-7 rounded-xl border border-dashed border-slate-200 p-8 text-center"
@@ -151,6 +153,7 @@ const save = () =>
                     Connect an account
                 </button>
             </div>
+            <ProviderSetupGuide class="mt-5 max-w-2xl" provider="google_calendar" />
             <article
                 v-for="c in connections.filter(
                     (c) => c.provider === 'humanitix',
@@ -358,6 +361,11 @@ const save = () =>
             are encrypted and never returned to your browser. Imported events
             are kept when disconnected.
         </p>
+        <section v-if="canManage" class="workspace-panel mt-6 p-5 sm:p-7">
+            <h2 class="text-xl font-semibold">More ways to import</h2>
+            <p class="mb-4 mt-2 text-sm text-slate-600">Add calendar feeds, CSV files, WordPress, or Eventbrite.</p>
+            <Link :href="route('integrations.imports.index')" class="workspace-primary">Browse event imports</Link>
+        </section>
         <Modal :show="showForm" max-width="2xl" @close="close"
             ><form class="bg-white" @submit.prevent="save">
                 <div class="flex justify-between border-b p-6">

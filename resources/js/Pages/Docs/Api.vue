@@ -121,9 +121,11 @@ import ApiExample from "@/Components/ApiExample.vue";
                                         <td>source</td>
                                         <td>
                                             <code>eventnest</code> (native EventJunction events),
-                                            <code>humanitix</code> or
-                                            <code>google_calendar</code>
-                                            (currently supported providers).
+                                            <code>humanitix</code>,
+                                            <code>google_calendar</code>,
+                                            <code>ics</code>, <code>csv</code>,
+                                            <code>wordpress</code>, or
+                                            <code>eventbrite</code>.
                                         </td>
                                     </tr>
                                     <tr>
@@ -182,7 +184,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                         <h2>How sources and repeats behave</h2>
                         <p>
                             Connected hosts are read-only integrations.
-                            Humanitix and Google Calendar supply events through
+                            Connected providers supply events through
                             GET-only calendar/event requests. You can map
                             imports to your templates and edit them locally.
                             Changed fields are protected on later syncs;
