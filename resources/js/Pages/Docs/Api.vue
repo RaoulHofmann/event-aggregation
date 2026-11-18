@@ -247,6 +247,8 @@ import ApiExample from "@/Components/ApiExample.vue";
         <footer>
             <a href="/">EventJunction</a
             ><span>Work in progress · Currently free · Future pricing TBD</span>
+            <a href="/privacy-policy">Privacy</a>
+            <a href="/terms-of-service">Terms</a>
         </footer>
     </div>
 </template>

@@ -133,13 +133,37 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - name: Verify deployed application
         run: |
-          curl --fail --silent --show-error --retry 10 --retry-delay 5 --retry-all-errors --max-time 30 https://event-aggregator.fly.dev/up -o /tmp/eventnest-health.html
-          curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 https://event-aggregator.fly.dev/ -o /tmp/eventnest-home.html
-          status="$(curl --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 -o /dev/null -w '%{http_code}' https://event-aggregator.fly.dev/admin)"
+          site='https://eventjunction.app'
+          fetch() {
+            curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 "$site$1" -o "/tmp/eventjunction-$2"
+          }
+          fetch /up health
+          fetch / home.html
+          fetch /privacy-policy privacy.html
+          fetch /terms-of-service terms.html
+          fetch /robots.txt robots.txt
+          fetch /sitemap.xml sitemap.xml
+          fetch /eventjunction-social.png social.png
+          status="$(curl --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 -o /dev/null -w '%{http_code}' "$site/admin")"
           test "$status" = 302
-          python3 - <<'PY'
+          python3 - <<'PYVERIFY'
           from pathlib import Path
-          html = Path('/tmp/eventnest-home.html').read_text()
-          assert all(name in html for name in ['integrations.index', 'api.v1.occurrences', 'designs.homepage', 'docs.api', 'pricing', 'integrations.google.connect', 'integrations.google.callback', 'integrations.google.edit', 'admin.index', 'account.status', 'EventJunction']), 'Updated application routes were not served'
-          print('Deployed health, home, and admin access checks passed.')
-          PY
+          from xml.etree import ElementTree
+
+          site = 'https://eventjunction.app'
+          read = lambda name: Path('/tmp/eventjunction-' + name).read_text()
+          home = read('home.html')
+          assert all(name in home for name in ['integrations.index', 'api.v1.occurrences', 'admin.index', 'account.status', 'EventJunction']), 'Updated application routes were not served'
+          for filename, path in [('home.html', '/'), ('privacy.html', '/privacy-policy'), ('terms.html', '/terms-of-service')]:
+              html = read(filename)
+              assert f'rel="canonical" href="{site}{path}"' in html, f'Wrong canonical URL on {path}'
+              assert f'content="{site}/eventjunction-social.png"' in html, f'Wrong social preview URL on {path}'
+          assert 'Limited Use requirements' in read('privacy.html')
+          assert 'Acceptable use' in read('terms.html')
+          assert f'Sitemap: {site}/sitemap.xml' in read('robots.txt')
+          sitemap = ElementTree.fromstring(read('sitemap.xml'))
+          urls = {node.text for node in sitemap.findall('.//{*}loc')}
+          assert urls == {site + path for path in ['/', '/pricing', '/docs/api', '/privacy-policy', '/terms-of-service']}
+          assert Path('/tmp/eventjunction-social.png').read_bytes().startswith(bytes.fromhex('89504e470d0a1a0a'))
+          print('Verified custom domain, health, guest admin protection, legal pages, metadata, and sitemap.')
+          PYVERIFY

@@ -9,6 +9,7 @@ use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequirePlatformAdmin;
+use App\Support\PublicSite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -19,7 +20,21 @@ Route::get('/docs/api', fn () => Inertia::render('Docs/Api'))->name('docs.api');
 
 Route::get('/designs/homepage', fn () => Inertia::render('Designs/Homepage'))->name('designs.homepage');
 
-Route::get('/', fn () => Inertia::render('Welcome', ['canLogin' => Route::has('login'), 'canRegister' => Route::has('register')]));
+Route::get('/', fn () => Inertia::render('Welcome', ['canLogin' => Route::has('login'), 'canRegister' => Route::has('register')]))->name('home');
+
+Route::get('/sitemap.xml', fn () => response()->view('sitemap', [
+    'urls' => array_map(
+        fn (string $name) => PublicSite::url(route($name, absolute: false)),
+        array_keys(config('public-site.pages')),
+    ),
+])->header('Content-Type', 'application/xml; charset=UTF-8'))->name('sitemap');
+
+Route::get('/robots.txt', fn () => response(implode("\n", [
+    'User-agent: *',
+    'Disallow:',
+    'Sitemap: '.PublicSite::url('sitemap.xml'),
+    '',
+]))->header('Content-Type', 'text/plain; charset=UTF-8'))->name('robots');
 Route::get('/account/status', function (Request $request) {
     return $request->user()->isActive()
         ? to_route('dashboard')

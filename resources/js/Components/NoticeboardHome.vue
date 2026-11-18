@@ -314,6 +314,8 @@ const exampleFields = computed(() =>
                     <a href="/pricing">Pricing & early access</a
                     ><a href="/docs/api">API documentation</a
                     ><a href="/login">Sign in</a>
+                    <a href="/privacy-policy">Privacy</a>
+                    <a href="/terms-of-service">Terms</a>
                 </nav>
             </footer>
         </div>

@@ -92,6 +92,8 @@ import { ArrowUpRight, Check } from "lucide-vue-next";
         <footer>
             <a href="/">EventJunction</a><a href="/docs/api">API documentation</a
             ><span>Work in progress · Currently free</span>
+            <a href="/privacy-policy">Privacy</a>
+            <a href="/terms-of-service">Terms</a>
         </footer>
     </div>
 </template>

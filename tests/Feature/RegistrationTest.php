@@ -52,4 +52,16 @@ class RegistrationTest extends TestCase
         $this->assertDatabaseCount('teams', 0);
         $response->assertRedirect(route('account.status'));
     }
+    public function test_registration_requires_accepting_the_terms_and_privacy_policy(): void
+    {
+        $this->post('/register', [
+            'name' => 'Test User',
+            'email' => 'terms@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertSessionHasErrors('terms');
+
+        $this->assertDatabaseMissing('users', ['email' => 'terms@example.com']);
+    }
+
 }

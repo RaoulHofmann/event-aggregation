@@ -36,6 +36,10 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
+            'legal' => fn () => $request->routeIs('policy.show', 'terms.show') ? [
+                'updated' => config('public-site.legal_updated'),
+                'email' => filter_var(config('public-site.contact_email'), FILTER_VALIDATE_EMAIL) ?: null,
+            ] : null,
             'flash' => ['success' => fn () => $request->session()->get('success'), 'error' => fn () => $request->session()->get('error')],
         ]);
     }
