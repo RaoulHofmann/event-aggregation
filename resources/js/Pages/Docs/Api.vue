@@ -121,9 +121,10 @@ import ApiExample from "@/Components/ApiExample.vue";
                                     <tr>
                                         <td>source</td>
                                         <td>
-                                            <code>eventnest</code> or
-                                            <code>humanitix</code> (currently
-                                            supported providers).
+                                            <code>eventnest</code>,
+                                            <code>humanitix</code> or
+                                            <code>google_calendar</code>
+                                            (currently supported providers).
                                         </td>
                                     </tr>
                                     <tr>
@@ -182,12 +183,13 @@ import ApiExample from "@/Components/ApiExample.vue";
                         <h2>How sources and repeats behave</h2>
                         <p>
                             Connected hosts are read-only integrations.
-                            Humanitix is the first supported host: EventNest
-                            only sends GET requests to it. You can map imports
-                            to your templates and edit them locally. Changed
-                            fields are protected on later syncs; schedule fields
-                            are protected together, as are custom answers and
-                            their template. Deleting an import hides it locally.
+                            Humanitix and Google Calendar supply events through
+                            GET-only calendar/event requests. You can map
+                            imports to your templates and edit them locally.
+                            Changed fields are protected on later syncs;
+                            schedule fields are protected together, as are
+                            custom answers and their template. Deleting an
+                            import hides it locally.
                         </p>
                         <p>
                             Native recurrence supports daily, weekly, monthly
@@ -202,9 +204,11 @@ import ApiExample from "@/Components/ApiExample.vue";
                             Timed repeats keep local wall-clock starts and
                             elapsed durations. All-day repeats keep local-day
                             durations. Single occurrences can be skipped or
-                            rescheduled in EventNest. Provider-specific
-                            recurrence mapping, exception undo and “this and
-                            following” edits remain in development.
+                            rescheduled in EventNest. Google Calendar repeats
+                            arrive as individual editable occurrences within the
+                            import window. Further provider recurrence mapping,
+                            exception undo and “this and following” edits remain
+                            in development.
                         </p>
                     </section>
                     <section id="errors">

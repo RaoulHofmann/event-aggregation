@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SyncGoogleCalendarEvents;
 use App\Jobs\SyncHumanitixEvents;
 use App\Models\ProviderConnection;
 use App\Models\Team;
@@ -15,7 +16,7 @@ class QueueIntegrationSyncs extends Command
 
     protected $signature = 'integrations:sync';
 
-    protected $description = 'Queue active Humanitix connections';
+    protected $description = 'Queue active inbound event integrations';
 
     public function handle(): int
     {
@@ -26,8 +27,12 @@ class QueueIntegrationSyncs extends Command
                     continue;
                 }
                 $this->setSchema($team->schema_name);
-                foreach (ProviderConnection::where('provider', 'humanitix')->where('status', '!=', 'disconnected')->cursor() as $record) {
-                    SyncHumanitixEvents::dispatch($team->id, $record->id);
+                foreach (ProviderConnection::whereIn('provider', ['humanitix', 'google_calendar'])->whereNotIn('status', ['disconnected', 'reconnect_required', 'needs_configuration'])->cursor() as $record) {
+                    if ($record->provider === 'google_calendar') {
+                        SyncGoogleCalendarEvents::dispatch($team->id, $record->id);
+                    } else {
+                        SyncHumanitixEvents::dispatch($team->id, $record->id);
+                    }
                 }
                 DB::select("SELECT set_config('search_path', 'public', false)");
             }
@@ -35,6 +40,6 @@ class QueueIntegrationSyncs extends Command
             DB::select("SELECT set_config('search_path', 'public', false)");
         }
 
-return self::SUCCESS;
+        return self::SUCCESS;
     }
 }

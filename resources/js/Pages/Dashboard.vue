@@ -165,7 +165,7 @@ const date = (e) =>
                             }}</span></span
                         ><span class="event-meta"
                             >{{
-                                event.source === "humanitix"
+                                event.source !== "eventnest"
                                     ? "Imported"
                                     : "EventNest"
                             }}<small>{{ event.status }}</small></span

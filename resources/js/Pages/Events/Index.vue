@@ -284,6 +284,7 @@ const remove = (event) => {
                     <option value="">All sources</option>
                     <option value="eventnest">EventNest</option>
                     <option value="humanitix">Humanitix</option>
+                    <option value="google_calendar">Google Calendar</option>
                 </select>
                 <select
                     v-model="template"
@@ -647,10 +648,11 @@ const remove = (event) => {
                 </p>
                 <p v-if="details.location">{{ details.location }}</p>
                 <p
-                    v-if="details.source === 'humanitix'"
+                    v-if="details.source !== 'eventnest'"
                     class="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"
                 >
-                    Edits stay in EventNest. Nothing is sent to Humanitix.
+                    Edits stay in EventNest. Nothing is sent back to the source
+                    calendar or event host.
                 </p>
                 <p class="whitespace-pre-wrap text-sm text-slate-600">
                     {{ details.description }}

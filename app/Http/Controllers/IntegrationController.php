@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Integrations\GoogleCalendarClient;
+use App\Jobs\SyncGoogleCalendarEvents;
 use App\Jobs\SyncHumanitixEvents;
 use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
 use App\Models\ProviderConnection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -15,7 +19,7 @@ class IntegrationController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('Integrations/Index', ['connections' => ProviderConnection::orderBy('id')->get(), 'eventTemplates' => EventTemplate::where('source', 'eventnest')->orderBy('name')->get(), 'fieldTemplates' => FieldTemplate::orderBy('label')->get(), 'canManage' => $request->user()->ownsTeam($request->user()->currentTeam)]);
+        return Inertia::render('Integrations/Index', ['googleConfigured' => app(GoogleCalendarClient::class)->configured(), 'connections' => ProviderConnection::orderBy('id')->get(), 'eventTemplates' => EventTemplate::where('source', 'eventnest')->orderBy('name')->get(), 'fieldTemplates' => FieldTemplate::orderBy('label')->get(), 'canManage' => $request->user()->ownsTeam($request->user()->currentTeam)]);
     }
 
     private function owner(Request $request): void
@@ -49,6 +53,7 @@ class IntegrationController extends Controller
     {
         $this->owner($request);
         $record = ProviderConnection::findOrFail($connection);
+        abort_unless($record->provider === 'humanitix', 404);
         $v = $this->credentials($request, true);
         abort_if($record->status === 'disconnected' && empty($v['api_key']), 422, 'Enter an API key to reconnect.');
         $record->update(['name' => $v['name'], 'credentials' => ! empty($v['api_key']) ? ['api_key' => $v['api_key']] : $record->credentials, 'template_id' => $v['template_id'] ?? null, 'field_mapping' => $v['field_mapping'] ?? [], 'status' => 'queued', 'last_error' => null]);
@@ -60,10 +65,19 @@ class IntegrationController extends Controller
     public function sync(Request $request, int $connection)
     {
         $this->owner($request);
-        $record = ProviderConnection::findOrFail($connection);
-        abort_if($record->status === 'disconnected', 422);
-        $record->update(['status' => 'queued', 'last_error' => null]);
-        SyncHumanitixEvents::dispatch($request->user()->current_team_id, $record->id);
+        $record = DB::transaction(function () use ($connection) {
+            $record = ProviderConnection::whereKey($connection)->lockForUpdate()->firstOrFail();
+            abort_unless(in_array($record->provider, ['humanitix', 'google_calendar']), 404);
+            abort_if(in_array($record->status, ['disconnected', 'reconnect_required', 'needs_configuration']), 422, 'Configure or reconnect this account first.');
+            $record->update(['status' => 'queued', 'last_error' => null]);
+
+            return $record;
+        });
+        if ($record->provider === 'google_calendar') {
+            SyncGoogleCalendarEvents::dispatch($request->user()->current_team_id, $record->id);
+        } else {
+            SyncHumanitixEvents::dispatch($request->user()->current_team_id, $record->id);
+        }
 
         return back()->with('success', 'Sync queued.');
     }
@@ -71,7 +85,14 @@ class IntegrationController extends Controller
     public function destroy(Request $request, int $connection)
     {
         $this->owner($request);
-        ProviderConnection::findOrFail($connection)->update(['status' => 'disconnected', 'credentials' => [], 'last_error' => null]);
+        DB::transaction(function () use ($connection) {
+            $record = ProviderConnection::whereKey($connection)->lockForUpdate()->firstOrFail();
+            $updates = ['status' => 'disconnected', 'credentials' => [], 'last_error' => null];
+            if ($record->provider === 'google_calendar') {
+                $updates['settings'] = array_replace($record->settings ?? [], ['revision' => (string) Str::uuid()]);
+            }
+            $record->update($updates);
+        });
 
         return back()->with('success', 'Disconnected. Imported events have been kept.');
     }

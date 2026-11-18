@@ -28,6 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->dontFlash(['api_key']);
+        $exceptions->dontFlash(['api_key', 'code', 'state', 'client_secret', 'access_token', 'refresh_token']);
         Integration::handles($exceptions);
     })->create();

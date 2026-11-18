@@ -61,3 +61,9 @@ Goal: create native EventNest events and connect external hosts, with one manage
 - [x] Restore Noticeboard character while keeping large background colours restrained; replace entrance-only motion with a cycling event-to-API demo, pause/manual controls and reduced-motion support.
 
 - [x] Consistent homepage content width, remove redundant workspace band, faster hover-independent demo with progress and an all-sources API scene/example.
+
+## Google Calendar (inbound only)
+- [x] Owner-only OAuth with read-only scopes, PKCE/state, encrypted credentials and local disconnect.
+- [x] Calendar selection, optional existing-template mapping, paginated bounded imports, recurring instances/all-day dates, protected local edits and API source filtering.
+- [ ] Owner completes live Google consent and validates their calendars after deployment.
+- [ ] Incremental sync/webhooks and ongoing reconciliation outside the rolling import window.

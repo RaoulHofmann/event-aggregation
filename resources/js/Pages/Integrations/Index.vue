@@ -14,6 +14,7 @@ import Modal from "@/Components/Modal.vue";
 import ConfirmationModal from "@/Components/ConfirmationModal.vue";
 const props = defineProps({
     connections: Array,
+    googleConfigured: Boolean,
     canManage: Boolean,
     eventTemplates: Array,
     fieldTemplates: Array,
@@ -47,6 +48,8 @@ const sourceFields = {
 };
 const labels = {
     pending: "Not yet synced",
+    needs_configuration: "Choose calendars",
+    reconnect_required: "Reconnect required",
     queued: "Sync queued",
     syncing: "Syncing",
     connected: "Up to date",
@@ -91,8 +94,8 @@ const save = () =>
                 <p class="workspace-eyebrow mb-2">Bring your events together</p>
                 <h1 class="text-3xl font-semibold">Integrations</h1>
                 <p class="mt-3 max-w-xl text-sm leading-6 text-slate-500">
-                    Keep creating in EventNest. Connect Humanitix to bring those
-                    events into the same workspace and API.
+                    Connect your event hosts and calendars to one workspace and
+                    API. Import here, then manage your events in EventNest.
                 </p>
             </div>
             <button v-if="canManage" class="workspace-primary" @click="open()">
@@ -128,7 +131,7 @@ const save = () =>
                 >
             </div>
             <div
-                v-if="!connections.length"
+                v-if="!connections.some((c) => c.provider === 'humanitix')"
                 class="mt-7 rounded-xl border border-dashed border-slate-200 p-8 text-center"
             >
                 <PlugZap class="mx-auto mb-3 size-7 text-slate-400" />
@@ -149,7 +152,9 @@ const save = () =>
                 </button>
             </div>
             <article
-                v-for="c in connections"
+                v-for="c in connections.filter(
+                    (c) => c.provider === 'humanitix',
+                )"
                 :key="c.id"
                 class="mt-6 rounded-xl border border-slate-200 p-5"
             >
@@ -220,12 +225,138 @@ const save = () =>
                 </div>
             </article>
         </section>
+        <section class="workspace-panel mt-6 p-6 sm:p-8">
+            <div class="flex flex-wrap items-start justify-between gap-5">
+                <div class="flex items-start gap-5">
+                    <span
+                        class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-lg font-semibold text-blue-700"
+                        aria-hidden="true"
+                        >31</span
+                    >
+                    <div>
+                        <h2 class="text-lg font-semibold">Google Calendar</h2>
+                        <p
+                            class="mt-2 max-w-xl text-sm leading-6 text-slate-500"
+                        >
+                            Bring selected calendars into EventNest, including
+                            repeating occurrences. Import as drafts into a
+                            template, then edit and publish here. Nothing is
+                            written back to Google.
+                        </p>
+                        <p class="mt-3 text-xs leading-5 text-slate-500">
+                            Imports cover the past 90 days and next 12 months.
+                            Existing imports are kept when you deselect a
+                            calendar or disconnect.
+                        </p>
+                    </div>
+                </div>
+                <a
+                    v-if="canManage && googleConfigured"
+                    :href="route('integrations.google.connect')"
+                    class="workspace-secondary"
+                    >Connect Google</a
+                >
+                <p v-else-if="!googleConfigured" class="text-xs text-slate-500">
+                    Google setup is needed on this installation.
+                </p>
+            </div>
+            <article
+                v-for="c in connections.filter(
+                    (c) => c.provider === 'google_calendar',
+                )"
+                :key="c.id"
+                class="mt-6 rounded-xl border border-slate-200 p-5"
+            >
+                <div class="flex flex-wrap justify-between gap-3">
+                    <h3 class="font-semibold">{{ c.name }}</h3>
+                    <span
+                        class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600"
+                        >{{ labels[c.status] }}</span
+                    >
+                </div>
+                <p class="mt-2 text-xs text-slate-500">
+                    {{
+                        c.settings?.calendars
+                            ?.map((calendar) => calendar.name)
+                            .join(", ") || "No calendars selected"
+                    }}
+                </p>
+                <p class="mt-2 text-xs text-slate-500">
+                    Import template:
+                    {{
+                        eventTemplates.find((t) => t.id === c.template_id)
+                            ?.name || "Basic event"
+                    }}
+                    · Last successful sync:
+                    {{
+                        c.last_synced_at
+                            ? new Date(c.last_synced_at).toLocaleString()
+                            : "Not synced yet"
+                    }}
+                </p>
+                <p
+                    v-if="c.last_error"
+                    role="alert"
+                    class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800"
+                >
+                    {{ c.last_error }}
+                </p>
+                <div
+                    v-if="canManage"
+                    class="mt-5 flex flex-wrap items-center gap-3"
+                >
+                    <a
+                        v-if="
+                            ['disconnected', 'reconnect_required'].includes(
+                                c.status,
+                            )
+                        "
+                        :href="
+                            route('integrations.google.connect', {
+                                connection: c.id,
+                            })
+                        "
+                        class="workspace-secondary"
+                        >Reconnect Google</a
+                    >
+                    <template v-else>
+                        <button
+                            class="workspace-secondary"
+                            :disabled="
+                                [
+                                    'queued',
+                                    'syncing',
+                                    'needs_configuration',
+                                ].includes(c.status) || action.processing
+                            "
+                            @click="
+                                action.post(route('integrations.sync', c.id))
+                            "
+                        >
+                            <RefreshCw class="size-4" />Sync now
+                        </button>
+                        <a
+                            :href="route('integrations.google.edit', c.id)"
+                            class="text-xs font-medium text-emerald-700"
+                            >Calendars, template and mapping</a
+                        >
+                    </template>
+                    <button
+                        v-if="c.status !== 'disconnected'"
+                        class="ml-auto text-xs text-red-700"
+                        @click="disconnecting = c"
+                    >
+                        Disconnect
+                    </button>
+                </div>
+            </article>
+        </section>
         <p
             class="mt-5 flex items-center gap-2 text-xs leading-5 text-slate-500"
         >
-            <ShieldCheck class="size-4 shrink-0" />API keys are encrypted and
-            never returned to your browser. Imported events are kept when
-            disconnected.
+            <ShieldCheck class="size-4 shrink-0" />API keys and Google tokens
+            are encrypted and never returned to your browser. Imported events
+            are kept when disconnected.
         </p>
         <Modal :show="showForm" max-width="2xl" @close="close"
             ><form class="bg-white" @submit.prevent="save">
@@ -361,7 +492,7 @@ const save = () =>
             @close="disconnecting = null"
             ><template #title>Disconnect Humanitix?</template
             ><template #content
-                >Syncing will stop and the saved API key will be removed.
+                >Syncing will stop and the saved credentials will be removed.
                 Previously imported events stay in EventNest.</template
             ><template #footer
                 ><button

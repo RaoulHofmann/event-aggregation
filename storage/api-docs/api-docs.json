@@ -24,7 +24,8 @@
                             "type": "string",
                             "enum": [
                                 "eventnest",
-                                "humanitix"
+                                "humanitix",
+                                "google_calendar"
                             ]
                         }
                     },
@@ -183,7 +184,8 @@
                                 "type": "string",
                                 "enum": [
                                     "eventnest",
-                                    "humanitix"
+                                    "humanitix",
+                                    "google_calendar"
                                 ]
                             },
                             "external_id": {

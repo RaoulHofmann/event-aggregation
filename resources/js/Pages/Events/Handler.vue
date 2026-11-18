@@ -320,9 +320,12 @@ const submit = () => {
                             {{ repeat ? "Repeats " + repeat : "One-off event" }}
                         </p>
                     </section>
-                    <p v-if="event?.source === 'humanitix'" class="import-note">
-                        Imported from Humanitix. Changed fields stay local and
-                        are protected on refresh. Nothing is sent back.
+                    <p
+                        v-if="event && event.source !== 'eventnest'"
+                        class="import-note"
+                    >
+                        Imported event. Changed fields stay local and are
+                        protected on refresh. Nothing is sent back.
                     </p>
                     <p
                         v-if="
