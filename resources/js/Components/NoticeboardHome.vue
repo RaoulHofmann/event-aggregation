@@ -4,6 +4,7 @@ import { ref, computed } from "vue";
 import { ArrowUpRight, ArrowRight } from "lucide-vue-next";
 import EventProgrammeDemo from "@/Components/EventProgrammeDemo.vue";
 import ApiExample from "@/Components/ApiExample.vue";
+import WorkspaceAccessDemo from "@/Components/WorkspaceAccessDemo.vue";
 const exampleType = ref("workshop");
 const exampleOrigin = ref("native");
 const exampleFields = computed(() =>
@@ -27,9 +28,11 @@ const exampleFields = computed(() =>
                 <EventJunctionMark class="size-8 shrink-0" />EventJunction
             </a>
             <nav aria-label="Main navigation">
-                <a href="#templates">Templates</a
-                ><a href="/docs/api">API docs</a><a href="/pricing">Pricing</a
-                ><a href="/login">Sign in</a>
+                <a href="#templates">Templates</a>
+                <a href="#workspaces">Workspaces</a>
+                <a href="/docs/api">API docs</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/login">Sign in</a>
             </nav>
         </header>
         <div class="work-in-progress" role="note">
@@ -252,6 +255,7 @@ const exampleFields = computed(() =>
                     </p>
                 </section>
             </div>
+            <WorkspaceAccessDemo />
             <div class="api-band">
                 <section id="api-first" class="api-first">
                     <div class="api-copy">
@@ -271,7 +275,7 @@ const exampleFields = computed(() =>
                         </p>
                         <ul>
                             <li>
-                                Bearer-token access, scoped to your workspace
+                                API reads checked against your selected workspace
                             </li>
                             <li>
                                 Published-event filters and paginated event
