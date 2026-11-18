@@ -10,7 +10,7 @@ Syncs run on the queue with three attempts and backoff. A unique job prevents ov
 
 After normal public migrations, run `php artisan teams:migrate` for existing workspaces. New workspaces are provisioned automatically. Development needs Laravel, `php artisan queue:work --sleep=3 --tries=3 --timeout=300`, and `php artisan schedule:work`. Queue visibility must exceed the job timeout; the default is 360 seconds. The production image includes supervised worker and scheduler processes. The Fly release command applies public and tenant migrations before the new version receives traffic. Up migrations are additive and retain existing custom event data.
 
-The Fly PHP version is pinned to 8.5. Existing scale-to-zero settings are unchanged: unattended scheduled refreshes require an always-on worker or external scheduler, with hosting costs reviewed before deployment. The old build-time wildcard proxy trust injection has been removed; configure explicit trusted proxies for a deployment when needed.
+The Fly PHP version is pinned to 8.5. Fly keeps one app machine running in Sydney, including the worker and scheduler used for unattended imports. The old build-time wildcard proxy trust injection has been removed; configure explicit trusted proxies for a deployment when needed.
 
 Live Humanitix validation is pending. Allow `api.humanitix.com` and `platform.humanitix.com` in cloud network settings, then enter an authorized key through the app. Fixture tests are not a verified live integration. Cancellation/deletion signals, recurring-event expansion, webhooks and a second provider remain in TODO.md.
 

@@ -33,7 +33,7 @@ External apps in Testing generally receive refresh tokens that expire after seve
 - Local field changes, templates/custom answers, and schedule changes survive refresh. Local deletion is a soft deletion that later refreshes do not undo.
 - Google cancellations update the source snapshot; local status overrides win. A missing item alone never deletes anything: after a complete list, known in-window events missing from that response are checked individually. Confirmed 404/410 after calendar access validation marks that import cancelled. Permission failures and incomplete pages fail safely without inferring deletions. Imports outside the rolling window remain stored and aren't continuously reconciled until back in scope.
 - Deselected calendars and disconnected accounts keep previously imported events.
-- Refreshes are queued every 15 minutes while scheduler and worker run. Fly scale-to-zero means automatic refresh is not guaranteed while the app sleeps; use Sync now or configure always-on workers before relying on unattended freshness.
+- Refreshes are queued every 15 minutes while scheduler and worker run. Fly keeps one app machine running for unattended refreshes. Use Sync now for an immediate request.
 - `/api/v1/events?source=google_calendar` and `/api/v1/occurrences?source=google_calendar` filter imports; omit source to include native events and all providers. Use `status=published` for public consumption.
 
 ## Security and troubleshooting

@@ -33,7 +33,7 @@ Goal: create native EventJunction events and connect external hosts, with one ma
 - [ ] Second provider to validate connector design.
 - [ ] Guided onboarding and real-team pilot.
 - [ ] Monitoring and backup/restore verification.
-- [ ] Always-on worker/external scheduler decision for Fly, which currently scales to zero.
+- [x] Keep one Fly app machine running for the queue worker and scheduler.
 - [ ] User review and publication of the restored cloud draft. Do not publish automatically.
 
 ## Calendar and event editor
