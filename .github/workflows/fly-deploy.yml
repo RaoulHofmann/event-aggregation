@@ -102,7 +102,7 @@ jobs:
         shell: bash
         run: |
           flyctl scale count 1 --app event-aggregator --process-group app --region syd --yes
-          machine_filter='[.[] | select(.config.metadata.fly_process_group == "app" and .state != "destroyed")]'
+          machine_filter='[.[] | select((.config.metadata.fly_process_group // .config.metadata.process_group) == "app" and .state != "destroyed")]'
           other_regions="$(
             flyctl machine list --app event-aggregator --json |
               jq -r "$machine_filter | map(select(.region != \"syd\") | .region) | unique | join(\",\")"
@@ -110,15 +110,24 @@ jobs:
           if [[ -n "$other_regions" ]]; then
             flyctl scale count 0 --app event-aggregator --process-group app --region "$other_regions" --yes
           fi
-          for attempt in {1..8}; do
-            if flyctl machine list --app event-aggregator --json |
-              jq -e "$machine_filter | length == 1 and .[0].region == \"syd\" and .[0].state == \"started\"" >/dev/null; then
+          started_machine=""
+          for attempt in {1..10}; do
+            machines="$(flyctl machine list --app event-aggregator --json)"
+            if jq -e "$machine_filter | length == 1 and .[0].region == \"syd\" and .[0].state == \"started\"" <<<"$machines" >/dev/null; then
               echo 'Verified one started app machine in Sydney.'
               exit 0
             fi
+            stopped_machine="$(
+              jq -r "$machine_filter | .[] | select(.region == \"syd\" and (.state == \"stopped\" or .state == \"suspended\")) | .id" <<<"$machines"
+            )"
+            if [[ -n "$stopped_machine" && "$stopped_machine" != "$started_machine" && "$stopped_machine" != *$'\n'* ]]; then
+              flyctl machine start "$stopped_machine" --app event-aggregator
+              started_machine="$stopped_machine"
+            fi
             sleep 5
           done
-          echo '::error::Expected exactly one started Fly app machine in Sydney.'
+          status="$(jq -c '[.[] | {region, state, group: (.config.metadata.fly_process_group // .config.metadata.process_group)}]' <<<"$machines")"
+          echo "::error::Expected exactly one started Fly app machine in Sydney. Machine state: $status"
           exit 1
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
