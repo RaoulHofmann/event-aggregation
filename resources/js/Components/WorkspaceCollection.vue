@@ -12,6 +12,7 @@ import {
     X,
 } from "lucide-vue-next";
 import AppLayout from "@/Layouts/AppLayout.vue";
+import EditorChrome from "./EditorChrome.vue";
 import Modal from "./Modal.vue";
 import ConfirmationModal from "./ConfirmationModal.vue";
 const props = defineProps({
@@ -31,11 +32,14 @@ const query = ref(""),
     loadError = ref(""),
     columns = ref({});
 const fieldSearch = ref("");
+const selectedFieldsOnly = ref(false);
 const matchingFields = computed(() =>
-    available.value.filter((f) =>
-        `${f.label} ${f.type}`
-            .toLowerCase()
-            .includes(fieldSearch.value.toLowerCase()),
+    available.value.filter(
+        (f) =>
+            (!selectedFieldsOnly.value || form.fields.includes(f.id)) &&
+            `${f.label} ${f.type}`
+                .toLowerCase()
+                .includes(fieldSearch.value.toLowerCase()),
     ),
 );
 const previewFields = (column) =>
@@ -89,6 +93,7 @@ const load = async () => {
 const open = (item = null) => {
     selected.value = item;
     fieldSearch.value = "";
+    selectedFieldsOnly.value = false;
     form.reset();
     form.clearErrors();
     if (item) Object.assign(form, JSON.parse(JSON.stringify(item)));
@@ -258,24 +263,29 @@ const remove = () =>
             :show="showForm"
             :max-width="fields ? '5xl' : '7xl'"
             @close="showForm = false"
-            ><form class="bg-white" @submit.prevent="submit">
+            ><form
+                class="collection-editor bg-white"
+                :class="{ 'is-template-editor': !fields }"
+                @submit.prevent="submit"
+            >
+                <EditorChrome
+                    :context="fields ? 'Custom fields' : 'Event templates'"
+                    :name="
+                        fields
+                            ? form.label || 'New field'
+                            : form.name || 'New template'
+                    "
+                    :title="`${selected ? 'Edit' : 'Create'} ${fields ? 'custom field' : 'event template'}`"
+                    :subtitle="
+                        fields
+                            ? 'Define a field once, then use it across your templates.'
+                            : 'Choose the details your team needs and arrange the event form.'
+                    "
+                    :close-label="`Close ${singular} form`"
+                    @close="showForm = false"
+                />
                 <div
-                    class="flex items-center justify-between border-b border-slate-100 p-6"
-                >
-                    <h2 class="text-lg font-semibold">
-                        {{ selected ? "Edit" : "Create" }}
-                        {{ fields ? "custom field" : "event template" }}
-                    </h2>
-                    <button
-                        type="button"
-                        :aria-label="`Close ${singular} form`"
-                        @click="showForm = false"
-                    >
-                        <X class="size-5 text-slate-400" />
-                    </button>
-                </div>
-                <div
-                    class="max-h-[calc(100dvh-13rem)] overflow-y-auto p-5 sm:p-8"
+                    class="collection-body max-h-[calc(100dvh-17rem)] overflow-y-auto p-5 sm:p-8"
                 >
                     <div
                         v-if="fields"
@@ -496,6 +506,24 @@ const remove = () =>
                                 <legend class="px-2 font-semibold">
                                     Choose your fields
                                 </legend>
+                                <div class="field-view-switch">
+                                    <button
+                                        type="button"
+                                        aria-label="Show all fields"
+                                        :aria-pressed="!selectedFieldsOnly"
+                                        @click="selectedFieldsOnly = false"
+                                    >
+                                        All fields</button
+                                    ><button
+                                        type="button"
+                                        aria-label="Show selected fields"
+                                        :aria-pressed="selectedFieldsOnly"
+                                        :disabled="!form.fields.length"
+                                        @click="selectedFieldsOnly = true"
+                                    >
+                                        Selected ({{ form.fields.length }})
+                                    </button>
+                                </div>
                                 <input
                                     v-model="fieldSearch"
                                     type="search"
@@ -537,14 +565,15 @@ const remove = () =>
                                 >
                                     No fields match this search.
                                 </p>
-                                <div class="max-h-72 overflow-y-auto pr-1">
+                                <div
+                                    class="field-choice-list max-h-72 overflow-y-auto"
+                                >
                                     <div
                                         v-for="field in matchingFields"
                                         :key="field.id"
-                                        class="flex flex-wrap items-center gap-3 border-b border-slate-100 py-4 last:border-0"
+                                        class="field-choice-row"
                                     >
-                                        <label
-                                            class="flex min-w-0 flex-1 items-center gap-3 text-sm"
+                                        <label class="field-choice-label"
                                             ><input
                                                 v-model="form.fields"
                                                 type="checkbox"
@@ -696,3 +725,177 @@ const remove = () =>
         ></AppLayout
     >
 </template>
+
+<style scoped>
+.collection-editor {
+    color: #38323e;
+}
+.is-template-editor .collection-body {
+    background: #fffdf9;
+}
+.collection-editor .workspace-input {
+    border-color: #ddd6e5;
+    box-shadow: 0 1px 2px #40344f03;
+    background: #fff;
+    border-radius: 5px;
+}
+.collection-editor .workspace-input:focus {
+    border-color: #a48bae;
+    --tw-ring-color: #a48bae;
+}
+.collection-editor .workspace-label {
+    color: #655a70;
+    font-weight: 500;
+}
+.is-template-editor .collection-body > div > section:first-child {
+    background: #fbf5e5;
+    padding: 25px;
+    border: 1px solid #ece1c6;
+    border-radius: 6px;
+}
+.is-template-editor fieldset {
+    border-color: #e2dbe8;
+    border-radius: 6px;
+    background: #fff;
+}
+.is-template-editor .collection-body > div > section:last-child > section {
+    background: #f5f1f8;
+    border: 1px solid #e2dbe8;
+    border-radius: 6px;
+}
+.collection-editor .workspace-primary {
+    background: #4f435b;
+    font-weight: 600;
+}
+.collection-editor .workspace-primary:hover {
+    background: #665574;
+}
+.collection-editor .workspace-secondary {
+    font-weight: 500;
+}
+.collection-editor input[type="checkbox"] {
+    color: #71607e;
+    accent-color: #71607e;
+}
+.is-template-editor .text-emerald-800 {
+    color: #8d759d;
+}
+.is-template-editor .bg-slate-50 {
+    background: #f9f2df;
+}
+.collection-editor > div:last-child {
+    background: #faf8fc;
+    border-color: #e6e0eb;
+}
+.collection-editor h3 {
+    font-weight: 650;
+    letter-spacing: -0.25px;
+}
+.collection-editor .text-slate-500 {
+    color: #8b7e95;
+}
+.is-template-editor .collection-body > div {
+    gap: 25px;
+}
+@media (max-width: 640px) {
+    .is-template-editor .collection-body > div > section:first-child {
+        padding: 20px;
+    }
+    .collection-body {
+        max-height: calc(100dvh - 270px);
+    }
+}
+</style>
+
+<style scoped>
+.field-view-switch {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+.field-view-switch button {
+    font-size: 11px;
+    padding: 6px 10px;
+    border: 1px solid #e2d9e9;
+    border-radius: 4px;
+    color: #8b7899;
+}
+.field-view-switch button[aria-pressed="true"] {
+    background: #f1eaf6;
+    color: #6b527b;
+    border-color: #cdbbd9;
+}
+.field-view-switch button:disabled {
+    opacity: 0.5;
+}
+</style>
+
+<style scoped>
+.field-choice-list {
+    padding: 6px 8px;
+    scroll-padding: 8px;
+}
+.field-choice-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    min-height: 70px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee8f2;
+}
+.field-choice-row:last-child {
+    border-bottom: 0;
+}
+.field-choice-label {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    min-height: 40px;
+    font-size: 14px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+.field-choice-label input[type="checkbox"] {
+    display: block;
+    position: static;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 0;
+    border-radius: 4px;
+    --tw-ring-color: #a48bae;
+}
+.field-choice-label > span {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.field-choice-label > span > span {
+    line-height: 1.5;
+    margin-top: 4px;
+}
+.field-choice-row > select {
+    width: 144px;
+    min-width: 0;
+}
+@media (max-width: 640px) {
+    .field-choice-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        padding: 14px 0;
+    }
+    .field-choice-row > select {
+        width: calc(100% - 32px);
+        max-width: calc(100% - 32px);
+        margin-left: 32px;
+    }
+    .field-choice-list {
+        padding: 6px;
+    }
+}
+</style>

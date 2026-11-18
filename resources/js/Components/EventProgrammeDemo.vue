@@ -7,6 +7,8 @@ import {
     Play,
     RotateCcw,
     Braces,
+    Clock3,
+    MapPin,
 } from "lucide-vue-next";
 const events = [
     {
@@ -152,7 +154,7 @@ onUnmounted(() => {
         :class="{ 'is-paused': paused, 'reduced-motion': reduced }"
     >
         <div class="demo-masthead">
-            <span>ONE PROGRAMME, IN MOTION</span
+            <span>EVENTNEST / EXAMPLE PROGRAMME</span
             ><span class="example-label">Example data</span>
         </div>
         <div class="demo-stage" @focusin="paused = true">
@@ -170,7 +172,11 @@ onUnmounted(() => {
                     >
                         <header>
                             <span>{{ event.category }}</span
-                            ><span>{{ Math.floor(scene / 2) + 1 }} / 2</span>
+                            ><span>{{
+                                event.provider === "eventnest"
+                                    ? "Created here"
+                                    : "Imported listing"
+                            }}</span>
                         </header>
                         <div class="event-main">
                             <div class="date-block">
@@ -184,8 +190,15 @@ onUnmounted(() => {
                             </div>
                         </div>
                         <div class="event-venue">
-                            <span>{{ event.time }}</span
-                            ><span>{{ event.location }}</span>
+                            <span
+                                ><Clock3 aria-hidden="true" />{{
+                                    event.time
+                                }}</span
+                            ><span
+                                ><MapPin aria-hidden="true" />{{
+                                    event.location
+                                }}</span
+                            >
                         </div>
                         <footer>
                             <span>{{ event.origin }}</span
@@ -829,6 +842,207 @@ onUnmounted(() => {
     .demo-api header > span:last-child,
     .response-code {
         animation: none;
+    }
+}
+</style>
+
+<style scoped>
+.demo-stage {
+    height: 470px;
+    padding-right: 8px;
+}
+.back-sheet {
+    rotate: 1.1deg;
+    inset: 11px 3px 14px 5px;
+    opacity: 0.4;
+}
+.demo-event {
+    rotate: -0.5deg;
+    padding: 24px 26px;
+}
+.demo-event > header {
+    align-items: center;
+    border-bottom: 1px solid #6e583f38;
+    padding-bottom: 16px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+}
+.demo-event > header > span:last-child {
+    padding: 4px 8px;
+    border: 1px solid #8c754838;
+    border-radius: 3px;
+    background: #fff9e752;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+.event-main {
+    gap: 22px;
+    margin: 28px 0 24px;
+    flex: 1;
+    align-items: flex-start;
+}
+.date-block {
+    min-width: 66px;
+    padding: 12px 8px 11px;
+    background: #fff8e15c;
+    border: 1px solid #8c75483d;
+    border-radius: 4px;
+}
+.date-block > strong {
+    font-size: 45px;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin: 9px 0;
+}
+.date-block > span {
+    font-size: 8px;
+    letter-spacing: 0.06em;
+}
+.event-copy h2 {
+    font-size: clamp(26px, 2.2vw, 33px);
+    font-weight: 750;
+    letter-spacing: -0.9px;
+    line-height: 1.1;
+    margin: 1px 0 17px;
+}
+.event-copy > p {
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 340px;
+}
+.event-venue {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-top: 16px;
+    border-color: #6e583f38;
+    font-size: 11px;
+    font-weight: 500;
+}
+.event-venue > span {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.event-venue svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0.65;
+}
+.demo-event > footer {
+    font-size: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #6e583f38;
+}
+.demo-event footer button {
+    font-size: 11px;
+    border-bottom: 0;
+    gap: 7px;
+}
+.demo-event footer > span {
+    color: #766044;
+}
+.scene-navigation button {
+    font-size: 10px;
+}
+.demo-masthead {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+}
+.demo-api pre {
+    font-size: 12px;
+    line-height: 1.6;
+}
+.demo-api > header {
+    padding: 16px 22px;
+}
+.request-panel {
+    padding: 16px 22px;
+}
+.response-label {
+    padding-top: 14px;
+}
+.demo-api > footer {
+    padding: 12px 22px;
+}
+@media (max-width: 1000px) {
+    .demo-stage {
+        height: 465px;
+    }
+    .event-copy h2 {
+        font-size: 34px;
+    }
+    .event-main {
+        margin-top: 27px;
+    }
+}
+@media (max-width: 620px) {
+    .demo-stage {
+        height: 460px;
+    }
+    .demo-event {
+        padding: 20px;
+    }
+    .event-main {
+        gap: 16px;
+        margin: 24px 0 22px;
+    }
+    .date-block {
+        min-width: 52px;
+        padding: 11px 6px;
+    }
+    .date-block > strong {
+        font-size: 37px;
+        letter-spacing: -1px;
+    }
+    .date-block > span {
+        font-size: 7px;
+    }
+    .event-copy h2 {
+        font-size: 27px;
+        letter-spacing: -0.7px;
+        line-height: 1.1;
+    }
+    .event-copy > p {
+        font-size: 14px;
+        line-height: 1.8;
+    }
+    .event-venue {
+        font-size: 10px;
+        gap: 10px;
+    }
+    .demo-event > footer {
+        font-size: 9px;
+        margin-top: 17px;
+        gap: 10px;
+    }
+    .demo-event footer button {
+        font-size: 10px;
+    }
+    .demo-event > header {
+        font-size: 9px;
+        padding-bottom: 14px;
+    }
+    .demo-event > header > span:last-child {
+        font-size: 8px;
+    }
+    .demo-api pre {
+        font-size: 11px;
+        line-height: 1.7;
+    }
+    .demo-masthead {
+        font-size: 9px;
+    }
+    .request-panel {
+        padding: 16px;
+    }
+    .demo-api > header {
+        padding: 16px;
+    }
+    .demo-api > footer {
+        padding: 12px 16px;
     }
 }
 </style>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
+import EditorChrome from "@/Components/EditorChrome.vue";
 import axios from "axios";
 import { Link, useForm } from "@inertiajs/vue3";
 import { CalendarDays, X, ArrowRight, Layers } from "lucide-vue-next";
@@ -252,23 +253,14 @@ const submit = () => {
 </script>
 <template>
     <div class="event-editor">
-        <header class="editor-header">
-            <div>
-                <p class="editor-eyebrow">YOUR PROGRAMME</p>
-                <h2>{{ event?.id ? "Edit event" : "Create an event" }}</h2>
-                <p>
-                    Choose a template, set the date, and make the details yours.
-                </p>
-            </div>
-            <button
-                type="button"
-                aria-label="Close event form"
-                class="close-editor"
-                @click="emit('cancel')"
-            >
-                <X class="size-6" />
-            </button>
-        </header>
+        <EditorChrome
+            context="Events"
+            :name="template?.name || 'Basic event'"
+            :title="event?.id ? 'Edit event' : 'Create an event'"
+            subtitle="Choose a template, set the date, and make the details yours."
+            close-label="Close event form"
+            @close="emit('cancel')"
+        />
         <form novalidate @submit.prevent="submit">
             <div class="editor-workspace">
                 <aside class="editor-sidebar">
@@ -1369,6 +1361,142 @@ const submit = () => {
     }
     .editor-header h2 {
         font-size: 23px;
+    }
+}
+</style>
+
+<style scoped>
+.event-editor {
+    background: #fffdf9;
+    color: #39323e;
+}
+.editor-sidebar {
+    background: #fcf7e9;
+    border-color: #e5dfeb;
+}
+.editor-main,
+.editor-content {
+    background: #fffdf9;
+}
+.editor-tabs {
+    background: #faf8fc;
+    border-color: #e5dfeb;
+}
+.editor-tabs button {
+    color: #8a7a96;
+    border-bottom-color: transparent;
+}
+.editor-tabs button[aria-pressed="true"] {
+    background: #4f435b;
+    border-color: #4f435b;
+    color: #fff;
+}
+.editor-tabs span {
+    color: inherit;
+}
+.event-editor .workspace-input {
+    background: #fff;
+    border-color: #e0d7e7;
+    border-radius: 5px;
+    box-shadow: 0 1px 2px #40344f03;
+}
+.event-editor .workspace-input:focus {
+    border-color: #a48bae;
+    --tw-ring-color: #a48bae;
+}
+.event-editor .workspace-label {
+    color: #655a70;
+}
+.editor-summary {
+    background: #f7edce;
+    border: 1px solid #e6d8b3;
+    border-radius: 6px;
+    padding: 18px;
+}
+.editor-summary > strong {
+    font-size: 21px;
+    letter-spacing: -0.5px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.editor-summary .editor-eyebrow {
+    color: #9a865b;
+}
+.editor-summary > p:not(.editor-eyebrow) {
+    color: #8b7957;
+    font-size: 12px;
+}
+.editor-eyebrow {
+    color: #96849f;
+}
+.section-heading h3 {
+    font-size: 24px;
+    font-weight: 650;
+    letter-spacing: -0.5px;
+    color: #42354c;
+}
+.section-heading > p:last-child,
+.template-description {
+    color: #8d7d98;
+}
+.template-count {
+    color: #9981a9;
+    font-size: 12px;
+}
+.template-field-column {
+    border: 1px solid #e8e0ed;
+    border-radius: 6px;
+    padding: 22px;
+    background: #fff;
+}
+.template-field-columns {
+    gap: 22px;
+}
+.editor-footer {
+    background: #faf8fc;
+    border-color: #e5dfeb;
+}
+.event-editor .workspace-primary {
+    background: #4f435b;
+    font-weight: 600;
+}
+.event-editor .workspace-primary:hover {
+    background: #665574;
+}
+.repeat-settings {
+    border-color: #e5dfeb;
+    background: white;
+}
+.no-custom-fields {
+    background: #f7f3fa;
+    border-color: #e0d4e8;
+}
+.editor-workspace input[type="checkbox"] {
+    color: #7e658d;
+    accent-color: #7e658d;
+}
+.editor-footer > span {
+    color: #94839f;
+}
+@media (max-width: 800px) {
+    .template-field-column {
+        padding: 18px;
+    }
+    .editor-sidebar {
+        border-color: #e5dfeb;
+    }
+}
+</style>
+
+<style scoped>
+.editor-workspace {
+    max-height: calc(100dvh - 300px);
+    min-height: min(430px, calc(100dvh - 300px));
+}
+@media (max-width: 800px) {
+    .editor-workspace {
+        max-height: calc(100dvh - 280px);
+        min-height: 0;
     }
 }
 </style>
