@@ -7,10 +7,47 @@ const request = (origin, path) =>
 
 export const apiExamples = (origin) => [
     {
-        id: "events",
-        label: "Published events",
+        id: "all-sources",
+        label: "All sources",
         path: "/api/v1/events?status=published&per_page=25",
         request: request(origin, "/api/v1/events?status=published&per_page=25"),
+        response: JSON.stringify(
+            {
+                data: [
+                    {
+                        id: 42,
+                        title: "Community garden workshop",
+                        starts_at: "2026-11-21T02:00:00+00:00",
+                        timezone: "Australia/Perth",
+                        status: "published",
+                        source: { provider: "eventnest", external_id: null },
+                    },
+                    {
+                        id: 43,
+                        title: "Local makers market",
+                        starts_at: "2026-11-22T01:00:00+00:00",
+                        timezone: "Australia/Perth",
+                        status: "published",
+                        source: {
+                            provider: "humanitix",
+                            external_id: "example-market",
+                        },
+                    },
+                ],
+                meta: { current_page: 1, per_page: 25, total: 2 },
+            },
+            null,
+            2,
+        ),
+    },
+    {
+        id: "events",
+        label: "Native events",
+        path: "/api/v1/events?source=eventnest&status=published&per_page=25",
+        request: request(
+            origin,
+            "/api/v1/events?source=eventnest&status=published&per_page=25",
+        ),
         response: JSON.stringify(
             {
                 data: [

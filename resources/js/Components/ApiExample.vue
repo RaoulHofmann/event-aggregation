@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { apiExamples } from "@/Lib/apiExamples";
 const examples = apiExamples(window.location.origin),
-    active = ref("events"),
+    active = ref("all-sources"),
     copied = ref(false),
     failed = ref(false);
 const example = computed(() => examples.find((e) => e.id === active.value));
@@ -44,6 +44,10 @@ const copy = async () => {
             tabindex="0"
             aria-label="Example API request"
         ><code>{{example.request}}</code></pre>
+        <p v-if="active === 'all-sources'" class="source-summary">
+            One response: <strong>EventNest + Humanitix</strong
+            ><span>Example native and imported records. No source filter.</span>
+        </p>
         <div class="api-code-head">
             <span>EXAMPLE RESPONSE / EXCERPT</span><span>JSON</span>
         </div>
@@ -121,5 +125,21 @@ const copy = async () => {
     .api-example pre {
         font-size: 15px;
     }
+}
+</style>
+
+<style scoped>
+.source-summary {
+    margin: 0;
+    padding: 14px 22px;
+    background: #3b3730;
+    color: #eee1c8;
+    font-size: 13px;
+    line-height: 1.7;
+}
+.source-summary span {
+    display: block;
+    color: #cabca6;
+    font-size: 11px;
 }
 </style>

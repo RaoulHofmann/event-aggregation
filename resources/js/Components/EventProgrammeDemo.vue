@@ -51,45 +51,60 @@ const scene = ref(0),
     reduced = ref(false),
     visible = ref(false),
     foreground = ref(true),
-    hovering = ref(false),
     root = ref(null);
-const event = computed(() => events[Math.floor(scene.value / 2)]),
-    isApi = computed(() => scene.value % 2 === 1);
-const labels = ["Created event", "Event API", "Imported event", "Same API"];
+const event = computed(() => events[Math.min(1, Math.floor(scene.value / 2))]),
+    isApi = computed(() => scene.value % 2 === 1 || scene.value === 4);
+const durations = [1400, 2400, 1600, 2400, 3200];
+const labels = [
+    "Created event",
+    "Event API",
+    "Imported event",
+    "Same API",
+    "All sources",
+];
 const request = computed(
     () =>
-        `GET /api/v1/events?source=${event.value.provider}&status=published\nAuthorization: Bearer <your-token>\nAccept: application/json`,
+        `GET /api/v1/events?${scene.value === 4 ? "" : `source=${event.value.provider}&`}status=published\nAuthorization: Bearer <your-token>\nAccept: application/json`,
 );
-const response = computed(() =>
+const mixedResponse = () =>
     [
         "{",
-        '  "data": [{',
-        `    "id": ${event.value.id},`,
-        `    "title": ${JSON.stringify(event.value.title)},`,
-        `    "starts_at": ${JSON.stringify(event.value.starts_at)},`,
-        '    "timezone": "Australia/Perth",',
-        `    "source": ${JSON.stringify({ provider: event.value.provider, external_id: event.value.external_id })}`,
-        "  }]",
+        '  "data": [',
+        events
+            .map(
+                (e) =>
+                    `    { "id": ${e.id},\n      "title": ${JSON.stringify(e.title)},\n      "source": ${JSON.stringify({ provider: e.provider })} }`,
+            )
+            .join(",\n"),
+        "  ]",
         "}",
-    ].join("\n"),
+    ].join("\n");
+const response = computed(() =>
+    scene.value === 4
+        ? mixedResponse()
+        : [
+              "{",
+              '  "data": [{',
+              `    "id": ${event.value.id},`,
+              `    "title": ${JSON.stringify(event.value.title)},`,
+              `    "starts_at": ${JSON.stringify(event.value.starts_at)},`,
+              '    "timezone": "Australia/Perth",',
+              `    "source": ${JSON.stringify({ provider: event.value.provider, external_id: event.value.external_id })}`,
+              "  }]",
+              "}",
+          ].join("\n"),
 );
 let timer, observer, preference;
 const stop = () => clearTimeout(timer);
 const schedule = () => {
     stop();
-    if (
-        !paused.value &&
-        !reduced.value &&
-        visible.value &&
-        foreground.value &&
-        !hovering.value
-    )
+    if (!paused.value && !reduced.value && visible.value && foreground.value)
         timer = setTimeout(
-            () => (scene.value = (scene.value + 1) % 4),
-            isApi.value ? 7000 : 4800,
+            () => (scene.value = (scene.value + 1) % 5),
+            durations[scene.value],
         );
 };
-watch([scene, paused, visible, foreground, reduced, hovering], schedule);
+watch([scene, paused, visible, foreground, reduced], schedule);
 const select = (index) => {
     paused.value = true;
     scene.value = index;
@@ -140,18 +155,13 @@ onUnmounted(() => {
             <span>ONE PROGRAMME, IN MOTION</span
             ><span class="example-label">Example data</span>
         </div>
-        <div
-            class="demo-stage"
-            @mouseenter="hovering = true"
-            @mouseleave="hovering = false"
-            @focusin="paused = true"
-        >
+        <div class="demo-stage" @focusin="paused = true">
             <div
                 class="back-sheet"
                 :class="event.colour"
                 aria-hidden="true"
             ></div>
-            <Transition name="programme-scene" mode="out-in"
+            <Transition name="programme-scene" mode="out-in" appear
                 ><div :key="scene" class="scene-frame" :data-scene="scene">
                     <article
                         v-if="!isApi"
@@ -187,8 +197,11 @@ onUnmounted(() => {
                     <article v-else class="demo-api">
                         <header>
                             <span
-                                ><Braces aria-hidden="true" />YOUR EVENT, AS
-                                DATA</span
+                                ><Braces aria-hidden="true" />{{
+                                    scene === 4
+                                        ? "ALL SOURCES, ONE REQUEST"
+                                        : "YOUR EVENT, AS DATA"
+                                }}</span
                             ><span>200 OK</span>
                         </header>
                         <div class="request-panel">
@@ -208,7 +221,11 @@ onUnmounted(() => {
                             class="response-code"
                         ><code>{{response}}</code></pre>
                         <footer>
-                            <span>{{ event.title }}</span
+                            <span>{{
+                                scene === 4
+                                    ? "Native + imported events"
+                                    : event.title
+                            }}</span
                             ><span
                                 >One response format
                                 <ArrowUpRight aria-hidden="true"
@@ -216,6 +233,19 @@ onUnmounted(() => {
                         </footer>
                     </article></div
             ></Transition>
+        </div>
+        <div
+            class="scene-progress"
+            :class="{
+                'progress-paused': paused || !visible || !foreground || reduced,
+            }"
+            :key="`progress-${scene}`"
+            :style="{
+                '--scene-duration': durations[scene] + 'ms',
+            }"
+            aria-hidden="true"
+        >
+            <span></span>
         </div>
         <div class="demo-controls">
             <div
@@ -695,6 +725,110 @@ onUnmounted(() => {
     }
     .demo-disclosure {
         font-size: 10px;
+    }
+}
+</style>
+
+<style scoped>
+.demo-stage {
+    perspective: 1100px;
+}
+.scene-frame {
+    transform-origin: 50% 65%;
+}
+.programme-scene-enter-active {
+    transition:
+        opacity 0.24s ease,
+        transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.programme-scene-leave-active {
+    transition:
+        opacity 0.14s ease,
+        transform 0.18s ease;
+}
+.programme-scene-enter-from {
+    opacity: 0;
+    transform: translateX(42px) rotateY(-14deg) rotate(3deg) scale(0.94);
+}
+.programme-scene-leave-to {
+    opacity: 0;
+    transform: translateX(-38px) rotateY(12deg) rotate(-3deg) scale(0.95);
+}
+.scene-progress {
+    height: 3px;
+    background: #ddccb0;
+    margin-top: 17px;
+    overflow: hidden;
+    border-radius: 2px;
+}
+.scene-progress > span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #b96b43;
+    transform-origin: left;
+    animation: scene-fill var(--scene-duration) linear both;
+}
+.progress-paused > span {
+    animation-play-state: paused;
+}
+.demo-controls {
+    margin-top: 11px;
+}
+.response-code {
+    animation: response-reveal 0.35s steps(7, end) both;
+}
+.demo-api header > span:last-child {
+    animation: status-in 0.3s ease-out 0.1s both;
+}
+.event-copy h2 {
+    animation: event-title-in 0.35s ease-out 0.1s both;
+}
+.is-paused .response-code {
+    animation: none;
+}
+@keyframes scene-fill {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+@keyframes status-in {
+    from {
+        opacity: 0;
+        translate: 0 -6px;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+@keyframes event-title-in {
+    from {
+        opacity: 0.3;
+        translate: 0 8px;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .programme-scene-enter-active,
+    .programme-scene-leave-active {
+        transition: none;
+    }
+    .programme-scene-enter-from,
+    .programme-scene-leave-to {
+        transform: none;
+    }
+    .scene-progress > span,
+    .event-copy h2,
+    .demo-api header > span:last-child,
+    .response-code {
+        animation: none;
     }
 }
 </style>

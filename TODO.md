@@ -59,3 +59,5 @@ Goal: create native EventNest events and connect external hosts, with one manage
 - [x] Neutral event modal and a dashboard with restrained colour, useful dates and richer event/API panels.
 
 - [x] Restore Noticeboard character while keeping large background colours restrained; replace entrance-only motion with a cycling event-to-API demo, pause/manual controls and reduced-motion support.
+
+- [x] Consistent homepage content width, remove redundant workspace band, faster hover-independent demo with progress and an all-sources API scene/example.

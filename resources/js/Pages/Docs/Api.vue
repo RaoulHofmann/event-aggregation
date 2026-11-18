@@ -88,9 +88,12 @@ import ApiExample from "@/Components/ApiExample.vue";
                         <code class="endpoint">GET /api/v1/events</code>
                         <p>
                             Returns source event records, including series
-                            definitions. It does not expand repeats. Responses
-                            include <code>data</code>, pagination
-                            <code>links</code>, and <code>meta</code>.
+                            definitions. Omit the source filter to return native
+                            and imported events together. Each record identifies
+                            its provider in source metadata. It does not expand
+                            repeats. Responses include <code>data</code>,
+                            pagination <code>links</code>, and
+                            <code>meta</code>.
                         </p>
                         <div class="table-scroll">
                             <table>
