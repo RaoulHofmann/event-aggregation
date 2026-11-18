@@ -111,7 +111,7 @@ class EventNestFoundationTest extends TestCase
 
     public function test_registration_approval_provisions_a_complete_personal_workspace(): void
     {
-        $this->post('/register', ['name' => 'New User', 'email' => 'new@example.com', 'password' => 'password', 'password_confirmation' => 'password', 'terms' => true])->assertRedirect(route('account.status'));
+        $this->withSession(['registration_form_at' => now()->subSeconds(3)->timestamp])->post('/register', ['name' => 'New User', 'email' => 'new@example.com', 'password' => 'password', 'password_confirmation' => 'password', 'terms' => true])->assertRedirect(route('account.status'));
         $this->assertAuthenticated();
         $user = User::where('email', 'new@example.com')->firstOrFail();
         $this->assertNull($user->current_team_id);

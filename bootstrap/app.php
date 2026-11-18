@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\GuardRegistration;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequireActiveAccount;
 use App\Http\Middleware\RequirePlatformAdmin;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['abilities' => CheckAbilities::class]);
         $middleware->web(append: [
             RequireActiveAccount::class,
+            GuardRegistration::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
@@ -33,6 +35,6 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->dontFlash(['api_key', 'code', 'state', 'client_secret', 'access_token', 'refresh_token']);
+        $exceptions->dontFlash(['api_key', 'code', 'state', 'client_secret', 'access_token', 'refresh_token', 'turnstile_token']);
         Integration::handles($exceptions);
     })->create();

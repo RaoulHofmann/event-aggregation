@@ -15,7 +15,7 @@ We use this information to provide the service, review registrations, manage acc
 
 Workspace members and people with a valid API token and the appropriate permissions can access data in the applicable workspace. A team may use the API to display event information on its own website or app. Review what you import and what you share through those destinations.
 
-Service providers help us host, store, deliver, and monitor the service. These may include Fly.io for hosting, Supabase for database hosting, and providers for error monitoring or email where configured. They may process information outside your country. We may also disclose information where required by law or to address security incidents or abuse.
+Service providers help us host, store, deliver, and monitor the service. These may include Fly.io for hosting, Supabase for database hosting, and providers for error monitoring or email (such as Resend) where configured. If enabled, Cloudflare Turnstile helps screen registrations for automated abuse. They may process information outside your country. We may also disclose information where required by law or to address security incidents or abuse.
 
 ## Google Calendar
 

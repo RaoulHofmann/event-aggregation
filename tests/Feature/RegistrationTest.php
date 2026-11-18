@@ -39,7 +39,7 @@ class RegistrationTest extends TestCase
             $this->markTestSkipped('Registration support is not enabled.');
         }
 
-        $response = $this->post('/register', [
+        $response = $this->withSession(['registration_form_at' => now()->subSeconds(3)->timestamp])->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
@@ -54,7 +54,7 @@ class RegistrationTest extends TestCase
     }
     public function test_registration_requires_accepting_the_terms_and_privacy_policy(): void
     {
-        $this->post('/register', [
+        $this->withSession(['registration_form_at' => now()->subSeconds(3)->timestamp])->post('/register', [
             'name' => 'Test User',
             'email' => 'terms@example.com',
             'password' => 'password',
