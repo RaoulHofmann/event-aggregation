@@ -167,7 +167,7 @@ const date = (e) =>
                             >{{
                                 event.source !== "eventnest"
                                     ? "Imported"
-                                    : "EventNest"
+                                    : "EventJunction"
                             }}<small>{{ event.status }}</small></span
                         ><ArrowUpRight class="size-4 shrink-0 text-slate-400"
                     /></Link>
@@ -207,7 +207,7 @@ const date = (e) =>
             <footer class="workspace-access">
                 <span>EARLY ACCESS</span>
                 <p>
-                    EventNest is a work in progress. Access and usage are
+                    EventJunction is a work in progress. Access and usage are
                     currently free.
                     <a href="/pricing">Future pricing is TBD.</a>
                 </p>

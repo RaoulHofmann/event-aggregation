@@ -44,6 +44,7 @@ class Team extends JetstreamTeam
     {
         return [
             'personal_team' => 'boolean',
+            'suspended_at' => 'datetime',
         ];
     }
 }

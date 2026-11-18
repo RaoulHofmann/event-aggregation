@@ -13,7 +13,10 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => match (env('APP_NAME')) {
+        null, 'Laravel', 'EventNest' => 'EventJunction',
+        default => env('APP_NAME'),
+    },
 
     /*
     |--------------------------------------------------------------------------

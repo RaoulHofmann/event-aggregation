@@ -42,7 +42,7 @@ const submit = () => {
         </div>
 
         <h1 class="mb-2 text-2xl font-semibold text-slate-950">Welcome back</h1>
-        <p class="mb-7 text-sm text-slate-500">Log in to your EventNest workspace.</p>
+        <p class="mb-7 text-sm text-slate-500">Log in to your EventJunction workspace.</p>
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="email" value="Email" />
@@ -97,7 +97,7 @@ const submit = () => {
             </div>
         </form>
         <p v-if="route().has('register')" class="mt-6 text-center text-sm text-slate-500">
-            New to EventNest?
+            New to EventJunction?
             <Link :href="route('register')" class="font-semibold text-emerald-700">Create an account</Link>
         </p>
     </AuthenticationCard>

@@ -65,9 +65,11 @@ jobs:
         run: |
           curl --fail --silent --show-error --retry 10 --retry-delay 5 --retry-all-errors --max-time 30 https://event-aggregator.fly.dev/up -o /tmp/eventnest-health.html
           curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 https://event-aggregator.fly.dev/ -o /tmp/eventnest-home.html
+          status="$(curl --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors --max-time 30 -o /dev/null -w '%{http_code}' https://event-aggregator.fly.dev/admin)"
+          test "$status" = 302
           python3 - <<'PY'
           from pathlib import Path
           html = Path('/tmp/eventnest-home.html').read_text()
-          assert all(name in html for name in ['integrations.index', 'api.v1.occurrences', 'designs.homepage', 'docs.api', 'pricing', 'integrations.google.connect', 'integrations.google.callback', 'integrations.google.edit']), 'Updated application routes were not served'
-          print('Deployed health and restored-route checks passed.')
+          assert all(name in html for name in ['integrations.index', 'api.v1.occurrences', 'designs.homepage', 'docs.api', 'pricing', 'integrations.google.connect', 'integrations.google.callback', 'integrations.google.edit', 'admin.index', 'account.status', 'EventJunction']), 'Updated application routes were not served'
+          print('Deployed health, home, and admin access checks passed.')
           PY

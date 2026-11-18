@@ -45,7 +45,7 @@ const copy = async () => {
             aria-label="Example API request"
         ><code>{{example.request}}</code></pre>
         <p v-if="active === 'all-sources'" class="source-summary">
-            One response: <strong>EventNest + Humanitix</strong
+            One response: <strong>EventJunction + Humanitix</strong
             ><span>Example native and imported records. No source filter.</span>
         </p>
         <div class="api-code-head">

@@ -9,12 +9,12 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 <!--            <ApplicationLogo class="block h-16 w-auto" />-->
 
             <h1 class="mt-8 text-2xl font-medium text-gray-900 dark:text-white">
-                Welcome to EventNest!
+                Welcome to EventJunction!
             </h1>
 
             <p class="mt-6 text-gray-500 dark:text-gray-400 leading-relaxed">
-                EventNest is your ultimate event aggregator, designed to simplify event discovery and management.
-                Built with an API-first approach, EventNest seamlessly integrates with your applications,
+                EventJunction is your ultimate event aggregator, designed to simplify event discovery and management.
+                Built with an API-first approach, EventJunction seamlessly integrates with your applications,
                 providing real-time access to a vast array of events. Stay tuned for our upcoming SDK,
                 making integration even easier!
             </p>
@@ -34,7 +34,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
                 </div>
 
                 <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                    Explore our comprehensive API documentation to learn how to integrate EventNest into your applications.
+                    Explore our comprehensive API documentation to learn how to integrate EventJunction into your applications.
                     Fetch, filter, and manage events programmatically with ease.
                 </p>
 
@@ -61,7 +61,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
                 </div>
 
                 <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                    We're working on an SDK to make integration with EventNest even smoother.
+                    We're working on an SDK to make integration with EventJunction even smoother.
                     Stay tuned for updates and start building with ease!
                 </p>
 
@@ -88,7 +88,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
                 </div>
 
                 <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                    Manage events effortlessly with EventNest. Create, update, and organize events in real-time,
+                    Manage events effortlessly with EventJunction. Create, update, and organize events in real-time,
                     ensuring your data is always up-to-date.
                 </p>
             </div>

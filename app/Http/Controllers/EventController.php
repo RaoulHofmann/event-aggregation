@@ -225,6 +225,6 @@ class EventController extends Controller
     {
         $event->delete();
 
-        return to_route('events.index')->with('success', 'Event removed from EventNest.');
+        return to_route('events.index')->with('success', 'Event removed from EventJunction.');
     }
 }

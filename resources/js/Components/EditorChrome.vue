@@ -1,4 +1,5 @@
 <script setup>
+import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import { X } from "lucide-vue-next";
 defineProps({
     context: String,
@@ -13,8 +14,8 @@ defineEmits(["close"]);
     <header class="editor-chrome">
         <div class="chrome-bar">
             <div class="chrome-context">
-                <span class="chrome-mark" aria-hidden="true">e.</span
-                ><span
+                <EventJunctionMark class="chrome-mark" />
+                <span
                     >{{ context }}<span class="chrome-slash">/</span
                     ><strong>{{ name }}</strong></span
                 >
@@ -66,18 +67,9 @@ defineEmits(["close"]);
     color: #4d4357;
 }
 .chrome-mark {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f0d37d;
-    border: 1px solid #d3bb77;
     width: 27px;
     height: 27px;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -2px;
     flex-shrink: 0;
-    color: #4f4231;
 }
 .chrome-slash {
     margin: 0 11px;

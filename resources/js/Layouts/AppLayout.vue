@@ -6,6 +6,7 @@ import {
     LayoutDashboard,
     Layers,
     SlidersHorizontal,
+    ShieldCheck,
     KeyRound,
     PlugZap,
     Users,
@@ -16,10 +17,10 @@ import {
     Check,
     Plus,
 } from "lucide-vue-next";
-import EventNestMark from "@/Components/EventNestMark.vue";
+import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
-defineProps({ title: { type: String, default: "Workspace" } });
+defineProps({ title: { type: String, default: "Workspace" }, wide: Boolean });
 const page = usePage(),
     user = computed(() => page.props.auth.user),
     mobileOpen = ref(false);
@@ -27,7 +28,7 @@ watch(
     () => page.url,
     () => (mobileOpen.value = false),
 );
-const items = [
+const items = computed(() => [
     ["Overview", LayoutDashboard, "dashboard", "dashboard"],
     ["Events", CalendarDays, "events.index", "events.*"],
     ["Event templates", Layers, "event-templates.index", "event-templates.*"],
@@ -39,7 +40,8 @@ const items = [
     ],
     ["Integrations", PlugZap, "integrations.index", "integrations.*"],
     ["API access", KeyRound, "api-tokens.index", "api-tokens.*"],
-];
+    ...(user.value.is_platform_admin ? [["Administration", ShieldCheck, "admin.index", "admin.*"]] : []),
+]);
 const initials = computed(() =>
     user.value.name
         .split(" ")
@@ -80,7 +82,7 @@ const switchTeam = (t) =>
                 <Link
                     :href="route('dashboard')"
                     class="flex items-center gap-3 text-xl font-bold text-white"
-                    ><EventNestMark class="size-9" />EventNest</Link
+                    ><EventJunctionMark class="size-9" />EventJunction</Link
                 ><button
                     class="p-2 lg:hidden"
                     aria-label="Close navigation"
@@ -210,7 +212,12 @@ const switchTeam = (t) =>
             <main
                 id="main-content"
                 tabindex="-1"
-                class="mx-auto max-w-[1600px] px-5 py-8 sm:px-8 xl:px-12 xl:py-10"
+                class="mx-auto"
+                :class="
+                    wide
+                        ? 'w-full px-4 py-6 sm:px-6'
+                        : 'max-w-[1600px] px-5 py-8 sm:px-8 xl:px-12 xl:py-10'
+                "
             >
                 <p
                     v-if="$page.props.flash?.success"

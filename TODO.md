@@ -1,6 +1,6 @@
-# EventNest roadmap
+# EventJunction roadmap
 
-Goal: create native EventNest events and connect external hosts, with one management interface and API. Humanitix is the first provider.
+Goal: create native EventJunction events and connect external hosts, with one management interface and API. Humanitix is the first provider.
 
 ## Restored foundation
 - [x] PHP 8.5 / Laravel 13 and compatible Inertia, Swagger and PHPUnit dependencies.

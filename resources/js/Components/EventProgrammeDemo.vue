@@ -23,7 +23,7 @@ const events = [
         description:
             "A morning of seasonal planting, for all experience levels.",
         provider: "eventnest",
-        origin: "Created in EventNest",
+        origin: "Created in EventJunction",
         starts_at: "2026-11-21T02:00:00+00:00",
         ends_at: "2026-11-21T04:00:00+00:00",
         external_id: null,
@@ -154,7 +154,7 @@ onUnmounted(() => {
         :class="{ 'is-paused': paused, 'reduced-motion': reduced }"
     >
         <div class="demo-masthead">
-            <span>EVENTNEST / EXAMPLE PROGRAMME</span
+            <span>EVENTJUNCTION / EXAMPLE PROGRAMME</span
             ><span class="example-label">Example data</span>
         </div>
         <div class="demo-stage" @focusin="paused = true">

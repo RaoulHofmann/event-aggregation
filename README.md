@@ -1,11 +1,11 @@
-# EventNest
+# EventJunction
 
-**EventNest** is a modern, multi-tenant event management platform designed to simplify event discovery, organization, and integration. Built with an API-first approach, EventNest enables teams to manage their events in isolated environments using **PostgreSQL schemas for per-team data separation**, ensuring secure and scalable multi-tenancy.
+**EventJunction** is a modern, multi-tenant event management platform designed to simplify event discovery, organization, and integration. Built with an API-first approach, EventJunction enables teams to manage their events in isolated environments using **PostgreSQL schemas for per-team data separation**, ensuring secure and scalable multi-tenancy.
 
 ## Key Highlights
 
 - **Multi-Tenant Architecture**: Supports isolated environments for each team using PostgreSQL schemas—each team gets its own schema, ensuring data separation and scalability.
-- **API-First Design**: Easily integrate EventNest into your applications with our robust and well-documented API.
+- **API-First Design**: Easily integrate EventJunction into your applications with our robust and well-documented API.
 - **Dynamic Event Templates**: Create and manage custom event templates with flexible and dynamic fields.
 - **Customizable Fields**: Tailor events to your specific use case with configurable fields per template.
 - **Real-Time Updates**: Stay in sync with live updates and changes to event data.
@@ -45,6 +45,8 @@ password: password
 
 4. **Integrate with the API**  
    Use the API to programmatically fetch, filter, and manage events across different tenants.
+
+For a fresh-start move to managed PostgreSQL, see the [Supabase cutover guide](docs/SUPABASE.md).
 
 ## API Documentation
 

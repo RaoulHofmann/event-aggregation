@@ -22,6 +22,26 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
 
+    public const ACTIVE = 'active';
+
+    public const PENDING = 'pending';
+
+    public const REJECTED = 'rejected';
+
+    public const SUSPENDED = 'suspended';
+
+    protected $attributes = ['account_status' => self::ACTIVE, 'is_platform_admin' => false];
+
+    public function isActive(): bool
+    {
+        return $this->account_status === self::ACTIVE;
+    }
+
+    public function isPlatformAdmin(): bool
+    {
+        return $this->is_platform_admin && $this->isActive();
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -64,6 +84,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_platform_admin' => 'boolean',
         ];
     }
 }

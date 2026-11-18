@@ -1,7 +1,7 @@
 const request = (origin, path) =>
     [
         `curl '${origin}${path}'`,
-        '  -H "Authorization: Bearer $EVENTNEST_TOKEN"',
+        '  -H "Authorization: Bearer $EVENTJUNCTION_TOKEN"',
         "  -H 'Accept: application/json'",
     ].join(" " + String.fromCharCode(92, 10));
 

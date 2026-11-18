@@ -32,7 +32,7 @@ const submit = () => {
         </template>
 
         <h1 class="mb-2 text-2xl font-semibold text-slate-950">Your events start here</h1>
-        <p class="mb-7 text-sm text-slate-500">Create your account and bring your team together.</p>
+        <p class="mb-7 text-sm text-slate-500">Request an account. An administrator will review your registration before you can open a workspace.</p>
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="name" value="Name" />
@@ -126,7 +126,7 @@ const submit = () => {
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Register
+                    Request access
                 </PrimaryButton>
             </div>
         </form>

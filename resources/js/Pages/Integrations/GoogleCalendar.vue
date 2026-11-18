@@ -47,7 +47,7 @@ const save = () =>
             <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
                 Select calendars and an event template. Google supplies the
                 dates and details; your team can edit and publish the imported
-                drafts in EventNest.
+                drafts in EventJunction.
             </p>
         </div>
         <form
@@ -142,7 +142,7 @@ const save = () =>
                             v-model="form.field_mapping[field.field_id]"
                             class="workspace-input"
                         >
-                            <option value="">Fill in EventNest</option>
+                            <option value="">Fill in EventJunction</option>
                             <option
                                 v-for="(label, key) in sources"
                                 :key="key"
@@ -185,7 +185,7 @@ const save = () =>
                 </h2>
                 <p>
                     Google Calendar access is read-only. Creating, editing or
-                    deleting an event in EventNest never changes Google.
+                    deleting an event in EventJunction never changes Google.
                 </p>
                 <p>
                     New imports are drafts. Review them before publishing

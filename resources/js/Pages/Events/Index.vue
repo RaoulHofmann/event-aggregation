@@ -71,6 +71,12 @@ const label = computed(() =>
         year: "numeric",
     }),
 );
+const sourceNames = {
+    eventnest: "EventJunction",
+    humanitix: "Humanitix",
+    google_calendar: "Google Calendar",
+};
+const sourceName = (source) => sourceNames[source] || source;
 const matches = (e) =>
     (!source.value || e.source === source.value) &&
     (!template.value || e.template_id === Number(template.value)) &&
@@ -244,7 +250,7 @@ const remove = (event) => {
         window.confirm(
             event.recurrence
                 ? "Delete this entire series?"
-                : "Remove this event from EventNest? Imported events remain hidden after future syncs.",
+                : "Remove this event from EventJunction? Imported events remain hidden after future syncs.",
         )
     )
         action.delete(route("events.destroy", event.id), {
@@ -254,7 +260,7 @@ const remove = (event) => {
 };
 </script>
 <template>
-    <AppLayout title="Events">
+    <AppLayout title="Events" wide>
         <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <p class="workspace-eyebrow">Your event collection</p>
@@ -282,7 +288,7 @@ const remove = (event) => {
                     class="workspace-input sm:w-40"
                 >
                     <option value="">All sources</option>
-                    <option value="eventnest">EventNest</option>
+                    <option value="eventnest">EventJunction</option>
                     <option value="humanitix">Humanitix</option>
                     <option value="google_calendar">Google Calendar</option>
                 </select>
@@ -433,7 +439,13 @@ const remove = (event) => {
                             <section
                                 v-for="d in days"
                                 :key="key(d)"
-                                class="min-h-32 border-b border-r p-2"
+                                class="border-b border-r p-2 sm:p-3"
+                                :style="{
+                                    minHeight:
+                                        view === 'week'
+                                            ? 'max(420px, calc(100dvh - 350px))'
+                                            : '148px',
+                                }"
                                 :class="
                                     d.getMonth() !== anchor.getMonth()
                                         ? 'bg-slate-50 text-slate-400'
@@ -466,7 +478,7 @@ const remove = (event) => {
                                     <span class="font-medium"
                                         >{{ time(e) }} {{ e.title }}</span
                                     ><span class="block text-[10px]"
-                                        >{{ e.source }} · {{ e.status
+                                        >{{ sourceName(e.source) }} · {{ e.status
                                         }}{{
                                             e.recurring ? " · Repeats" : ""
                                         }}</span
@@ -515,7 +527,7 @@ const remove = (event) => {
                         }}</span
                         ><span class="flex-1 font-medium">{{ e.title }}</span
                         ><span class="text-xs text-slate-500"
-                            >{{ e.source }} · {{ e.status
+                            >{{ sourceName(e.source) }} · {{ e.status
                             }}{{ e.recurring ? " · Repeats" : "" }}</span
                         >
                     </button>
@@ -566,7 +578,7 @@ const remove = (event) => {
                                     >Repeats {{ e.recurrence.frequency }}</span
                                 >
                             </td>
-                            <td class="p-4">{{ e.source }} · {{ e.status }}</td>
+                            <td class="p-4">{{ sourceName(e.source) }} · {{ e.status }}</td>
                             <td class="p-4">
                                 <button
                                     :aria-label="`Edit event ${e.id}`"
@@ -613,7 +625,7 @@ const remove = (event) => {
                 </nav>
             </div>
         </section>
-        <Modal :show="showForm" max-width="7xl" @close="showForm = false"
+        <Modal :show="showForm" max-width="editor" @close="showForm = false"
             ><Handler
                 v-if="showForm"
                 :event="selected"
@@ -643,7 +655,7 @@ const remove = (event) => {
                             : new Date(details.starts_at).toLocaleString()
                     }}<span class="block text-xs text-slate-500"
                         >Event timezone: {{ details.timezone }} ·
-                        {{ details.status }} · {{ details.source }}</span
+                        {{ details.status }} · {{ sourceName(details.source) }}</span
                     >
                 </p>
                 <p v-if="details.location">{{ details.location }}</p>
@@ -651,7 +663,7 @@ const remove = (event) => {
                     v-if="details.source !== 'eventnest'"
                     class="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"
                 >
-                    Edits stay in EventNest. Nothing is sent back to the source
+                    Edits stay in EventJunction. Nothing is sent back to the source
                     calendar or event host.
                 </p>
                 <p class="whitespace-pre-wrap text-sm text-slate-600">
@@ -673,7 +685,13 @@ const remove = (event) => {
                     :href="details.source_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    >View on Humanitix</a
+                    >{{
+                        details.source === "google_calendar"
+                            ? "View on Google Calendar"
+                            : details.source === "humanitix"
+                              ? "View on Humanitix"
+                              : "View source event"
+                    }}</a
                 >
                 <dl class="grid gap-3 text-sm">
                     <div v-for="(value, k) in details.custom_fields" :key="k">

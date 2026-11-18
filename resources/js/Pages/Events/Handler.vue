@@ -320,13 +320,7 @@ const submit = () => {
                             {{ repeat ? "Repeats " + repeat : "One-off event" }}
                         </p>
                     </section>
-                    <p
-                        v-if="event && event.source !== 'eventnest'"
-                        class="import-note"
-                    >
-                        Imported event. Changed fields stay local and are
-                        protected on refresh. Nothing is sent back.
-                    </p>
+
                     <p
                         v-if="
                             event &&
@@ -1493,8 +1487,8 @@ const submit = () => {
 
 <style scoped>
 .editor-workspace {
-    max-height: calc(100dvh - 300px);
-    min-height: min(430px, calc(100dvh - 300px));
+    max-height: calc(100dvh - 260px);
+    min-height: min(470px, calc(100dvh - 260px));
 }
 @media (max-width: 800px) {
     .editor-workspace {

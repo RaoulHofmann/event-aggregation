@@ -1,14 +1,14 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "EventNest API",
+        "title": "EventJunction API",
         "description": "Native and imported workspace events",
         "version": "1.0.0"
     },
     "servers": [
         {
             "url": "/",
-            "description": "Current EventNest server"
+            "description": "Current EventJunction server"
         }
     ],
     "paths": {

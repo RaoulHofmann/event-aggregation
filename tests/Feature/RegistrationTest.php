@@ -48,6 +48,8 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertDatabaseHas('users', ['email' => 'test@example.com', 'account_status' => 'pending']);
+        $this->assertDatabaseCount('teams', 0);
+        $response->assertRedirect(route('account.status'));
     }
 }

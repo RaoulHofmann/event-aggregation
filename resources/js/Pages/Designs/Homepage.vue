@@ -42,7 +42,7 @@ const events = [
         month: "NOV",
         name: "The long-table lunch",
         place: "Fremantle · 12 noon",
-        source: "EventNest",
+        source: "EventJunction",
     },
     {
         day: "28",
@@ -57,7 +57,7 @@ const events = [
     <Head title="Homepage design studies" />
     <div class="studies">
         <div class="study-picker">
-            <span class="study-label">EventNest / Homepage studies</span>
+            <span class="study-label">EventJunction / Homepage studies</span>
             <div role="group" aria-label="Homepage concepts">
                 <button
                     v-for="c in choices"
@@ -75,7 +75,7 @@ const events = [
         </div>
         <main v-if="concept === 'programme'" class="programme">
             <header class="p-header">
-                <a href="/" class="p-wordmark">eventnest</a
+                <a href="/" class="p-wordmark">EventJunction</a
                 ><span class="p-caption">A place for the whole programme.</span>
                 <nav>
                     <a href="/login">Sign in</a
@@ -170,7 +170,7 @@ const events = [
                 </div>
             </section>
             <footer class="p-footer">
-                <span>EventNest</span
+                <span>EventJunction</span
                 ><span>For everything you’re putting on.</span
                 ><a href="/register"
                     >Start a workspace
@@ -186,7 +186,7 @@ const events = [
                             ><ArrowUpRight
                                 class="inline-arrow"
                                 aria-hidden="true" /></span></span
-                    >EventNest</a
+                    >EventJunction</a
                 ><span>THE ORGANISER’S DESK</span>
                 <nav>
                     <a href="/login">Sign in</a
@@ -244,7 +244,7 @@ const events = [
                 <div class="d-flow">
                     <div>
                         <span>01 / SOURCES</span>
-                        <p>Native EventNest events</p>
+                        <p>Native EventJunction events</p>
                         <p>Humanitix imports <small>GET only</small></p>
                     </div>
                     <b aria-hidden="true"
@@ -269,7 +269,7 @@ const events = [
                     <span>CONTROL</span>
                     <h3>Change the local copy.</h3>
                     <p>
-                        Edit an imported event in EventNest. Your changes are
+                        Edit an imported event in EventJunction. Your changes are
                         kept on refresh. Nothing is written back to Humanitix.
                     </p>
                 </article>
@@ -291,7 +291,7 @@ const events = [
                 </article>
             </section>
             <footer class="d-footer">
-                <span>EventNest / Your events department.</span
+                <span>EventJunction / Your events department.</span
                 ><a href="/register"
                     >Open your workspace
                     <ArrowUpRight class="inline-arrow" aria-hidden="true"

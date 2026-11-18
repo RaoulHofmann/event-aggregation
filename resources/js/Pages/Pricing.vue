@@ -1,14 +1,15 @@
 <script setup>
+import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import { Head } from "@inertiajs/vue3";
 import { ArrowUpRight, Check } from "lucide-vue-next";
 </script>
 <template>
-    <Head title="Pricing — EventNest" />
+    <Head title="Pricing — EventJunction" />
     <div class="pricing-page">
         <header>
-            <a href="/" class="brand"
-                >eventnest <ArrowUpRight class="inline h-6 w-6"
-            /></a>
+            <a href="/" class="brand">
+                <EventJunctionMark class="inline size-7 align-middle" /> EventJunction
+            </a>
             <nav aria-label="Main navigation">
                 <a href="/">Home</a><a href="/docs/api">API docs</a
                 ><a href="/login">Sign in</a>
@@ -19,7 +20,7 @@ import { ArrowUpRight, Check } from "lucide-vue-next";
                 <p>PRICING / EARLY ACCESS</p>
                 <h1>Currently free.<br />Room to grow.</h1>
                 <p>
-                    Access and usage are free while EventNest takes shape.
+                    Access and usage are free while EventJunction takes shape.
                     Future pricing is still to be determined.
                 </p>
             </div>
@@ -77,7 +78,7 @@ import { ArrowUpRight, Check } from "lucide-vue-next";
             <section class="pricing-note">
                 <h2>A work in progress.</h2>
                 <p>
-                    EventNest is in active development. The Free option
+                    EventJunction is in active development. The Free option
                     describes what you can use today. The other columns are
                     placeholders for possible future plans, with no prices or
                     features committed yet.
@@ -89,7 +90,7 @@ import { ArrowUpRight, Check } from "lucide-vue-next";
             </section>
         </main>
         <footer>
-            <a href="/">EventNest</a><a href="/docs/api">API documentation</a
+            <a href="/">EventJunction</a><a href="/docs/api">API documentation</a
             ><span>Work in progress · Currently free</span>
         </footer>
     </div>

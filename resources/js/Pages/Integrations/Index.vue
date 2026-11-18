@@ -95,7 +95,7 @@ const save = () =>
                 <h1 class="text-3xl font-semibold">Integrations</h1>
                 <p class="mt-3 max-w-xl text-sm leading-6 text-slate-500">
                     Connect your event hosts and calendars to one workspace and
-                    API. Import here, then manage your events in EventNest.
+                    API. Import here, then manage your events in EventJunction.
                 </p>
             </div>
             <button v-if="canManage" class="workspace-primary" @click="open()">
@@ -111,7 +111,7 @@ const save = () =>
                 <div class="min-w-0 flex-1">
                     <h2 class="text-lg font-semibold">Humanitix</h2>
                     <p class="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-                        Import events into your chosen EventNest template and
+                        Import events into your chosen EventJunction template and
                         edit them locally. Humanitix is read-only: local edits
                         and deletions are never sent back. Later syncs preserve
                         your local changes.
@@ -238,7 +238,7 @@ const save = () =>
                         <p
                             class="mt-2 max-w-xl text-sm leading-6 text-slate-500"
                         >
-                            Bring selected calendars into EventNest, including
+                            Bring selected calendars into EventJunction, including
                             repeating occurrences. Import as drafts into a
                             template, then edit and publish here. Nothing is
                             written back to Google.
@@ -402,7 +402,7 @@ const save = () =>
                             class="workspace-input"
                         />
                         <p class="mt-2 text-xs leading-5 text-slate-500">
-                            EventNest only uses GET requests to Humanitix. Leave
+                            EventJunction only uses GET requests to Humanitix. Leave
                             the key blank to keep the current key when changing
                             the template or mapping.
                         </p>
@@ -493,7 +493,7 @@ const save = () =>
             ><template #title>Disconnect Humanitix?</template
             ><template #content
                 >Syncing will stop and the saved credentials will be removed.
-                Previously imported events stay in EventNest.</template
+                Previously imported events stay in EventJunction.</template
             ><template #footer
                 ><button
                     class="workspace-secondary"

@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventTemplateController;
 use App\Http\Controllers\FieldTemplateController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Middleware\SetPostgresSchema;
+use App\Http\Middleware\RequirePlatformAdmin;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -17,6 +20,18 @@ Route::get('/docs/api', fn () => Inertia::render('Docs/Api'))->name('docs.api');
 Route::get('/designs/homepage', fn () => Inertia::render('Designs/Homepage'))->name('designs.homepage');
 
 Route::get('/', fn () => Inertia::render('Welcome', ['canLogin' => Route::has('login'), 'canRegister' => Route::has('register')]));
+Route::get('/account/status', function (Request $request) {
+    return $request->user()->isActive()
+        ? to_route('dashboard')
+        : Inertia::render('Auth/AccountStatus', ['status' => $request->user()->account_status]);
+})->middleware('auth')->name('account.status');
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', RequirePlatformAdmin::class])->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('index');
+    Route::patch('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::patch('/teams/{team}', [AdminController::class, 'updateTeam'])->name('teams.update');
+});
+
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', SetPostgresSchema::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/events/preview', [EventController::class, 'preview'])->name('events.preview');

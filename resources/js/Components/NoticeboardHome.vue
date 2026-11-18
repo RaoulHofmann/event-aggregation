@@ -1,4 +1,5 @@
 <script setup>
+import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import { ref, computed } from "vue";
 import { ArrowUpRight, ArrowRight } from "lucide-vue-next";
 import EventProgrammeDemo from "@/Components/EventProgrammeDemo.vue";
@@ -22,9 +23,9 @@ const exampleFields = computed(() =>
 <template>
     <div class="noticeboard-home">
         <header class="home-header">
-            <a href="/" class="wordmark" aria-label="EventNest home"
-                >eventnest<ArrowUpRight aria-hidden="true"
-            /></a>
+            <a href="/" class="wordmark" aria-label="EventJunction home">
+                <EventJunctionMark class="size-8 shrink-0" />EventJunction
+            </a>
             <nav aria-label="Main navigation">
                 <a href="#templates">Templates</a
                 ><a href="/docs/api">API docs</a><a href="/pricing">Pricing</a
@@ -41,11 +42,11 @@ const exampleFields = computed(() =>
                 <section class="hero">
                     <div class="hero-copy">
                         <p class="eyebrow">FOR PEOPLE WHO PUT THINGS ON.</p>
-                        <h1>ONE DIARY.<br />ALL YOUR<br /><em>EVENTS.</em></h1>
+                        <h1>ALL YOUR<br />EVENTS.<br /><em>ONE PLACE.</em></h1>
                         <p class="intro">
-                            Create events, connect your event platforms, and
-                            give your team one place to manage the whole
-                            programme.
+                            Create events, import them from calendars and ticketing
+                            platforms, and manage them together. Your apps can
+                            read them through one API.
                         </p>
                         <a href="/register" class="dark-button"
                             >Start your workspace
@@ -62,7 +63,7 @@ const exampleFields = computed(() =>
                     <header class="template-section-heading">
                         <div>
                             <p class="eyebrow">YOUR PROGRAMME, YOUR FIELDS</p>
-                            <h2>Every event has<br />its own details.</h2>
+                            <h2>Different events.<br />A shared workspace.</h2>
                         </div>
                         <p>
                             Try a workshop or a community event. Your template
@@ -73,9 +74,8 @@ const exampleFields = computed(() =>
                     <div class="template-workbench">
                         <div class="workbench-top">
                             <div class="workbench-wordmark">
-                                <span class="workbench-mark" aria-hidden="true"
-                                    >e.</span
-                                ><span
+                                <EventJunctionMark class="workbench-mark" />
+                                <span
                                     >Event templates
                                     <span class="workbench-slash">/</span>
                                     <strong>{{
@@ -181,7 +181,7 @@ const exampleFields = computed(() =>
                                 <p class="sample-origin">
                                     {{
                                         exampleOrigin === "native"
-                                            ? "Created directly in EventNest."
+                                            ? "Created directly in EventJunction."
                                             : "Humanitix import · example connection."
                                     }}
                                 </p>
@@ -199,7 +199,7 @@ const exampleFields = computed(() =>
                                         </h3>
                                     </div>
                                     <span class="editable-badge"
-                                        >Editable in EventNest</span
+                                        >Editable in EventJunction</span
                                     >
                                 </div>
                                 <TransitionGroup
@@ -255,16 +255,11 @@ const exampleFields = computed(() =>
             <div class="api-band">
                 <section id="api-first" class="api-first">
                     <div class="api-copy">
-                        <p class="eyebrow">ALL SOURCES. ONE RESPONSE.</p>
-                        <h2>
-                            Your events.<br />Your applications.<br /><em
-                                >One API.</em
-                            >
-                        </h2>
+                        <h2><em>One API</em><br />for all your events.</h2>
                         <p>
                             Build a website calendar, an event directory or your
                             own app using the same event data your team manages
-                            in EventNest.
+                            in EventJunction.
                         </p>
                         <p>
                             One request returns events from every connected
@@ -302,7 +297,7 @@ const exampleFields = computed(() =>
                     <p class="eyebrow">EARLY ACCESS</p>
                     <h2>Still taking shape.<br />Currently free to use.</h2>
                     <p>
-                        EventNest is a work in progress. You can access and use
+                        EventJunction is a work in progress. You can access and use
                         the platform for free while we develop it. Features may
                         evolve, and future pricing is still to be determined.
                     </p>
@@ -311,9 +306,9 @@ const exampleFields = computed(() =>
         </main>
         <div class="footer-band">
             <footer class="home-footer">
-                <a href="/" class="wordmark"
-                    >eventnest <ArrowUpRight aria-hidden="true"
-                /></a>
+                <a href="/" class="wordmark">
+                    <EventJunctionMark class="size-8 shrink-0" />EventJunction
+                </a>
                 <p>For the things that bring people out.</p>
                 <nav aria-label="Footer navigation">
                     <a href="/pricing">Pricing & early access</a
@@ -370,13 +365,13 @@ const exampleFields = computed(() =>
     border-bottom: 1px solid #cdbb9f;
 }
 .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 30px;
     font-weight: 900;
     letter-spacing: -1.6px;
     white-space: nowrap;
-}
-.wordmark svg {
-    margin-left: 4px;
 }
 .home-header nav {
     display: flex;
@@ -497,16 +492,9 @@ const exampleFields = computed(() =>
     gap: 13px;
 }
 .workbench-mark {
-    display: flex;
     width: 30px;
     height: 30px;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #c7b386;
-    background: #f0cf6d;
-    font-size: 23px;
-    font-weight: 800;
-    letter-spacing: -2px;
+    flex-shrink: 0;
 }
 .workbench-slash {
     color: #b4aabd;
@@ -890,8 +878,8 @@ const exampleFields = computed(() =>
         padding: 35px 0 45px;
     }
     .hero h1 {
-        font-size: 64px;
-        letter-spacing: -3px;
+        font-size: clamp(42px, 14.5vw, 64px);
+        letter-spacing: -0.047em;
     }
     .eyebrow {
         font-size: 10px;

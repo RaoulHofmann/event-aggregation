@@ -131,7 +131,7 @@ class SyncGoogleCalendar
                     $rules[] = Rule::in($field->options ?? []);
                 }
                 if (Validator::make(['value' => $value], ['value' => $rules])->fails()) {
-                    $warnings[] = 'Complete or correct '.$field->label.' in EventNest.';
+                    $warnings[] = 'Complete or correct '.$field->label.' in EventJunction.';
                     $value = null;
                 }
                 $mapped[$field->field_id] = $value;

@@ -109,19 +109,28 @@ class EventNestFoundationTest extends TestCase
         $this->withToken($denied)->getJson('/api/events')->assertForbidden();
     }
 
-    public function test_registration_provisions_a_complete_personal_workspace(): void
+    public function test_registration_approval_provisions_a_complete_personal_workspace(): void
     {
-        $this->post('/register', ['name' => 'New User', 'email' => 'new@example.com', 'password' => 'password', 'password_confirmation' => 'password'])->assertRedirect(route('dashboard', absolute: false));
+        $this->post('/register', ['name' => 'New User', 'email' => 'new@example.com', 'password' => 'password', 'password_confirmation' => 'password'])->assertRedirect(route('account.status'));
         $this->assertAuthenticated();
         $user = User::where('email', 'new@example.com')->firstOrFail();
+        $this->assertNull($user->current_team_id);
+        $admin = User::factory()->create();
+        $admin->forceFill(['is_platform_admin' => true])->save();
+        $this->actingAs($admin)->patch(route('admin.users.update', $user), ['action' => 'approve'])->assertRedirect();
+        $this->assertSame(User::ACTIVE, $user->refresh()->account_status);
         $team = $user->currentTeam;
         $this->assertTrue($team->personal_team);
         $this->assertMatchesRegularExpression('/^team_[a-f0-9]{32}$/', $team->schema_name);
         $this->assertNotNull(DB::selectOne('SELECT to_regclass(?) AS name', [$team->schema_name.'.events'])->name);
     }
 
-    public function test_registration_rolls_back_when_schema_migration_fails(): void
+    public function test_approval_rolls_back_when_schema_migration_fails(): void
     {
+        $pending = User::factory()->create();
+        $pending->forceFill(['account_status' => User::PENDING])->save();
+        $admin = User::factory()->create();
+        $admin->forceFill(['is_platform_admin' => true])->save();
         $schemas = DB::table('information_schema.schemata')->where('schema_name', 'like', 'team_%')->pluck('schema_name')->sort()->values()->all();
         $this->app->instance(ProvisionTeam::class, new class extends ProvisionTeam
         {
@@ -132,12 +141,14 @@ class EventNestFoundationTest extends TestCase
         });
         $this->withoutExceptionHandling();
         try {
-            $this->post('/register', ['name' => 'Rollback User', 'email' => 'rollback@example.com', 'password' => 'password', 'password_confirmation' => 'password']);
+            $this->actingAs($admin)->patch(route('admin.users.update', $pending), ['action' => 'approve']);
             $this->fail('Incomplete workspace must not be created.');
         } catch (\RuntimeException $e) {
             $this->assertSame('Provisioning unavailable', $e->getMessage());
         }
-        $this->assertDatabaseMissing('users', ['email' => 'rollback@example.com']);
+        $this->assertSame(User::PENDING, $pending->refresh()->account_status);
+        $this->assertNull($pending->current_team_id);
+        $this->assertDatabaseCount('admin_actions', 0);
         $this->assertDatabaseCount('teams', 0);
         $this->assertSame($schemas, DB::table('information_schema.schemata')->where('schema_name','like','team_%')->pluck('schema_name')->sort()->values()->all());
     }

@@ -69,7 +69,7 @@ class GoogleCalendarController extends Controller
                 }
                 $credentials = $record->credentials ?? [];
                 if (empty($tokens['refresh_token']) && empty($credentials['refresh_token'])) {
-                    throw new GoogleCalendarException('Google did not grant offline access. Remove EventNest from your Google account permissions and connect again.');
+                    throw new GoogleCalendarException('Google did not grant offline access. Remove EventJunction from your Google account permissions and connect again.');
                 }
                 $record->fill(['credentials' => array_replace($credentials, $tokens), 'settings' => array_replace($settings, ['account_id' => $primary['id'], 'revision' => (string) Str::uuid()]), 'status' => empty($settings['calendars']) ? 'needs_configuration' : 'connected', 'last_error' => null])->save();
 

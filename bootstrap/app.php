@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetPostgresSchema;
+use App\Http\Middleware\RequireActiveAccount;
+use App\Http\Middleware\RequirePlatformAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,8 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prependToPriorityList(SubstituteBindings::class, SetPostgresSchema::class);
+        $middleware->prependToPriorityList(SetPostgresSchema::class, RequireActiveAccount::class);
+        $middleware->prependToPriorityList(SubstituteBindings::class, RequirePlatformAdmin::class);
         $middleware->alias(['abilities' => CheckAbilities::class]);
         $middleware->web(append: [
+            RequireActiveAccount::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

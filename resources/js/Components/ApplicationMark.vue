@@ -1,4 +1,4 @@
 <script setup>
-import EventNestMark from './EventNestMark.vue';
+import EventJunctionMark from './EventJunctionMark.vue';
 </script>
-<template><EventNestMark /></template>
+<template><EventJunctionMark /></template>

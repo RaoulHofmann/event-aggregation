@@ -81,6 +81,7 @@ const maxWidthClass = computed(() => {
         '5xl': 'sm:max-w-5xl',
         '6xl': 'sm:max-w-6xl',
         '7xl': 'sm:max-w-7xl',
+        editor: 'sm:max-w-[1440px] sm:w-[calc(100%_-_3rem)]',
         90: 'sm:max-w-90',
     }[props.maxWidth];
 });
@@ -88,7 +89,7 @@ const maxWidthClass = computed(() => {
 
 <template>
     <dialog
-        aria-label="EventNest dialog"
+        aria-label="EventJunction dialog"
         class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
         ref="dialog"
     >
@@ -116,8 +117,8 @@ const maxWidthClass = computed(() => {
             >
                 <div
                     v-show="show"
-                    class="mb-6 container bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl transform transition-all sm:w-full sm:mx-auto"
-                    :class="maxWidthClass"
+                    class="mb-6 container bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl transform transition-all sm:mx-auto"
+                    :class="[maxWidthClass, { 'sm:w-full': maxWidth !== 'editor' }]"
                 >
                     <slot v-if="showSlot" />
                 </div>

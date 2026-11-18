@@ -41,7 +41,7 @@ class SyncGoogleCalendarEvents implements ShouldBeUnique, ShouldQueue
         DB::select("SELECT set_config('search_path', 'public', false)");
         try {
             $team = Team::find($this->teamId);
-            if (! $team || ! $this->isTenantSchema($team->schema_name)) {
+            if (! $team || $team->suspended_at || ! $this->isTenantSchema($team->schema_name)) {
                 return;
             }
             $this->setSchema($team->schema_name);
@@ -77,7 +77,7 @@ class SyncGoogleCalendarEvents implements ShouldBeUnique, ShouldQueue
         DB::select("SELECT set_config('search_path', 'public', false)");
         try {
             $team = Team::find($this->teamId);
-            if (! $team || ! $this->isTenantSchema($team->schema_name)) {
+            if (! $team || $team->suspended_at || ! $this->isTenantSchema($team->schema_name)) {
                 return;
             }
             $this->setSchema($team->schema_name);

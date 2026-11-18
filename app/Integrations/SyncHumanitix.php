@@ -52,7 +52,7 @@ class SyncHumanitix
                             $rules[] = Rule::in($field->options ?? []);
                         }
                         if (Validator::make(['value' => $mapped[$field->field_id] ?? null], ['value' => $rules])->fails()) {
-                            $warnings[] = 'Complete or correct '.$field->label.' in EventNest.';
+                            $warnings[] = 'Complete or correct '.$field->label.' in EventJunction.';
                             $mapped[$field->field_id] = null;
                         }
                     }

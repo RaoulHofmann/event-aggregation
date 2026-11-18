@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use OpenApi\Attributes as OA;
 
-#[OA\Info(title: 'EventNest API', version: '1.0.0', description: 'Native and imported workspace events')]
+#[OA\Info(title: 'EventJunction API', version: '1.0.0', description: 'Native and imported workspace events')]
 #[OA\SecurityScheme(securityScheme: 'apiKey', type: 'http', scheme: 'bearer', bearerFormat: 'Sanctum token')]
-#[OA\Server(url: '/', description: 'Current EventNest server')]
+#[OA\Server(url: '/', description: 'Current EventJunction server')]
 #[OA\Schema(schema: 'CanonicalEvent', type: 'object', properties: [new OA\Property(property: 'id', type: 'integer'), new OA\Property(property: 'title', type: 'string'), new OA\Property(property: 'description', type: 'string', nullable: true), new OA\Property(property: 'starts_at', type: 'string', format: 'date-time', nullable: true), new OA\Property(property: 'ends_at', type: 'string', format: 'date-time', nullable: true), new OA\Property(property: 'timezone', type: 'string', nullable: true), new OA\Property(property: 'location', type: 'string', nullable: true), new OA\Property(property: 'status', type: 'string', enum: ['draft', 'published', 'cancelled']), new OA\Property(property: 'source', type: 'object', properties: [new OA\Property(property: 'provider', type: 'string', enum: ['eventnest', 'humanitix', 'google_calendar']), new OA\Property(property: 'external_id', type: 'string', nullable: true), new OA\Property(property: 'url', type: 'string', nullable: true)]), new OA\Property(property: 'custom_fields', type: 'object')])]
 class SwaggerAnnotations
 {

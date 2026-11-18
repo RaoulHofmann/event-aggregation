@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Traits\SchemaManagement;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class QueueIntegrationSyncs extends Command
 {
@@ -22,7 +23,7 @@ class QueueIntegrationSyncs extends Command
     {
         DB::select("SELECT set_config('search_path', 'public', false)");
         try {
-            foreach (Team::orderBy('id')->cursor() as $team) {
+            foreach (Team::whereNull('suspended_at')->orderBy('id')->cursor() as $team) {
                 if (! $this->isTenantSchema($team->schema_name)) {
                     continue;
                 }
@@ -39,6 +40,8 @@ class QueueIntegrationSyncs extends Command
         } finally {
             DB::select("SELECT set_config('search_path', 'public', false)");
         }
+
+        Cache::put('eventjunction:integration-scheduler:last-completed', now()->toIso8601String(), now()->addDays(7));
 
         return self::SUCCESS;
     }

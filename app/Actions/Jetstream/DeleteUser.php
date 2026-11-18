@@ -22,6 +22,8 @@ class DeleteUser implements DeletesUsers
      */
     public function delete(User $user): void
     {
+        abort_if($user->is_platform_admin, 403, 'Platform administrator accounts cannot be deleted through the website.');
+
         DB::transaction(function () use ($user) {
             $this->deleteTeams($user);
             $user->deleteProfilePhoto();

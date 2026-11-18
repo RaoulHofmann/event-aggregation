@@ -1,16 +1,15 @@
 <script setup>
+import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import { Head } from "@inertiajs/vue3";
-import { ArrowUpRight } from "lucide-vue-next";
 import ApiExample from "@/Components/ApiExample.vue";
 </script>
 <template>
-    <Head title="EventNest API documentation" />
+    <Head title="EventJunction API documentation" />
     <div class="api-docs">
         <header>
-            <a href="/" class="brand"
-                >eventnest
-                <ArrowUpRight class="inline h-6 w-6" aria-hidden="true"
-            /></a>
+            <a href="/" class="brand">
+                <EventJunctionMark class="inline size-7 align-middle" /> EventJunction
+            </a>
             <nav>
                 <a href="/">Home</a><a href="/user/api-tokens">API access</a
                 ><a href="/register">Get started</a>
@@ -25,7 +24,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                 includes repeating dates and local changes.
             </p>
             <p class="release-note">
-                EventNest is a work in progress. Access and usage are currently
+                EventJunction is a work in progress. Access and usage are currently
                 free. Future pricing is to be determined; limits and features
                 may change as the service develops.
             </p>
@@ -56,7 +55,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                             </li>
                             <li>
                                 Store that token in your application’s
-                                environment as <code>EVENTNEST_TOKEN</code>.
+                                environment as <code>EVENTJUNCTION_TOKEN</code>.
                                 Send it as
                                 <code>Authorization: Bearer &lt;token&gt;</code
                                 >, with <code>Accept: application/json</code>.
@@ -78,7 +77,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                             These examples use this site’s base URL. The
                             responses are illustrative excerpts, not live
                             account data. Replace
-                            <code>EVENTNEST_TOKEN</code> in your environment
+                            <code>EVENTJUNCTION_TOKEN</code> in your environment
                             before running them.
                         </p>
                         <ApiExample />
@@ -121,7 +120,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                                     <tr>
                                         <td>source</td>
                                         <td>
-                                            <code>eventnest</code>,
+                                            <code>eventnest</code> (native EventJunction events),
                                             <code>humanitix</code> or
                                             <code>google_calendar</code>
                                             (currently supported providers).
@@ -204,7 +203,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                             Timed repeats keep local wall-clock starts and
                             elapsed durations. All-day repeats keep local-day
                             durations. Single occurrences can be skipped or
-                            rescheduled in EventNest. Google Calendar repeats
+                            rescheduled in EventJunction. Google Calendar repeats
                             arrive as individual editable occurrences within the
                             import window. Further provider recurrence mapping,
                             exception undo and “this and following” edits remain
@@ -239,14 +238,14 @@ import ApiExample from "@/Components/ApiExample.vue";
                         <p>
                             The current public API reads events. Manage event
                             creation, edits, templates and connections through
-                            the EventNest workspace.
+                            the EventJunction workspace.
                         </p>
                     </section>
                 </div>
             </div>
         </main>
         <footer>
-            <a href="/">EventNest</a
+            <a href="/">EventJunction</a
             ><span>Work in progress · Currently free · Future pricing TBD</span>
         </footer>
     </div>
