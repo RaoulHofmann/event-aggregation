@@ -1,38 +1,28 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import ActionSection from '@/Components/ActionSection.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import DialogModal from '@/Components/DialogModal.vue';
-import FormSection from '@/Components/FormSection.vue';
 import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import SectionBorder from '@/Components/SectionBorder.vue';
-import TextInput from '@/Components/TextInput.vue';
+import ApiKeyCreateForm from './ApiKeyCreateForm.vue';
 
 const props = defineProps({
     tokens: Array,
     availablePermissions: Array,
-    defaultPermissions: Array,
     workspaceName: String,
 });
 
-const createApiTokenForm = useForm({
-    name: '',
-    permissions: [],
-    recoverable: false,
-});
-const readScope = ref(props.defaultPermissions[0] ?? 'read');
 const writePermissions = computed(() => props.availablePermissions.filter(permission => permission !== 'read' && permission !== 'events:read'));
-const canSaveCopy = computed(() => !!readScope.value && createApiTokenForm.permissions.length === 0);
-watch(canSaveCopy, (allowed) => {
-    if (!allowed) createApiTokenForm.recoverable = false;
-});
+const isEventsOnly = (token) => token.abilities.length === 1 && token.abilities[0] === 'events:read';
+const sections = computed(() => [
+    { id: 'events-keys', title: 'Events-only keys', eventsOnly: true, keys: props.tokens.filter(isEventsOnly) },
+    { id: 'general-keys', title: 'General API keys', eventsOnly: false, keys: props.tokens.filter(token => !isEventsOnly(token)) },
+]);
 const permissionLabels = {
     read: 'Read all API data',
     'events:read': 'Read events and occurrences only',
@@ -51,41 +41,16 @@ const deleteApiTokenForm = useForm({});
 const displayingToken = ref(false);
 const displayedSecret = ref('');
 const savedCopy = ref(false);
-const creating = ref(false);
 const revealing = ref(null);
 const tokenError = ref('');
 const managingPermissionsFor = ref(null);
 const apiTokenBeingDeleted = ref(null);
 
-const createApiToken = async () => {
-    if (creating.value) return;
-    creating.value = true;
-    createApiTokenForm.clearErrors();
-    const recoverable = canSaveCopy.value && createApiTokenForm.recoverable;
-    try {
-        const { data } = await axios.post(route('api-tokens.store'), {
-            name: createApiTokenForm.name,
-            recoverable,
-            permissions: [...(readScope.value ? [readScope.value] : []), ...createApiTokenForm.permissions],
-        }, { headers: { Accept: 'application/json' } });
-        displayedSecret.value = data.token;
-        savedCopy.value = recoverable;
-        displayingToken.value = true;
-        createApiTokenForm.reset();
-        readScope.value = props.defaultPermissions[0] ?? 'read';
-        router.reload({ only: ['tokens'] });
-    } catch (error) {
-        const errors = error.response?.data?.errors;
-        if (errors) {
-            for (const [field, messages] of Object.entries(errors)) {
-                createApiTokenForm.setError(field, messages[0]);
-            }
-        } else {
-            createApiTokenForm.setError('permissions', 'Could not create the API key.');
-        }
-    } finally {
-        creating.value = false;
-    }
+const showCreatedKey = (secret, recoverable) => {
+    displayedSecret.value = secret;
+    savedCopy.value = recoverable;
+    displayingToken.value = true;
+    router.reload({ only: ['tokens'] });
 };
 
 const revealApiToken = async (token) => {
@@ -137,123 +102,46 @@ const deleteApiToken = () => {
 </script>
 
 <template>
-    <div>
-        <!-- Generate API Token -->
-        <FormSection @submitted="createApiToken">
-            <template #title>
-                Create API Token
-            </template>
+    <div class="space-y-6">
+        <p v-if="tokenError" role="alert" class="text-sm text-red-700">{{ tokenError }}</p>
+        <section v-for="section in sections" :key="section.id" :aria-labelledby="section.id" class="workspace-panel p-5 sm:p-7">
+            <header class="mb-5">
+                <h2 :id="section.id" class="text-xl font-semibold">{{ section.title }}</h2>
+                <p class="mt-1 text-sm text-slate-600">
+                    <template v-if="section.eventsOnly">
+                        Read-only access to events and calendar occurrences in {{ workspaceName || 'the selected workspace' }}.
+                    </template>
+                    <template v-else>Choose read access and any write permissions your app needs.</template>
+                </p>
+            </header>
 
-            <template #description>
-                Read access is selected by default. Write permissions apply only to {{ workspaceName || 'the selected workspace' }}.
-            </template>
+            <ApiKeyCreateForm
+                :events-only="section.eventsOnly"
+                :workspace-name="workspaceName"
+                :write-permissions="writePermissions"
+                :permission-labels="permissionLabels"
+                @created="showCreatedKey"
+            />
 
-            <template #form>
-                <!-- Token Name -->
-                <div class="col-span-6 sm:col-span-4">
-                    <InputLabel for="name" value="Name" />
-                    <TextInput
-                        id="name"
-                        v-model="createApiTokenForm.name"
-                        type="text"
-                        class="mt-1 block w-full"
-                        maxlength="255"
-                        required
-                        autofocus
-                    />
-                    <InputError :message="createApiTokenForm.errors.name" class="mt-2" />
-                </div>
-
-                <!-- Token Permissions -->
-                <div class="col-span-6">
-                    <InputLabel for="read-scope" value="Read access" />
-                    <select id="read-scope" v-model="readScope" class="workspace-input mt-1">
-                        <option value="read">All API data</option>
-                        <option value="events:read">Events and occurrences only</option>
-                        <option v-if="writePermissions.length" value="">No read access</option>
-                    </select>
-                    <p v-if="readScope === 'events:read'" class="mt-2 text-sm text-gray-600">
-                        The key can read events and occurrences from {{ workspaceName || 'the selected workspace' }}.
-                    </p>
-                </div>
-                <fieldset v-if="writePermissions.length" class="col-span-6">
-                    <legend class="text-sm font-medium">Write permissions</legend>
-
-                    <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div v-for="permission in writePermissions" :key="permission">
-                            <label class="flex items-center">
-                                <Checkbox v-model:checked="createApiTokenForm.permissions" :value="permission" />
-                                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ permissionLabels[permission] }}</span>
-                            </label>
-                        </div>
+            <ul v-if="section.keys.length" class="mt-6 divide-y divide-slate-200 border-t border-slate-200" aria-label="Existing keys">
+                <li v-for="token in section.keys" :key="token.id" class="flex flex-wrap items-center justify-between gap-2 py-4 last:pb-0">
+                    <div class="min-w-0 break-words">
+                        <span class="font-medium">{{ token.name }}</span>
+                        <span v-if="token.workspace_name" class="block text-xs text-slate-500">{{ token.workspace_name }}</span>
                     </div>
-                </fieldset>
-                <div class="col-span-6">
-                    <label v-if="canSaveCopy" class="flex items-center gap-2 text-sm">
-                        <Checkbox v-model:checked="createApiTokenForm.recoverable" />
-                        Save an encrypted copy I can reveal later
-                    </label>
-                    <InputError :message="createApiTokenForm.errors.permissions || createApiTokenForm.errors.recoverable" class="mt-2" />
-                </div>
-            </template>
-
-            <template #actions>
-                <PrimaryButton :disabled="creating || (!readScope && !createApiTokenForm.permissions.length)">
-                    Create
-                </PrimaryButton>
-            </template>
-        </FormSection>
-
-        <div v-if="tokens.length > 0">
-            <SectionBorder />
-
-            <!-- Manage API Tokens -->
-            <div class="mt-10 sm:mt-0">
-                <ActionSection>
-                    <template #title>
-                        Manage API Tokens
-                    </template>
-
-                    <template #description>
-                        You may delete any of your existing tokens if they are no longer needed.
-                    </template>
-
-                    <!-- API Token List -->
-                    <template #content>
-                        <div class="space-y-6">
-                            <p v-if="tokenError" role="alert" class="text-sm text-red-700">{{ tokenError }}</p>
-                            <div v-for="token in tokens" :key="token.id" class="flex flex-wrap items-center justify-between gap-2">
-                                <div class="min-w-0 break-words dark:text-white">
-                                    {{ token.name }}
-                                    <span v-if="token.workspace_name" class="block text-xs text-gray-500">{{ token.workspace_name }}</span>
-                                </div>
-
-                                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                                    <button v-if="token.can_reveal" class="cursor-pointer text-sm text-emerald-800 underline" :disabled="revealing !== null" @click="revealApiToken(token)">
-                                        Reveal key
-                                    </button>
-                                    <div v-if="token.last_used_ago" class="text-sm text-gray-400">
-                                        Last used {{ token.last_used_ago }}
-                                    </div>
-
-                                    <button
-                                        v-if="availablePermissions.length > 0"
-                                        class="cursor-pointer text-sm text-gray-600 underline"
-                                        @click="manageApiTokenPermissions(token)"
-                                    >
-                                        Permissions
-                                    </button>
-
-                                    <button class="cursor-pointer text-sm text-red-700" @click="confirmApiTokenDeletion(token)">
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </ActionSection>
-            </div>
-        </div>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                        <span v-if="token.last_used_ago" class="text-slate-500">Last used {{ token.last_used_ago }}</span>
+                        <button v-if="token.can_reveal" class="text-emerald-800 underline" :disabled="revealing !== null" @click="revealApiToken(token)">
+                            Reveal key
+                        </button>
+                        <button v-if="!section.eventsOnly && token.abilities.length" class="text-slate-700 underline" @click="manageApiTokenPermissions(token)">
+                            Permissions
+                        </button>
+                        <button class="text-red-700" @click="confirmApiTokenDeletion(token)">Delete</button>
+                    </div>
+                </li>
+            </ul>
+        </section>
 
         <!-- Token Value Modal -->
         <DialogModal :show="displayingToken" @close="closeToken">

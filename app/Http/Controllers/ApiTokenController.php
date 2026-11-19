@@ -30,7 +30,6 @@ class ApiTokenController extends JetstreamTokenController
                 'workspace_name' => $workspaceNames[$token->workspace_id] ?? null,
             ]),
             'availablePermissions' => ['read', 'events:read', ...$writable],
-            'defaultPermissions' => ['read'],
             'workspaceName' => $team?->name,
         ]);
     }
@@ -46,6 +45,9 @@ class ApiTokenController extends JetstreamTokenController
         $abilities = $this->abilities($data['permissions'] ?? ['read']);
         if (! $abilities) {
             throw ValidationException::withMessages(['permissions' => 'Choose at least one permission.']);
+        }
+        if (in_array('events:read', $abilities, true) && count($abilities) > 1) {
+            throw ValidationException::withMessages(['permissions' => 'Create a separate events-only key for this permission.']);
         }
         $writes = array_intersect(ApiToken::WRITE_ABILITIES, $abilities);
         $workspaceScoped = $writes || in_array('events:read', $abilities, true);

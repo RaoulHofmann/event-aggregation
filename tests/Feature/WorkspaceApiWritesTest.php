@@ -115,6 +115,9 @@ class WorkspaceApiWritesTest extends TestCase
         $this->postJson('/user/api-tokens', [
             'name' => 'Invalid recovery', 'permissions' => ['events:create'], 'recoverable' => true,
         ])->assertUnprocessable()->assertJsonValidationErrors('recoverable');
+        $this->postJson('/user/api-tokens', [
+            'name' => 'Mixed scope', 'permissions' => ['events:read', 'events:create'],
+        ])->assertUnprocessable()->assertJsonValidationErrors('permissions');
     }
 
     public function test_workspace_editors_can_write_events_but_cannot_write_templates(): void

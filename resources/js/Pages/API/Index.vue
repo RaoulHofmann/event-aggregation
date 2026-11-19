@@ -5,25 +5,18 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 defineProps({
     tokens: Array,
     availablePermissions: Array,
-    defaultPermissions: Array,
     workspaceName: String,
 });
 </script>
 
 <template>
-    <AppLayout title="API Tokens">
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                API Tokens
-            </h2>
-        </template>
-
+    <AppLayout title="API Access">
+        <h1 class="mb-6 text-3xl font-semibold">API Access</h1>
         <div>
-            <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+            <div class="max-w-4xl">
                 <ApiTokenManager
                     :tokens="tokens"
                     :available-permissions="availablePermissions"
-                    :default-permissions="defaultPermissions"
                     :workspace-name="workspaceName"
                 />
             </div>

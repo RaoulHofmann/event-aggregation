@@ -53,8 +53,8 @@ import ApiExample from "@/Components/ApiExample.vue";
                             <li>
                                 Open
                                 <a href="/user/api-tokens">API access</a> and
-                                create a key with <strong>All API data</strong> or
-                                <strong>Events and occurrences only</strong>.
+                                create an <strong>events-only key</strong> or a
+                                <strong>general key</strong> with read access.
                             </li>
                             <li>
                                 Store that token in your application’s

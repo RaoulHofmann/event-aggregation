@@ -4,7 +4,8 @@ See the [API guide](https://eventjunction.app/docs/api) and [interactive Swagger
 
 ### Keys and write access
 
-- **Read all** uses the account's current workspace unless the key also has write permissions. **Events and occurrences only** uses the workspace selected when the key was created and can read the v1 events and occurrences endpoints.
+- **Events-only keys** can read the v1 events and occurrences endpoints in the workspace selected when the key was created.
+- **General API keys** let you choose **Read all API data**, write permissions, or both. Read access uses the account's current workspace unless the key also has write permissions.
 - A new read-only key can optionally save an encrypted copy that its owner can reveal in API Access. Write-enabled keys are shown once. Old keys were stored as hashes and cannot be recovered.
 - Write permissions are separate for create and update. They belong to the selected workspace, and the key owner must still have the relevant workspace role. Owners and admins can write templates and fields. Editors can write events.
 
