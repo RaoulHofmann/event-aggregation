@@ -2,16 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\Event;
+use App\Models\ProviderConnection;
 use App\Models\User;
 use App\Services\ProvisionTeam;
+use App\Traits\SchemaManagement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class PlatformAdministrationTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SchemaManagement;
 
     private function admin(): User
     {
@@ -19,6 +23,31 @@ class PlatformAdministrationTest extends TestCase
         $user->forceFill(['is_platform_admin' => true])->save();
 
         return $user;
+    }
+
+    public function test_admin_can_see_usage_counts_for_each_workspace(): void
+    {
+        $owner = User::factory()->create();
+        $used = app(ProvisionTeam::class)->create($owner, 'Used');
+        $empty = app(ProvisionTeam::class)->create($owner, 'Empty');
+        $missing = $owner->ownedTeams()->create(['name' => 'Missing', 'schema_name' => 'missing_usage_fixture', 'personal_team' => false]);
+        $admin = $this->admin();
+
+        $this->setSchema($used->schema_name);
+        Event::create(['event_data' => []]);
+        Event::create(['event_data' => []])->forceFill(['source' => 'google_calendar'])->save();
+        Event::create(['event_data' => []])->delete();
+        foreach (['google_calendar' => 'connected', 'eventbrite' => 'error', 'humanitix' => 'disconnected', 'csv' => 'connected'] as $provider => $status) {
+            ProviderConnection::create(['provider' => $provider, 'name' => $provider, 'status' => $status, 'credentials' => []]);
+        }
+        DB::select("SELECT set_config('search_path', 'public', false)");
+
+        $this->actingAs($admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
+            ->where('teams.data.0.id', $missing->id)->where('teams.data.0.events_count', null)->where('teams.data.0.integrations_count', null)
+            ->where('teams.data.1.id', $empty->id)->where('teams.data.1.events_count', 0)->where('teams.data.1.integrations_count', 0)
+            ->where('teams.data.2.id', $used->id)->where('teams.data.2.events_count', 2)->where('teams.data.2.integrations_count', 2)
+            ->missing('teams.data.2.schema_name'));
+        $this->assertSame('public', DB::selectOne('SHOW search_path')->search_path);
     }
 
     public function test_pending_accounts_cannot_access_workspace_jetstream_or_api_routes(): void

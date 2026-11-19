@@ -159,6 +159,16 @@ const rename = (team) => {
                             </div>
                             <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">{{ team.suspended_at ? "Paused" : "Active" }}</span>
                         </div>
+                        <dl class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                            <div class="flex items-baseline gap-1">
+                                <dt>Events</dt>
+                                <dd class="font-medium tabular-nums text-slate-950">{{ team.events_count?.toLocaleString() ?? "Unavailable" }}</dd>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <dt>Integrations</dt>
+                                <dd class="font-medium tabular-nums text-slate-950">{{ team.integrations_count?.toLocaleString() ?? "Unavailable" }}</dd>
+                            </div>
+                        </dl>
                         <form v-if="renaming === team.id" class="mt-3 flex flex-wrap gap-2" @submit.prevent="rename(team)">
                             <input v-model="form.name" maxlength="255" required aria-label="New workspace name" class="workspace-input min-w-0 flex-1" />
                             <button class="workspace-primary" :disabled="form.processing">Save name</button>

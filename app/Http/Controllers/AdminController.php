@@ -6,6 +6,7 @@ use App\Models\Team;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\ProvisionTeam;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -47,17 +48,51 @@ class AdminController extends Controller
                 ->orderByRaw("CASE WHEN account_status = 'pending' THEN 0 ELSE 1 END")
                 ->latest('id')->paginate(12, pageName: 'users_page')->withQueryString()
                 ->through(fn (User $user) => $user->only('id', 'name', 'email', 'account_status', 'is_platform_admin', 'created_at', 'owned_teams_count')),
-            'teams' => Team::query()
-                ->select('id', 'name', 'user_id', 'personal_team', 'suspended_at', 'created_at')
-                ->with('owner:id,name,is_platform_admin')->withCount('users')
-                ->when($filters['team_search'] ?? null, fn ($query, $search) => $query->whereLike('name', '%'.$search.'%'))
-                ->latest('id')->paginate(12, pageName: 'teams_page')->withQueryString(),
+            'teams' => $this->workspaces($filters['team_search'] ?? null),
             'activity' => DB::table('admin_actions')
                 ->leftJoin('users as actors', 'actors.id', '=', 'admin_actions.actor_id')
                 ->latest('admin_actions.id')->limit(12)->get(['admin_actions.id', 'action', 'target_id', 'target_type', 'admin_actions.created_at', 'actors.name as actor']),
             'tickets' => SupportTicket::with(['requester:id,name,email', 'workspace:id,name'])
                 ->latest('id')->paginate(10, pageName: 'tickets_page')->withQueryString(),
         ]);
+    }
+
+    private function workspaces(?string $search): LengthAwarePaginator
+    {
+        $teams = Team::query()
+            ->select('id', 'name', 'user_id', 'personal_team', 'suspended_at', 'created_at', 'schema_name')
+            ->with('owner:id,name,is_platform_admin')->withCount('users')
+            ->when($search, fn ($query, $search) => $query->whereLike('name', '%'.$search.'%'))
+            ->latest('id')->paginate(12, pageName: 'teams_page')->withQueryString();
+
+        $tablesBySchema = DB::table('information_schema.tables')
+            ->whereIn('table_schema', $teams->getCollection()->pluck('schema_name')->unique()->all())
+            ->whereNotIn('table_schema', ['public', 'information_schema'])
+            ->whereIn('table_name', ['events', 'provider_connections'])
+            ->get(['table_schema', 'table_name'])->groupBy('table_schema');
+
+        return $teams->through(function (Team $team) use ($tablesBySchema) {
+            $schema = $team->schema_name;
+            $tables = $tablesBySchema->get($schema, collect())->pluck('table_name');
+            $qualifiedSchema = '"'.str_replace('"', '""', $schema).'"';
+            $counts = DB::query();
+            if ($tables->contains('events')) {
+                $counts->selectSub(DB::query()->fromRaw($qualifiedSchema.'.events')->selectRaw('count(*)')->whereNull('deleted_at'), 'events_count');
+            }
+            if ($tables->contains('provider_connections')) {
+                $counts->selectSub(
+                    DB::query()->fromRaw($qualifiedSchema.'.provider_connections')->selectRaw('count(*)')
+                        ->where('provider', '!=', 'csv')->where('status', '!=', 'disconnected'),
+                    'integrations_count',
+                );
+            }
+            $usage = $tables->isEmpty() ? null : $counts->first();
+
+            return $team->makeHidden('schema_name')->toArray() + [
+                'events_count' => isset($usage->events_count) ? (int) $usage->events_count : null,
+                'integrations_count' => isset($usage->integrations_count) ? (int) $usage->integrations_count : null,
+            ];
+        });
     }
 
     public function updateUser(Request $request, User $user, ProvisionTeam $provisioner): RedirectResponse
