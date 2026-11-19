@@ -1,3 +1,13 @@
+map $upstream_http_x_eventjunction_embed $eventjunction_frame_options {
+    default "SAMEORIGIN";
+    "1" "";
+}
+
+map $upstream_http_x_eventjunction_embed $eventjunction_referrer_policy {
+    default "no-referrer-when-downgrade";
+    "1" "no-referrer";
+}
+
 server {
     listen 8080 default_server;
     listen [::]:8080 default_server;
@@ -55,7 +65,7 @@ server {
         deny all;
     }
 
-    add_header X-Frame-Options           "SAMEORIGIN" always;
+    add_header X-Frame-Options           $eventjunction_frame_options always;
     add_header X-Content-Type-Options    "nosniff" always;
-    add_header Referrer-Policy           "no-referrer-when-downgrade" always;
+    add_header Referrer-Policy           $eventjunction_referrer_policy always;
 }

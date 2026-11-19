@@ -39,6 +39,7 @@ const exampleFields = computed(() =>
                 <a href="#templates">Templates</a>
                 <a href="#integrations">Integrations</a>
                 <a href="#workspaces">Workspaces</a>
+                <a href="#website-widget">Widget</a>
                 <a href="/docs/api">API docs</a>
                 <a href="/pricing">Pricing</a>
                 <a :href="accountHref">{{ accountLabel }}</a>
@@ -225,6 +226,16 @@ const exampleFields = computed(() =>
                     <ApiExample />
                 </section>
             </div>
+            <div class="widget-band">
+                <section id="website-widget" class="widget-showcase" aria-labelledby="website-widget-heading">
+                    <div>
+                        <h2 id="website-widget-heading">Upcoming events on your website</h2>
+                        <p>Show your published events in a calendar that updates when you change them in EventJunction.</p>
+                        <p>Workspace owners can enable it under <strong>Events → Website widget</strong> and paste the embed code into an HTML block.</p>
+                    </div>
+                    <iframe :src="route('widgets.upcoming.example', undefined, false)" title="Example upcoming events widget" loading="lazy"></iframe>
+                </section>
+            </div>
             <div class="integrations-band">
                 <section id="integrations" class="integrations-section" aria-labelledby="integrations-heading">
                     <header class="integrations-heading">
@@ -290,6 +301,7 @@ const exampleFields = computed(() =>
 .hero,
 .template-story,
 .integrations-section,
+.widget-showcase,
 .api-first,
 .home-footer {
     box-sizing: border-box;
@@ -381,6 +393,7 @@ const exampleFields = computed(() =>
 }
 .template-story h2,
 .integrations-heading h2,
+.widget-showcase h2,
 .api-copy h2 {
     font-size: clamp(34px, 3.5vw, 48px);
     font-weight: 850;
@@ -623,6 +636,36 @@ const exampleFields = computed(() =>
 .integrations-band {
     background: #e7ecdf;
     border-bottom: 1px solid #c9d2c0;
+}
+.widget-band {
+    background: #eeebf5;
+    border-top: 1px solid #d5cde1;
+    border-bottom: 1px solid #d5cde1;
+}
+.widget-showcase {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: clamp(24px, 6vw, 72px);
+    padding-block: 58px;
+}
+.widget-showcase p {
+    max-width: 420px;
+    margin-top: 14px;
+    font-size: 17px;
+    color: #51465d;
+}
+.widget-showcase iframe {
+    width: 100%;
+    height: 356px;
+    border: 1px solid #bfb4cd;
+    border-radius: 12px;
+    background: #fffaf1;
+    box-shadow: 0 12px 28px #40344915;
+}
+@media (max-width: 700px) {
+    .widget-showcase { grid-template-columns: minmax(0, 1fr); padding-block: 40px; }
+    .widget-showcase iframe { height: 405px; }
 }
 .integrations-section {
     padding: 58px 0;

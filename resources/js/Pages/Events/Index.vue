@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch, onMounted } from "vue";
-import { router, useForm, usePage } from "@inertiajs/vue3";
+import { Link, router, useForm, usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import AppLayout from "@/Layouts/AppLayout.vue";
 import Modal from "@/Components/Modal.vue";
@@ -304,9 +304,10 @@ const remove = (event) => {
     <AppLayout title="Events" wide>
         <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
             <h1 class="text-3xl font-semibold">Events</h1>
-            <button class="workspace-primary" @click="open()">
-                Create event
-            </button>
+            <div class="flex flex-wrap gap-3">
+                <Link v-if="page.props.auth.user.current_team?.user_id === page.props.auth.user.id" :href="route('events.widget')" class="workspace-secondary">Website widget</Link>
+                <button class="workspace-primary" @click="open()">Create event</button>
+            </div>
         </div>
         <section class="workspace-panel overflow-hidden">
             <div class="flex flex-wrap gap-3 border-b p-4">
