@@ -143,7 +143,12 @@ class InboundImportsTest extends TestCase
         $secretUrl = 'https://calendar.example.test/feed.ics?key=private-token';
         $this->actingAs($owner)->post('/integrations/imports/ics', ['name' => 'Workshops', 'timezone' => 'UTC', 'feed_url' => $secretUrl])->assertRedirect();
         Queue::assertPushedOnce(SyncInboundEvents::class);
-        $this->get('/integrations/imports')->assertOk()->assertDontSee('private-token');
+        $this->get('/integrations/imports')->assertRedirect(route('integrations.index').'#event-imports');
+        $this->get('/integrations')->assertOk()->assertDontSee('private-token')
+            ->assertInertia(fn ($page) => $page->component('Integrations/Index')
+                ->where('canManage', true)
+                ->where('connections.0.provider', 'ics')
+                ->has('starterTemplates.wordpress'));
         $this->setSchema($team->schema_name);
         $this->assertStringNotContainsString($secretUrl, DB::table('provider_connections')->value('credentials'));
         DB::select("SELECT set_config('search_path', 'public', false)");
@@ -152,6 +157,9 @@ class InboundImportsTest extends TestCase
         $team->users()->attach($member, ['role' => 'editor']);
         $member->switchTeam($team);
         $this->actingAs($member)->get('/integrations/imports')->assertForbidden();
+        $this->get('/integrations')->assertOk()->assertInertia(fn ($page) => $page->component('Integrations/Index')
+            ->where('canManage', false)
+            ->has('connections', 0));
         $this->post('/integrations/imports/ics', ['name' => 'Workshops'])->assertForbidden();
     }
 

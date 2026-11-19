@@ -10,13 +10,11 @@ use App\Integrations\Inbound\PublicFeedClient;
 use App\Integrations\Inbound\SourceTemplates;
 use App\Jobs\SyncInboundEvents;
 use App\Models\EventTemplate;
-use App\Models\FieldTemplate;
 use App\Models\ProviderConnection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
 
 class InboundImportController extends Controller
 {
@@ -31,12 +29,7 @@ class InboundImportController extends Controller
     {
         $this->owner($request);
 
-        return Inertia::render('Integrations/Imports', [
-            'connections' => ProviderConnection::whereIn('provider', self::PROVIDERS)->orderBy('id')->get(),
-            'eventTemplates' => EventTemplate::where('source', 'eventnest')->orderBy('name')->get(),
-            'fieldTemplates' => FieldTemplate::orderBy('label')->get(),
-            'starterTemplates' => SourceTemplates::DEFINITIONS,
-        ]);
+        return redirect(route('integrations.index').'#event-imports');
     }
 
     public function store(Request $request, string $provider, ImportOptions $options, PublicFeedClient $feeds)
@@ -122,7 +115,7 @@ class InboundImportController extends Controller
 
         SyncInboundEvents::dispatch($request->user()->current_team_id, $record->id);
 
-        return to_route('integrations.imports.index')->with('success', 'Import queued. New events arrive as drafts.');
+        return to_route('integrations.index')->with('success', 'Import queued. New events arrive as drafts.');
     }
 
     public function previewCsv(Request $request, CsvEvents $csv)
@@ -153,7 +146,7 @@ class InboundImportController extends Controller
             return $writer->write($connection, $result['events'], isset($data['template_id']) ? (int) $data['template_id'] : null, $data['field_mapping'] ?? []);
         });
 
-        return to_route('integrations.imports.index')->with('success', "{$count} CSV events processed. Duplicate rows already imported were matched to their existing records.");
+        return to_route('integrations.index')->with('success', "{$count} CSV events processed.");
     }
 
     private function parseCsv(CsvEvents $csv, array $data): array

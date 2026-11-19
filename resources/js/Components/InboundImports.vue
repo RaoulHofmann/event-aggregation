@@ -1,8 +1,7 @@
 <script setup>
-import { computed, ref } from "vue";
-import { Link, useForm, usePoll } from "@inertiajs/vue3";
+import { computed, nextTick, ref } from "vue";
+import { useForm } from "@inertiajs/vue3";
 import axios from "axios";
-import AppLayout from "@/Layouts/AppLayout.vue";
 import ProviderSetupGuide from "@/Components/ProviderSetupGuide.vue";
 import { integrationGuides } from "@/Lib/integrationGuides";
 import ImportTemplateFields from "@/Components/ImportTemplateFields.vue";
@@ -14,8 +13,6 @@ const props = defineProps({
     fieldTemplates: Array,
     starterTemplates: Object,
 });
-
-usePoll(10000, { only: ["connections"] });
 
 const providers = {
     ics: integrationGuides.ics,
@@ -32,6 +29,7 @@ const statusMessages = {
     disconnected: "Disconnected",
 };
 const editing = ref(null);
+const settingsHeading = ref(null);
 const provider = ref(null);
 const preview = ref(null);
 const previewError = ref("");
@@ -52,7 +50,7 @@ const canCreateTemplate = computed(() => Object.keys(sourceFields.value).length 
     && !props.eventTemplates.some((template) => template.id === editing.value?.settings?.starter_template_id));
 const action = useForm({});
 
-function open(key, existing = null) {
+async function open(key, existing = null) {
     form.reset();
     form.clearErrors();
     preview.value = null;
@@ -68,6 +66,8 @@ function open(key, existing = null) {
     } else if (key !== "csv") {
         form.name = providers[key].label;
     }
+    await nextTick();
+    settingsHeading.value?.focus();
 }
 
 function close() {
@@ -118,17 +118,11 @@ function disconnect(connection) {
 </script>
 
 <template>
-    <AppLayout title="Import events">
-        <Link :href="route('integrations.index')" class="text-sm font-medium text-emerald-800 underline">Back to integrations</Link>
-        <header class="mb-7 mt-4">
-            <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Import events</h1>
-            <p class="mt-2 max-w-2xl text-slate-600">Bring events into this workspace as drafts. Edit and publish them here without changing the source.</p>
-        </header>
-
-        <div class="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <section id="event-imports" class="mt-6 scroll-mt-6" aria-label="Calendar feed, CSV, WordPress and Eventbrite">
+        <div class="grid items-start gap-4 sm:grid-cols-2">
             <article v-for="(info, key) in providers" :key="key" class="workspace-panel flex min-w-0 flex-col items-start p-5">
                 <h2 class="text-lg font-semibold">{{ info.label }}</h2>
-                <p class="mb-4 mt-2 text-sm xl:min-h-12 leading-6 text-slate-600">{{ info.text }}</p>
+                <p class="mb-4 mt-2 text-sm leading-6 text-slate-600">{{ info.text }}</p>
                 <button class="workspace-secondary" type="button" :aria-expanded="provider === key" aria-controls="import-settings" @click="open(key)">
                     {{ key === 'csv' ? 'Choose file' : 'Add connection' }}
                 </button>
@@ -138,7 +132,7 @@ function disconnect(connection) {
 
         <section v-if="provider" id="import-settings" class="workspace-panel mt-6 max-w-3xl space-y-5 p-5 sm:p-7" aria-labelledby="import-settings-heading">
             <div class="flex flex-wrap items-start justify-between gap-3">
-                <h2 id="import-settings-heading" class="text-xl font-semibold">{{ editing ? 'Edit' : 'Set up' }} {{ providers[provider].label }}</h2>
+                <h2 id="import-settings-heading" ref="settingsHeading" tabindex="-1" class="text-xl font-semibold">{{ editing ? 'Edit' : 'Set up' }} {{ providers[provider].label }}</h2>
                 <button type="button" class="workspace-secondary" :disabled="form.processing || previewing" @click="close">Cancel</button>
             </div>
             <form class="space-y-4" @submit.prevent="submit">
@@ -204,9 +198,8 @@ function disconnect(connection) {
             </form>
         </section>
 
-        <section class="mt-8 space-y-3" aria-labelledby="import-connections-heading">
+        <section v-if="connections.length" class="mt-6 space-y-3" aria-labelledby="import-connections-heading">
             <h2 id="import-connections-heading" class="text-xl font-semibold">Connected imports</h2>
-            <p v-if="!connections.length" class="text-sm text-slate-600">No connections have been added here yet.</p>
             <article v-for="connection in connections" :key="connection.id" class="workspace-panel p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="min-w-0">
@@ -223,5 +216,5 @@ function disconnect(connection) {
                 <p v-if="connection.last_error" class="mt-2 text-sm text-red-700">{{ connection.last_error }}</p>
             </article>
         </section>
-    </AppLayout>
+    </section>
 </template>

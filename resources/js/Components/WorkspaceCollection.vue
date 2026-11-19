@@ -17,7 +17,6 @@ import Modal from "./Modal.vue";
 import ConfirmationModal from "./ConfirmationModal.vue";
 const props = defineProps({
     title: String,
-    description: String,
     items: Array,
     resource: String,
     singular: String,
@@ -132,15 +131,11 @@ const remove = () =>
     <AppLayout :title="title"
         ><div class="mb-8 flex flex-wrap items-start justify-between gap-4">
             <div>
-                <p class="workspace-eyebrow mb-2">Build your event toolkit</p>
                 <h1
                     class="text-3xl font-semibold tracking-tight text-slate-950"
                 >
                     {{ title }}
                 </h1>
-                <p class="mt-3 max-w-xl text-sm leading-6 text-slate-500">
-                    {{ description }}
-                </p>
             </div>
             <button class="workspace-primary" @click="open()">
                 <Plus class="size-4" />Create {{ singular }}
@@ -179,15 +174,6 @@ const remove = () =>
                             : `Create your first ${singular}`
                     }}
                 </h2>
-                <p
-                    class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500"
-                >
-                    {{
-                        fields
-                            ? "Define the details your events need, then reuse them in templates."
-                            : "Combine custom fields into a reusable structure for your events."
-                    }}
-                </p>
                 <button
                     v-if="!query"
                     class="workspace-primary mt-6"
@@ -276,11 +262,6 @@ const remove = () =>
                             : form.name || 'New template'
                     "
                     :title="`${selected ? 'Edit' : 'Create'} ${fields ? 'custom field' : 'event template'}`"
-                    :subtitle="
-                        fields
-                            ? 'Define a field once, then use it across your templates.'
-                            : 'Choose the details your team needs and arrange the event form.'
-                    "
                     :close-label="`Close ${singular} form`"
                     @close="showForm = false"
                 />
@@ -292,13 +273,7 @@ const remove = () =>
                         class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]"
                     >
                         <section class="min-w-0 space-y-6">
-                            <div>
-                                <h3 class="font-semibold">Field details</h3>
-                                <p class="mt-1 text-sm text-slate-500">
-                                    Define it once, then use it across your
-                                    event templates.
-                                </p>
-                            </div>
+                            <h3 class="font-semibold">Field details</h3>
                             <div class="grid gap-5 sm:grid-cols-2">
                                 <div>
                                     <label
@@ -436,8 +411,7 @@ const remove = () =>
                                 "
                             />
                             <p class="mt-5 text-xs leading-5 text-slate-500">
-                                This is how the field will appear in the event
-                                editor. Preview answers are not saved.
+                                Preview answers are not saved.
                             </p>
                         </fieldset>
                     </div>
@@ -446,15 +420,7 @@ const remove = () =>
                         class="grid items-start gap-8 lg:grid-cols-[minmax(260px,1fr)_minmax(0,2fr)]"
                     >
                         <section class="min-w-0 space-y-6 lg:sticky lg:top-0">
-                            <div>
-                                <h3 class="font-semibold">Template settings</h3>
-                                <p
-                                    class="mt-1 text-sm leading-6 text-slate-500"
-                                >
-                                    Choose the extra information this type of
-                                    event needs.
-                                </p>
-                            </div>
+                            <h3 class="font-semibold">Template settings</h3>
                             <div>
                                 <label
                                     for="template-name"

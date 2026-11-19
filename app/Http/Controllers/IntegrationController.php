@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Integrations\GoogleCalendarClient;
 use App\Integrations\Inbound\InboundSources;
+use App\Integrations\Inbound\SourceTemplates;
 use App\Jobs\SyncInboundEvents;
 use App\Jobs\SyncGoogleCalendarEvents;
 use App\Jobs\SyncHumanitixEvents;
@@ -21,7 +22,16 @@ class IntegrationController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('Integrations/Index', ['googleConfigured' => app(GoogleCalendarClient::class)->configured(), 'connections' => ProviderConnection::orderBy('id')->get(), 'eventTemplates' => EventTemplate::where('source', 'eventnest')->orderBy('name')->get(), 'fieldTemplates' => FieldTemplate::orderBy('label')->get(), 'canManage' => $request->user()->ownsTeam($request->user()->currentTeam)]);
+        $canManage = $request->user()->ownsTeam($request->user()->currentTeam);
+
+        return Inertia::render('Integrations/Index', [
+            'googleConfigured' => app(GoogleCalendarClient::class)->configured(),
+            'connections' => ProviderConnection::when(! $canManage, fn ($query) => $query->whereIn('provider', ['humanitix', 'google_calendar']))->orderBy('id')->get(),
+            'eventTemplates' => EventTemplate::where('source', 'eventnest')->orderBy('name')->get(),
+            'fieldTemplates' => FieldTemplate::orderBy('label')->get(),
+            'starterTemplates' => $canManage ? SourceTemplates::DEFINITIONS : [],
+            'canManage' => $canManage,
+        ]);
     }
 
     private function owner(Request $request): void

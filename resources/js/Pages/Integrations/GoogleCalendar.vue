@@ -42,13 +42,7 @@ const save = () =>
             ><ArrowLeft class="size-4" />Integrations</Link
         >
         <div class="mb-8">
-            <p class="workspace-eyebrow mb-2">Google Calendar · inbound only</p>
-            <h1 class="text-3xl font-semibold">Choose what comes in.</h1>
-            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                Select calendars and an event template. Google supplies the
-                dates and details; your team can edit and publish the imported
-                drafts in EventJunction.
-            </p>
+            <h1 class="text-3xl font-semibold">Choose calendars</h1>
         </div>
         <form
             class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,.55fr)]"
@@ -180,30 +174,9 @@ const save = () =>
                 class="workspace-panel space-y-4 p-6 text-sm leading-6 text-slate-500"
             >
                 <ShieldCheck class="size-6 text-emerald-700" />
-                <h2 class="font-semibold text-slate-800">
-                    Your work stays here.
-                </h2>
-                <p>
-                    Google Calendar access is read-only. Creating, editing or
-                    deleting an event in EventJunction never changes Google.
-                </p>
-                <p>
-                    New imports are drafts. Review them before publishing
-                    through your API.
-                </p>
-                <p>
-                    Repeating events arrive as individual occurrences, including
-                    Google exceptions. Imports cover the past 90 days through
-                    the next 12 months.
-                </p>
-                <p>
-                    Changed fields and custom answers are protected on refresh.
-                    Removing a calendar keeps its imported events.
-                </p>
-                <p>
-                    Refreshes are scheduled every 15 minutes while the server
-                    and worker are running. You can also use Sync now.
-                </p>
+                <h2 class="font-semibold text-slate-800">Import settings</h2>
+                <p>Read-only. Events and recurring occurrences from the past 90 days through the next 12 months arrive as drafts.</p>
+                <p>Refreshes keep your local edits. Removing a calendar keeps its existing imports.</p>
             </aside>
         </form>
     </AppLayout>

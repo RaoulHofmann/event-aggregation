@@ -266,13 +266,7 @@ const remove = (event) => {
 <template>
     <AppLayout title="Events" wide>
         <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <p class="workspace-eyebrow">Your event collection</p>
-                <h1 class="mt-2 text-3xl font-semibold">Events</h1>
-                <p class="mt-2 text-sm text-slate-500">
-                    Plan native events and see your connected hosts together.
-                </p>
-            </div>
+            <h1 class="text-3xl font-semibold">Events</h1>
             <button class="workspace-primary" @click="open()">
                 Create event
             </button>
@@ -661,13 +655,6 @@ const remove = (event) => {
                     >
                 </p>
                 <p v-if="details.location">{{ details.location }}</p>
-                <p
-                    v-if="details.source !== 'eventnest'"
-                    class="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"
-                >
-                    Edits stay in EventJunction. Nothing is sent back to the source
-                    calendar or event host.
-                </p>
                 <p class="whitespace-pre-wrap text-sm text-slate-600">
                     {{ details.description }}
                 </p>

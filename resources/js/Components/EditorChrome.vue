@@ -5,7 +5,6 @@ defineProps({
     context: String,
     name: String,
     title: String,
-    subtitle: String,
     closeLabel: String,
 });
 defineEmits(["close"]);
@@ -30,7 +29,6 @@ defineEmits(["close"]);
         </div>
         <div class="chrome-heading">
             <h2>{{ title }}</h2>
-            <p>{{ subtitle }}</p>
         </div>
     </header>
 </template>
@@ -91,12 +89,6 @@ defineEmits(["close"]);
     line-height: 1.3;
     margin: 0 0 8px;
 }
-.chrome-heading p {
-    font-size: 13px;
-    color: #8b8093;
-    line-height: 1.7;
-    margin: 0;
-}
 @media (max-width: 640px) {
     .chrome-bar {
         padding: 12px 19px;
@@ -106,9 +98,6 @@ defineEmits(["close"]);
     }
     .chrome-heading h2 {
         font-size: 21px;
-    }
-    .chrome-heading p {
-        font-size: 12px;
     }
     .chrome-context {
         font-size: 11px;

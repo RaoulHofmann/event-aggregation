@@ -1,15 +1,13 @@
 <script setup>
 import { ref, computed } from "vue";
-import { Link, useForm, usePoll } from "@inertiajs/vue3";
+import { useForm, usePoll } from "@inertiajs/vue3";
 import {
     Plus,
-    PlugZap,
     RefreshCw,
-    ExternalLink,
-    ShieldCheck,
     X,
 } from "lucide-vue-next";
 import AppLayout from "@/Layouts/AppLayout.vue";
+import InboundImports from "@/Components/InboundImports.vue";
 import ProviderSetupGuide from "@/Components/ProviderSetupGuide.vue";
 import Modal from "@/Components/Modal.vue";
 import ConfirmationModal from "@/Components/ConfirmationModal.vue";
@@ -19,6 +17,7 @@ const props = defineProps({
     canManage: Boolean,
     eventTemplates: Array,
     fieldTemplates: Array,
+    starterTemplates: Object,
 });
 usePoll(10000, { only: ["connections"] });
 const showForm = ref(false),
@@ -89,71 +88,29 @@ const save = () =>
         });
 </script>
 <template>
-    <AppLayout title="Integrations"
-        ><div class="mb-8 flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <p class="workspace-eyebrow mb-2">Bring your events together</p>
-                <h1 class="text-3xl font-semibold">Integrations</h1>
-                <p class="mt-3 max-w-xl text-sm leading-6 text-slate-500">
-                    Connect your event hosts and calendars to one workspace and
-                    API. Import here, then manage your events in EventJunction.
-                </p>
-            </div>
-            <button v-if="canManage" class="workspace-primary" @click="open()">
-                <Plus class="size-4" />Connect Humanitix
-            </button>
-        </div>
-        <section class="workspace-panel p-6 sm:p-8">
-            <div class="flex items-start gap-5">
-                <span
-                    class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-xl font-bold text-orange-700"
-                    >h.</span
-                >
-                <div class="min-w-0 flex-1">
-                    <h2 class="text-lg font-semibold">Humanitix</h2>
-                    <p class="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-                        Import events into your chosen EventJunction template and
-                        edit them locally. Humanitix is read-only: local edits
-                        and deletions are never sent back. Later syncs preserve
-                        your local changes.
-                    </p>
-                    <a
-                        href="https://platform.humanitix.com/docs/api"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="mt-4 inline-flex items-center gap-2 text-xs font-medium text-emerald-700"
-                        >Humanitix API documentation<ExternalLink
-                            class="size-3"
-                    /></a>
+    <AppLayout title="Integrations">
+        <h1 class="mb-8 text-3xl font-semibold">Integrations</h1>
+        <section class="workspace-panel p-6 sm:p-8" aria-labelledby="humanitix-heading">
+            <div class="flex flex-wrap items-start justify-between gap-5">
+                <div class="flex min-w-0 flex-1 items-start gap-5">
+                    <span
+                        class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-xl font-bold text-orange-700"
+                        aria-hidden="true"
+                        >h.</span
+                    >
+                    <div class="min-w-0">
+                        <h2 id="humanitix-heading" class="text-lg font-semibold">Humanitix</h2>
+                        <p class="mt-2 text-sm text-slate-500">Read-only imports from your Humanitix host account.</p>
+                    </div>
                 </div>
-                <span
-                    class="hidden shrink-0 rounded-full border px-3 py-1 text-xs text-slate-500 sm:inline-flex"
-                    >Inbound sync</span
-                >
-            </div>
-            <ProviderSetupGuide class="mt-5 max-w-2xl" provider="humanitix" />
-            <div
-                v-if="!connections.some((c) => c.provider === 'humanitix')"
-                class="mt-7 rounded-xl border border-dashed border-slate-200 p-8 text-center"
-            >
-                <PlugZap class="mx-auto mb-3 size-7 text-slate-400" />
-                <h3 class="text-sm font-semibold">No accounts connected yet</h3>
-                <p class="mt-2 text-sm text-slate-500">
-                    {{
-                        canManage
-                            ? "Connect your Humanitix API key to queue your first import."
-                            : "Ask your workspace owner to connect Humanitix."
-                    }}
-                </p>
-                <button
-                    v-if="canManage"
-                    class="workspace-secondary mt-5"
-                    @click="open()"
-                >
-                    Connect an account
+                <button v-if="canManage" class="workspace-secondary" type="button" @click="open()">
+                    <Plus class="size-4" />Connect Humanitix
                 </button>
             </div>
-            <ProviderSetupGuide class="mt-5 max-w-2xl" provider="google_calendar" />
+            <ProviderSetupGuide class="mt-5 max-w-2xl" provider="humanitix" />
+            <p v-if="!connections.some((c) => c.provider === 'humanitix')" class="mt-4 text-sm text-slate-500">
+                {{ canManage ? "No Humanitix accounts connected." : "Ask your workspace owner to connect Humanitix." }}
+            </p>
             <article
                 v-for="c in connections.filter(
                     (c) => c.provider === 'humanitix',
@@ -228,7 +185,7 @@ const save = () =>
                 </div>
             </article>
         </section>
-        <section class="workspace-panel mt-6 p-6 sm:p-8">
+        <section class="workspace-panel mt-6 p-6 sm:p-8" aria-labelledby="google-calendar-heading">
             <div class="flex flex-wrap items-start justify-between gap-5">
                 <div class="flex items-start gap-5">
                     <span
@@ -237,20 +194,8 @@ const save = () =>
                         >31</span
                     >
                     <div>
-                        <h2 class="text-lg font-semibold">Google Calendar</h2>
-                        <p
-                            class="mt-2 max-w-xl text-sm leading-6 text-slate-500"
-                        >
-                            Bring selected calendars into EventJunction, including
-                            repeating occurrences. Import as drafts into a
-                            template, then edit and publish here. Nothing is
-                            written back to Google.
-                        </p>
-                        <p class="mt-3 text-xs leading-5 text-slate-500">
-                            Imports cover the past 90 days and next 12 months.
-                            Existing imports are kept when you deselect a
-                            calendar or disconnect.
-                        </p>
+                        <h2 id="google-calendar-heading" class="text-lg font-semibold">Google Calendar</h2>
+                        <p class="mt-2 text-sm text-slate-500">Read-only imports from selected Google calendars.</p>
                     </div>
                 </div>
                 <a
@@ -263,6 +208,7 @@ const save = () =>
                     Google setup is needed on this installation.
                 </p>
             </div>
+            <ProviderSetupGuide class="mt-5 max-w-2xl" provider="google_calendar" />
             <article
                 v-for="c in connections.filter(
                     (c) => c.provider === 'google_calendar',
@@ -354,18 +300,13 @@ const save = () =>
                 </div>
             </article>
         </section>
-        <p
-            class="mt-5 flex items-center gap-2 text-xs leading-5 text-slate-500"
-        >
-            <ShieldCheck class="size-4 shrink-0" />API keys and Google tokens
-            are encrypted and never returned to your browser. Imported events
-            are kept when disconnected.
-        </p>
-        <section v-if="canManage" class="workspace-panel mt-6 p-5 sm:p-7">
-            <h2 class="text-xl font-semibold">More ways to import</h2>
-            <p class="mb-4 mt-2 text-sm text-slate-600">Add calendar feeds, CSV files, WordPress, or Eventbrite.</p>
-            <Link :href="route('integrations.imports.index')" class="workspace-primary">Browse event imports</Link>
-        </section>
+        <InboundImports
+            v-if="canManage"
+            :connections="connections.filter((c) => ['ics', 'wordpress', 'eventbrite'].includes(c.provider))"
+            :event-templates="eventTemplates"
+            :field-templates="fieldTemplates"
+            :starter-templates="starterTemplates"
+        />
         <Modal :show="showForm" max-width="2xl" @close="close"
             ><form class="bg-white" @submit.prevent="save">
                 <div class="flex justify-between border-b p-6">

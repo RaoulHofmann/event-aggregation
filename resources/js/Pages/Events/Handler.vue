@@ -257,7 +257,6 @@ const submit = () => {
             context="Events"
             :name="template?.name || 'Basic event'"
             :title="event?.id ? 'Edit event' : 'Create an event'"
-            subtitle="Choose a template, set the date, and make the details yours."
             close-label="Close event form"
             @close="emit('cancel')"
         />
@@ -284,15 +283,7 @@ const submit = () => {
                                 {{ t.name }}
                             </option>
                         </select>
-                        <p class="template-description">
-                            {{
-                                template?.description ||
-                                "Start with the essentials. Add a template when you need custom information."
-                            }}
-                        </p>
-                        <p class="template-count">
-                            {{ activeFields.length }} custom fields
-                        </p>
+                        <p v-if="template?.description" class="template-description">{{ template.description }}</p>
                     </section>
                     <section>
                         <label for="event-status" class="workspace-label"
@@ -306,14 +297,13 @@ const submit = () => {
                             <option value="published">Published</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
-                        <p class="template-description">
-                            Drafts can stay undated. Published events need a
-                            start date and timezone.
+                        <p v-if="form.status === 'published'" class="template-description">
+                            A start date and timezone are required.
                         </p>
                     </section>
                     <section class="editor-summary">
                         <p class="editor-eyebrow">AT A GLANCE</p>
-                        <strong>{{ form.title || "Your next event" }}</strong>
+                        <strong v-if="form.title">{{ form.title }}</strong>
                         <p>{{ scheduleSummary }}</p>
                         <p>{{ form.timezone }}</p>
                         <p>
@@ -356,13 +346,7 @@ const submit = () => {
                             class="editor-section"
                         >
                             <div class="section-heading">
-                                <p class="editor-eyebrow">
-                                    01 / THE ESSENTIALS
-                                </p>
-                                <h3>What’s happening?</h3>
-                                <p>
-                                    The details people need to find your event.
-                                </p>
+                                <h3>Event details</h3>
                             </div>
                             <div>
                                 <label for="event-title" class="workspace-label"
@@ -415,12 +399,7 @@ const submit = () => {
                             class="editor-section"
                         >
                             <div class="section-heading">
-                                <p class="editor-eyebrow">02 / SAVE THE DATE</p>
-                                <h3>When is it on?</h3>
-                                <p>
-                                    Keep a single date or plan a repeating
-                                    series.
-                                </p>
+                                <h3>Schedule &amp; repeat</h3>
                             </div>
                             <label class="all-day-toggle"
                                 ><input
@@ -623,14 +602,7 @@ const submit = () => {
                             class="editor-section"
                         >
                             <div class="section-heading">
-                                <p class="editor-eyebrow">03 / YOUR TEMPLATE</p>
-                                <h3>
-                                    {{ template?.name || "Custom information" }}
-                                </h3>
-                                <p>
-                                    Fields follow your template’s layout.
-                                    Required fields are marked with an asterisk.
-                                </p>
+                                <h3>Custom fields</h3>
                             </div>
                             <ul
                                 v-if="
@@ -655,11 +627,7 @@ const submit = () => {
                                 class="no-custom-fields"
                             >
                                 <Layers class="size-8" />
-                                <h4>The essentials are already covered.</h4>
-                                <p>
-                                    Use a basic event as it is, or choose a
-                                    template with custom fields from the panel.
-                                </p>
+                                <h4>No custom fields</h4>
                                 <Link :href="route('event-templates.index')"
                                     >Manage event templates
                                     <ArrowRight class="size-4"
@@ -797,13 +765,6 @@ const submit = () => {
                 </div>
             </div>
             <footer class="editor-footer">
-                <span
-                    >{{
-                        form.status === "published"
-                            ? "Publish to your workspace and API"
-                            : "Save to your workspace"
-                    }}{{ repeat ? " · Repeating series" : "" }}</span
-                >
                 <div>
                     <button
                         type="button"
@@ -894,11 +855,6 @@ const submit = () => {
     color: #66533d;
     margin-top: 14px;
 }
-.template-count {
-    font-size: 13px;
-    font-weight: 700;
-    margin-top: 15px;
-}
 .editor-summary {
     border-top: 2px solid #27231f;
     padding-top: 20px;
@@ -970,12 +926,6 @@ const submit = () => {
     letter-spacing: -0.9px;
     font-weight: 900;
     margin: 0 0 12px;
-}
-.section-heading > p:last-child {
-    font-size: 15px;
-    line-height: 1.7;
-    color: #66533d;
-    margin: 0;
 }
 .event-title-input {
     font-size: 20px;
@@ -1077,10 +1027,6 @@ const submit = () => {
     font-weight: 800;
     margin: 18px 0 15px;
 }
-.no-custom-fields p {
-    font-size: 16px;
-    line-height: 1.8;
-}
 .no-custom-fields a {
     display: inline-flex;
     align-items: center;
@@ -1113,16 +1059,12 @@ const submit = () => {
 }
 .editor-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: 20px;
     border-top: 2px solid #27231f;
     padding: 18px 30px;
     background: #fff4e4;
-}
-.editor-footer > span {
-    font-size: 13px;
-    color: #66533d;
 }
 .editor-footer > div {
     display: flex;
@@ -1178,9 +1120,6 @@ const submit = () => {
     .editor-footer {
         padding: 15px 20px;
     }
-    .editor-footer > span {
-        display: none;
-    }
     .editor-footer > div {
         width: 100%;
         justify-content: flex-end;
@@ -1235,10 +1174,6 @@ const submit = () => {
 .editor-summary > p:not(.editor-eyebrow) {
     color: #657184;
 }
-.template-count {
-    color: #5a6676;
-    font-weight: 500;
-}
 .editor-summary {
     border-top: 1px solid #e1e5e9;
 }
@@ -1268,10 +1203,6 @@ const submit = () => {
     font-weight: 600;
     letter-spacing: -0.4px;
 }
-.section-heading > p:last-child {
-    color: #657184;
-    font-size: 14px;
-}
 .editor-section {
     gap: 23px;
 }
@@ -1284,9 +1215,6 @@ const submit = () => {
 .editor-footer {
     background: #fff;
     border-top: 1px solid #e3e6ea;
-}
-.editor-footer > span {
-    color: #687486;
 }
 .repeat-settings {
     border-color: #e1e5e9;
@@ -1432,13 +1360,8 @@ const submit = () => {
     letter-spacing: -0.5px;
     color: #42354c;
 }
-.section-heading > p:last-child,
 .template-description {
     color: #8d7d98;
-}
-.template-count {
-    color: #9981a9;
-    font-size: 12px;
 }
 .template-field-column {
     border: 1px solid #e8e0ed;
@@ -1471,9 +1394,6 @@ const submit = () => {
 .editor-workspace input[type="checkbox"] {
     color: #7e658d;
     accent-color: #7e658d;
-}
-.editor-footer > span {
-    color: #94839f;
 }
 @media (max-width: 800px) {
     .template-field-column {

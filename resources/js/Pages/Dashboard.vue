@@ -1,5 +1,5 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
 import {
     CalendarDays,
     Layers,
@@ -11,11 +11,11 @@ import {
 } from "lucide-vue-next";
 import AppLayout from "@/Layouts/AppLayout.vue";
 defineProps({ stats: Object, recentEvents: Array });
+const page = usePage();
 const metrics = [
     {
         key: "events",
         title: "Events",
-        note: "Across your workspace",
         path: "events.index",
         icon: CalendarDays,
         tone: "sand",
@@ -23,7 +23,6 @@ const metrics = [
     {
         key: "templates",
         title: "Event templates",
-        note: "Reusable event structures",
         path: "event-templates.index",
         icon: Layers,
         tone: "lilac",
@@ -31,7 +30,6 @@ const metrics = [
     {
         key: "fields",
         title: "Custom fields",
-        note: "The details your team needs",
         path: "field-templates.index",
         icon: SlidersHorizontal,
         tone: "sage",
@@ -52,14 +50,7 @@ const date = (e) =>
         ><div class="programme-dashboard">
             <section class="dashboard-welcome">
                 <div>
-                    <p class="dashboard-eyebrow">
-                        YOUR PROGRAMME / AT A GLANCE
-                    </p>
-                    <h1>Good things,<br /><span>coming together.</span></h1>
-                    <p>
-                        Keep your events, connected listings and custom details
-                        in one working home.
-                    </p>
+                    <h1>{{ page.props.auth.user.current_team?.name || "Overview" }}</h1>
                     <div class="welcome-actions">
                         <Link
                             :href="route('events.index', { create: 1 })"
@@ -68,7 +59,7 @@ const date = (e) =>
                         ><Link
                             :href="route('integrations.index')"
                             class="connect-link"
-                            ><PlugZap class="size-4" />Connect an account</Link
+                            ><PlugZap class="size-4" />Integrations</Link
                         >
                     </div>
                 </div>
@@ -108,16 +99,12 @@ const date = (e) =>
                         <span>{{ stats[metric.key] }}</span>
                         <h2>{{ metric.title }}</h2>
                     </div>
-                    <p>{{ metric.note }}</p></Link
-                >
+                </Link>
             </section>
             <div class="dashboard-content">
                 <section class="recent-events">
                     <header>
-                        <div>
-                            <p class="dashboard-eyebrow">LATEST ADDITIONS</p>
-                            <h2>Your programme.</h2>
-                        </div>
+                        <h2>Recent events</h2>
                         <Link :href="route('events.index')"
                             >View all <ArrowUpRight class="size-4"
                         /></Link>
@@ -126,12 +113,7 @@ const date = (e) =>
                         <div class="empty-calendar">
                             <CalendarDays class="size-8" />
                         </div>
-                        <h3>What’s going in the diary?</h3>
-                        <p>
-                            Create your first event or bring in a listing from a
-                            connected host. Templates can wait until you need
-                            them.
-                        </p>
+                        <h3>No events yet</h3>
                         <div>
                             <Link
                                 :href="route('events.index', { create: 1 })"
@@ -172,46 +154,14 @@ const date = (e) =>
                         ><ArrowUpRight class="size-4 shrink-0 text-slate-400"
                     /></Link>
                 </section>
-                <aside class="dashboard-notes">
-                    <section class="api-note">
-                        <Code2 class="size-6" />
-                        <p class="dashboard-eyebrow">FOR YOUR APPLICATIONS</p>
-                        <h2>Your events.<br />One API.</h2>
-                        <p>
-                            Read the same native and imported events your team
-                            manages here.
-                        </p>
-                        <code>GET /api/v1/events</code>
-                        <div>
-                            <Link :href="route('api-tokens.index')"
-                                >API access
-                                <ArrowUpRight class="size-4" /></Link
-                            ><a href="/docs/api"
-                                >Documentation <ArrowUpRight class="size-4"
-                            /></a>
-                        </div>
-                    </section>
-                    <section class="template-note">
-                        <Layers class="size-5" />
-                        <h2>A place for the details.</h2>
-                        <p>
-                            Use templates to give native events and imported
-                            listings the same structure.
-                        </p>
-                        <Link :href="route('event-templates.index')"
-                            >Manage templates <ArrowUpRight class="size-4"
-                        /></Link>
-                    </section>
-                </aside>
+                <nav class="api-note" aria-label="API resources">
+                    <span><Code2 class="size-5" /> API</span>
+                    <div>
+                        <Link :href="route('api-tokens.index')">API access <ArrowUpRight class="size-4" /></Link>
+                        <a href="/docs/api">API docs <ArrowUpRight class="size-4" /></a>
+                    </div>
+                </nav>
             </div>
-            <footer class="workspace-access">
-                <span>EARLY ACCESS</span>
-                <p>
-                    EventJunction is a work in progress. Access and usage are
-                    currently free.
-                    <a href="/pricing">Future pricing is TBD.</a>
-                </p>
-            </footer>
         </div></AppLayout
     >
 </template>
@@ -230,28 +180,13 @@ const date = (e) =>
     border-radius: 14px;
     margin-bottom: 24px;
 }
-.dashboard-eyebrow {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #786c5d;
-    margin: 0 0 15px;
-}
 .dashboard-welcome h1 {
     font-size: clamp(31px, 3vw, 41px);
     font-weight: 750;
     line-height: 1.07;
     letter-spacing: -1.5px;
+    overflow-wrap: anywhere;
     margin: 0 0 18px;
-}
-.dashboard-welcome h1 > span {
-    color: #94735b;
-}
-.dashboard-welcome > div > p:last-of-type {
-    font-size: 15px;
-    line-height: 1.8;
-    color: #687383;
-    max-width: 470px;
 }
 .welcome-actions {
     display: flex;
@@ -360,14 +295,8 @@ const date = (e) =>
     font-weight: 500;
     color: #596676;
 }
-.dashboard-total > p {
-    font-size: 12px;
-    color: #687587;
-    margin: 12px 0 0;
-}
 .dashboard-content {
     display: grid;
-    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
     gap: 24px;
     margin-top: 28px;
     align-items: start;
@@ -386,9 +315,6 @@ const date = (e) =>
     gap: 20px;
     border-bottom: 1px solid #eef0f3;
     padding: 24px;
-}
-.recent-events > header .dashboard-eyebrow {
-    margin-bottom: 7px;
 }
 .recent-events h2 {
     font-size: 23px;
@@ -423,12 +349,6 @@ const date = (e) =>
     font-weight: 600;
     letter-spacing: -0.5px;
     margin-bottom: 15px;
-}
-.first-event > p {
-    font-size: 14px;
-    line-height: 1.9;
-    color: #667385;
-    max-width: 390px;
 }
 .first-event > div:last-child {
     display: flex;
@@ -489,116 +409,34 @@ const date = (e) =>
     text-transform: capitalize;
     margin-top: 6px;
 }
-.dashboard-notes {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-.api-note {
-    background: #373936;
-    color: #f3f1e9;
-    padding: 27px;
-    border-radius: 12px;
-}
-.api-note > svg {
-    color: #cabb9a;
-    margin-bottom: 22px;
-}
-.api-note .dashboard-eyebrow {
-    color: #cabb9a;
-}
-.api-note h2 {
-    font-size: 26px;
-    font-weight: 650;
-    line-height: 1.15;
-    letter-spacing: -0.6px;
-    margin-bottom: 17px;
-}
-.api-note > p:not(.dashboard-eyebrow) {
-    font-size: 14px;
-    line-height: 1.9;
-    color: #bbbeb6;
-}
-.api-note > code {
-    display: block;
-    border-top: 1px solid #585b53;
-    border-bottom: 1px solid #585b53;
-    padding: 14px 0;
-    font-size: 12px;
-    margin: 20px 0;
-}
-.api-note > div {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
+.api-note,
+.api-note > span,
+.api-note > div,
 .api-note a {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #dfd0af;
+    gap: 10px;
 }
-.template-note {
-    border: 1px solid #e1dce8;
-    background: #f6f4f8;
-    padding: 25px;
+.api-note {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 13px 20px;
+    border: 1px solid #e4e0d6;
     border-radius: 12px;
-}
-.template-note > svg {
-    color: #a096ac;
-    margin-bottom: 15px;
-}
-.template-note h2 {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    margin-bottom: 13px;
-}
-.template-note p {
+    background: #f9f7f1;
+    color: #514438;
     font-size: 14px;
-    line-height: 1.9;
-    color: #70697a;
+    font-weight: 600;
 }
-.template-note a {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #94869b;
-    margin-top: 18px;
+.api-note > div {
+    flex-wrap: wrap;
+    gap: 18px;
 }
-.workspace-access {
-    display: flex;
-    gap: 20px;
-    border-top: 1px solid #e3e7ed;
-    padding-top: 18px;
-    margin-top: 30px;
-    align-items: baseline;
-    color: #6e7b8a;
-}
-.workspace-access > span {
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-}
-.workspace-access > p {
-    font-size: 12px;
-    line-height: 1.9;
-}
-.workspace-access a {
+.api-note a {
+    gap: 5px;
+    font-size: 13px;
     text-decoration: underline;
     text-underline-offset: 3px;
-}
-@media (max-width: 1200px) {
-    .dashboard-content {
-        grid-template-columns: 1fr;
-    }
-    .dashboard-notes {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
 }
 @media (max-width: 700px) {
     .dashboard-welcome {
@@ -654,12 +492,6 @@ const date = (e) =>
         flex-direction: column;
         gap: 8px;
     }
-    .dashboard-total > p {
-        margin-top: 10px;
-    }
-    .dashboard-notes {
-        grid-template-columns: 1fr;
-    }
     .recent-event {
         padding: 20px 16px;
         gap: 12px;
@@ -669,10 +501,6 @@ const date = (e) =>
     }
     .first-event {
         padding: 30px 24px;
-    }
-    .workspace-access {
-        flex-direction: column;
-        gap: 7px;
     }
     .welcome-actions {
         gap: 17px;

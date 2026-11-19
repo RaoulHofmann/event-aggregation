@@ -26,13 +26,9 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     <div class="workspace-band">
         <section id="workspaces" class="workspace-section" aria-labelledby="workspace-heading">
             <header class="workspace-heading">
-                <div>
-                    <p class="workspace-kicker">Workspaces &amp; access</p>
-                    <h2 id="workspace-heading">Separate workspaces.<br />One sign-in.</h2>
-                </div>
+                <h2 id="workspace-heading">Separate workspaces.<br />One sign-in.</h2>
                 <p class="workspace-intro">
-                    Keep a festival, a client programme, and your own events in separate workspaces.
-                    Switch between the ones you belong to from the same account.
+                    Keep each festival, client programme or team in its own workspace.
                 </p>
             </header>
 
@@ -57,10 +53,7 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
 
                 <div class="workspace-preview" aria-live="polite">
                     <div class="workspace-preview-title">
-                        <div>
-                            <p class="picker-label">Selected workspace</p>
-                            <h3>{{ selected.name }}</h3>
-                        </div>
+                        <h3>{{ selected.name }}</h3>
                         <span class="workspace-role">{{ selected.role }}</span>
                     </div>
                     <ul class="workspace-events">
@@ -68,22 +61,19 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
                             <CalendarDays aria-hidden="true" />{{ event }}
                         </li>
                     </ul>
-                    <p class="workspace-preview-note">
-                        <LockKeyhole aria-hidden="true" />Illustrative events shown only for the selected workspace.
-                    </p>
                 </div>
             </div>
 
             <div class="workspace-rules">
                 <div>
                     <UsersRound aria-hidden="true" />
-                    <h3>Invite the people who need access</h3>
-                    <p>Workspace owners can invite or remove members and manage connections. An invitation applies to that workspace only.</p>
+                    <h3>Manage access</h3>
+                    <p>Owners manage members and integrations. Each invitation gives access to one workspace.</p>
                 </div>
                 <div>
                     <LockKeyhole aria-hidden="true" />
-                    <h3>Keep data with its workspace</h3>
-                    <p>Events, templates, and integrations stay separate. API reads require permission and only return data from the selected workspace your account can access.</p>
+                    <h3>Workspace data</h3>
+                    <p>Events, templates and integrations are scoped to each workspace. API access requires permission for that workspace.</p>
                 </div>
             </div>
         </section>
@@ -108,7 +98,6 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     gap: 28px;
     margin-bottom: 30px;
 }
-.workspace-kicker,
 .picker-label {
     margin: 0 0 12px;
     font-size: 12px;
@@ -190,8 +179,7 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     font-size: 15px;
     overflow-wrap: anywhere;
 }
-.workspace-option span,
-.workspace-preview-note {
+.workspace-option span {
     color: #4f5548;
     font-size: 13px;
 }
@@ -229,16 +217,9 @@ const selected = computed(() => examples.find((workspace) => workspace.id === se
     border-bottom: 1px solid #dde2d3;
     font-size: 15px;
 }
-.workspace-events svg,
-.workspace-preview-note svg {
+.workspace-events svg {
     flex: none;
     color: #535f46;
-}
-.workspace-preview-note {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin: 0;
 }
 .workspace-rules {
     display: grid;

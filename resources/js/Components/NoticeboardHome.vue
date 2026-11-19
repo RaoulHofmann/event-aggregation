@@ -1,7 +1,7 @@
 <script setup>
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import { ref, computed } from "vue";
-import { ArrowUpRight, ArrowRight } from "lucide-vue-next";
+import { ArrowUpRight } from "lucide-vue-next";
 import EventProgrammeDemo from "@/Components/EventProgrammeDemo.vue";
 import ApiExample from "@/Components/ApiExample.vue";
 import WorkspaceAccessDemo from "@/Components/WorkspaceAccessDemo.vue";
@@ -39,27 +39,22 @@ const exampleFields = computed(() =>
                 <a href="/login">Sign in</a>
             </nav>
         </header>
-        <div class="work-in-progress" role="note">
-            <strong>A work in progress.</strong> Access and usage are currently
-            free. Future pricing is still to be determined.
-            <a href="#early-access">About early access</a>
+        <div id="early-access" class="work-in-progress" role="note">
+            <strong>Early access</strong> · Free to use while in development. Pricing TBD.
         </div>
         <main>
             <div class="hero-band">
                 <section class="hero">
                     <div class="hero-copy">
-                        <p class="eyebrow">FOR PEOPLE WHO PUT THINGS ON.</p>
                         <h1>ALL YOUR<br />EVENTS.<br /><em>ONE PLACE.</em></h1>
                         <p class="intro">
-                            Create events, import them from calendars and ticketing
-                            platforms, and manage them together. Your apps can
-                            read them through one API.
+                            Create and import events in one workspace. Read them through one API.
                         </p>
                         <a href="/register" class="dark-button"
                             >Start your workspace
                             <ArrowUpRight aria-hidden="true" /></a
                         ><a class="quiet-link" href="#api-first"
-                            >Building with event data? Start with the API.</a
+                            >See API examples</a
                         >
                     </div>
                     <EventProgrammeDemo />
@@ -68,15 +63,8 @@ const exampleFields = computed(() =>
             <div class="template-band">
                 <section id="templates" class="template-story">
                     <header class="template-section-heading">
-                        <div>
-                            <p class="eyebrow">YOUR PROGRAMME, YOUR FIELDS</p>
-                            <h2>Different events.<br />A shared workspace.</h2>
-                        </div>
-                        <p>
-                            Give workshops and community events their own
-                            fields. Choose an example below to see how a template
-                            works for events you create or import.
-                        </p>
+                        <h2>Event templates</h2>
+                        <p>Use the same template for events you create or import.</p>
                     </header>
                     <div class="template-workbench">
                         <div class="workbench-top">
@@ -114,9 +102,6 @@ const exampleFields = computed(() =>
                                     Community event
                                 </button>
                             </div>
-                            <span class="layout-note"
-                                >Standard details + your custom fields</span
-                            >
                         </div>
                         <div class="workbench-body">
                             <aside class="event-sample" :class="exampleType">
@@ -185,13 +170,7 @@ const exampleFields = computed(() =>
                                         Imported listing
                                     </button>
                                 </div>
-                                <p class="sample-origin">
-                                    {{
-                                        exampleOrigin === "native"
-                                            ? "Created directly in EventJunction."
-                                            : "Humanitix import · example connection."
-                                    }}
-                                </p>
+                                <p class="sample-origin">Source: {{ exampleOrigin === "native" ? "EventJunction" : "Humanitix" }}</p>
                             </aside>
                             <div class="field-canvas">
                                 <div class="field-canvas-heading">
@@ -205,9 +184,6 @@ const exampleFields = computed(() =>
                                             }}
                                         </h3>
                                     </div>
-                                    <span class="editable-badge"
-                                        >Editable in EventJunction</span
-                                    >
                                 </div>
                                 <dl class="workbench-fields">
                                     <div
@@ -226,24 +202,8 @@ const exampleFields = computed(() =>
                                         <dd>{{ value }}</dd>
                                     </div>
                                 </dl>
-                                <div class="source-note">
-                                    <ArrowRight
-                                        aria-hidden="true"
-                                        class="source-note-arrow"
-                                    />
-                                    <p>
-                                        {{
-                                            exampleOrigin === "native"
-                                                ? "Start with the standard event details, then add the information your team needs."
-                                                : "Match imported details to your template, then fill in the extra answers locally. Local edits are kept on refresh."
-                                        }}
-                                    </p>
-                                </div>
                             </div>
                         </div>
-                        <footer class="workbench-footer">
-                            <span>You can use the same template for events you create and events you import.</span>
-                        </footer>
                     </div>
                 </section>
             </div>
@@ -252,38 +212,10 @@ const exampleFields = computed(() =>
                 <section id="api-first" class="api-first">
                     <div class="api-copy">
                         <h2><em>One API</em><br />for all your events.</h2>
-                        <p>
-                            Build a website calendar, an event directory or your
-                            own app using the same event data your team manages
-                            in EventJunction.
-                        </p>
-                        <p>
-                            One request returns events from every connected
-                            source. Leave out the source filter to include
-                            native and imported events in the same response.
-                            Read event records or request a date range of
-                            calendar occurrences, including repeating events and
-                            local changes.
-                        </p>
-                        <ul>
-                            <li>
-                                API reads checked against your selected workspace
-                            </li>
-                            <li>
-                                Published-event filters and paginated event
-                                records
-                            </li>
-                            <li>
-                                UTC timestamps with the event’s local timezone
-                            </li>
-                        </ul>
+                        <p>Fetch native and imported events in one request. Use the occurrences endpoint for a date range.</p>
                         <a class="dark-button" href="/docs/api"
                             >Read the API docs <ArrowUpRight aria-hidden="true"
                         /></a>
-                        <p class="api-note">
-                            Examples use illustrative data and a token supplied
-                            by you. No account data is requested here.
-                        </p>
                     </div>
                     <ApiExample />
                 </section>
@@ -291,10 +223,7 @@ const exampleFields = computed(() =>
             <div class="integrations-band">
                 <section id="integrations" class="integrations-section" aria-labelledby="integrations-heading">
                     <header class="integrations-heading">
-                        <div>
-                            <h2 id="integrations-heading">Available integrations</h2>
-                            <p>Workspace owners can set up imports under <strong>Integrations</strong>. Choose <strong>Browse event imports</strong> for calendar feeds, Eventbrite, WordPress and CSV. Edits you make in EventJunction stay here.</p>
-                        </div>
+                        <h2 id="integrations-heading">Available integrations</h2>
                         <a class="integrations-link" href="/integrations">
                             Open integrations <ArrowUpRight aria-hidden="true" />
                         </a>
@@ -308,26 +237,14 @@ const exampleFields = computed(() =>
                     </ul>
                 </section>
             </div>
-            <div class="access-band">
-                <section id="early-access" class="early-access">
-                    <p class="eyebrow">EARLY ACCESS</p>
-                    <h2>Still taking shape.<br />Currently free to use.</h2>
-                    <p>
-                        EventJunction is a work in progress. You can access and use
-                        the platform for free while we develop it. Features may
-                        evolve, and future pricing is still to be determined.
-                    </p>
-                </section>
-            </div>
         </main>
         <div class="footer-band">
             <footer class="home-footer">
                 <a href="/" class="wordmark">
                     <EventJunctionMark class="size-8 shrink-0" />EventJunction
                 </a>
-                <p>For the things that bring people out.</p>
                 <nav aria-label="Footer navigation">
-                    <a href="/pricing">Pricing & early access</a
+                    <a href="/pricing">Pricing</a
                     ><a href="/docs/api">API documentation</a
                     ><a href="/login">Sign in</a>
                     <a href="/privacy-policy">Privacy</a>
@@ -369,7 +286,6 @@ const exampleFields = computed(() =>
 .template-story,
 .integrations-section,
 .api-first,
-.early-access,
 .home-footer {
     box-sizing: border-box;
     width: min(var(--page-width), calc(100% - var(--page-gutter) * 2));
@@ -408,11 +324,6 @@ const exampleFields = computed(() =>
 .work-in-progress strong {
     margin-right: 6px;
 }
-.work-in-progress a {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    margin-left: 12px;
-}
 .hero {
     display: grid;
     grid-template-columns: 1fr 1.1fr;
@@ -420,14 +331,8 @@ const exampleFields = computed(() =>
     align-items: center;
     padding: 58px 0 64px;
 }
-.eyebrow {
-    font-size: 12px;
-    font-weight: 750;
-    letter-spacing: 0.09em;
-    margin: 0 0 24px;
-}
 .hero h1 {
-    font-size: clamp(58px, 6.2vw, 88px);
+    font-size: clamp(56px, 5.95vw, 84px);
     font-weight: 900;
     line-height: 0.95;
     letter-spacing: -0.065em;
@@ -549,10 +454,6 @@ const exampleFields = computed(() =>
     color: #fff;
     border-color: #3f374a;
 }
-.layout-note {
-    font-size: 11px;
-    color: #786b83;
-}
 .workbench-body {
     display: grid;
     grid-template-columns: minmax(270px, 1fr) minmax(0, 1.8fr);
@@ -660,7 +561,7 @@ const exampleFields = computed(() =>
     justify-content: space-between;
     align-items: center;
     gap: 18px;
-    margin-bottom: 32px;
+    margin-bottom: 26px;
 }
 .field-canvas-heading p {
     font-size: 10px;
@@ -674,15 +575,6 @@ const exampleFields = computed(() =>
     letter-spacing: -0.6px;
     line-height: 1.2;
     margin: 0;
-}
-.editable-badge {
-    font-size: 10px;
-    white-space: nowrap;
-    border-radius: 20px;
-    border: 1px solid #ded5e6;
-    background: #f7f2fa;
-    color: #75627f;
-    padding: 6px 10px;
 }
 .workbench-fields {
     display: grid;
@@ -720,39 +612,6 @@ const exampleFields = computed(() =>
 .wide-field dd {
     min-height: 82px;
 }
-.source-note {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    border-top: 1px dashed #dfd6e4;
-    margin-top: 28px;
-    padding-top: 20px;
-    color: #786983;
-}
-.source-note > svg {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    font-size: 24px;
-    line-height: 1;
-}
-.source-note > p {
-    font-size: 12px;
-    line-height: 1.9;
-    margin: 0;
-    max-width: 500px;
-}
-.workbench-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 16px 26px;
-    border-top: 1px solid #e6e0e9;
-    background: #f9f7fb;
-    color: #74667d;
-    font-size: 10px;
-    line-height: 1.8;
-}
 .sample-change-enter-active,
 .sample-change-leave-active {
     transition: opacity 0.45s ease;
@@ -774,12 +633,6 @@ const exampleFields = computed(() =>
     align-items: end;
     gap: 24px;
     margin-bottom: 27px;
-}
-.integrations-heading p {
-    color: #465645;
-    font-size: 17px;
-    max-width: 560px;
-    margin-top: 12px;
 }
 .integrations-link {
     font-size: 14px;
@@ -818,40 +671,10 @@ const exampleFields = computed(() =>
     padding: 60px 0 65px;
     border-top: 1px solid #cdbb9f;
 }
-.api-copy > p:not(.eyebrow):not(.api-note) {
+.api-copy > p {
     font-size: 18px;
     line-height: 1.85;
     margin: 0 0 20px;
-}
-.api-copy ul {
-    list-style: disc;
-    padding-left: 22px;
-    margin: 24px 0 30px;
-    font-size: 16px;
-    line-height: 1.9;
-}
-.api-copy .api-note {
-    font-size: 13px;
-    margin: 20px 0 0;
-    line-height: 1.8;
-    color: #796b59;
-}
-.early-access {
-    padding: 35px 0 40px;
-    border-top: 1px solid #cdbb9f;
-}
-.early-access h2 {
-    font-size: 32px;
-    letter-spacing: -1px;
-    line-height: 1.15;
-    font-weight: 800;
-    margin: 0 0 22px;
-}
-.early-access > p:last-child {
-    max-width: 780px;
-    font-size: 18px;
-    line-height: 1.85;
-    margin: 0;
 }
 .home-footer {
     display: flex;
@@ -860,11 +683,6 @@ const exampleFields = computed(() =>
     gap: 25px;
     border-top: 1px solid #cdbb9f;
     padding: 28px 0 35px;
-}
-.home-footer p {
-    font-size: 14px;
-    margin: 0;
-    color: #796b59;
 }
 .home-footer nav {
     display: flex;
@@ -880,7 +698,7 @@ const exampleFields = computed(() =>
         gap: 35px;
     }
     .hero h1 {
-        font-size: 78px;
+        font-size: 75px;
     }
     .hero-copy {
         max-width: 700px;
@@ -912,20 +730,12 @@ const exampleFields = computed(() =>
     .work-in-progress {
         font-size: 13px;
     }
-    .work-in-progress a {
-        margin-left: 0;
-        display: block;
-    }
     .hero {
         padding: 35px 0 45px;
     }
     .hero h1 {
-        font-size: clamp(42px, 14.5vw, 64px);
+        font-size: clamp(40px, 14vw, 62px);
         letter-spacing: -0.047em;
-    }
-    .eyebrow {
-        font-size: 10px;
-        margin-bottom: 20px;
     }
     .intro {
         font-size: 19px;
@@ -947,8 +757,7 @@ const exampleFields = computed(() =>
         font-size: 36px;
         letter-spacing: -1.2px;
     }
-    .template-story > div > p:not(.eyebrow),
-    .api-copy > p:not(.eyebrow):not(.api-note) {
+    .api-copy > p {
         font-size: 17px;
     }
     .demo-topline {
@@ -972,15 +781,6 @@ const exampleFields = computed(() =>
     }
     .demo-caption {
         padding: 16px 18px;
-    }
-    .early-access {
-        padding: 30px 0 35px;
-    }
-    .early-access h2 {
-        font-size: 30px;
-    }
-    .early-access > p:last-child {
-        font-size: 17px;
     }
     .home-footer {
         padding: 25px 0;
@@ -1007,24 +807,16 @@ const exampleFields = computed(() =>
 .api-band {
     background: #fffaf0;
 }
-.access-band {
-    background: #f1dfb9;
-    border-top: 1px solid #d8c59f;
-}
 .footer-band {
     background: #302b25;
     color: #f7e9d5;
 }
 .api-first,
-.early-access,
 .home-footer {
     border-top: 0;
 }
 .api-copy h2 {
     margin-bottom: 25px;
-}
-.home-footer p {
-    color: #b9a88f;
 }
 .home-footer nav {
     color: #e2d0b6;
@@ -1058,9 +850,6 @@ const exampleFields = computed(() =>
     }
     .workbench-fields .wide-field {
         grid-column: auto;
-    }
-    .editable-badge {
-        font-size: 9px;
     }
 }
 @media (max-width: 700px) {
@@ -1096,9 +885,6 @@ const exampleFields = computed(() =>
         flex-direction: column;
         gap: 12px;
     }
-    .layout-note {
-        font-size: 10px;
-    }
     .event-sample,
     .field-canvas {
         padding: 24px;
@@ -1112,11 +898,6 @@ const exampleFields = computed(() =>
     .field-canvas-heading {
         margin-bottom: 25px;
         gap: 15px;
-    }
-    .workbench-footer {
-        padding: 17px 20px;
-        flex-direction: column;
-        gap: 7px;
     }
     .template-story,
     .integrations-section {

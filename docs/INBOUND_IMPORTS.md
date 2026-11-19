@@ -1,6 +1,6 @@
 # Inbound event imports
 
-Workspace owners can open **Integrations → Browse event imports**. New events arrive as drafts. All sources can use a workspace template and optional field mapping. Remote reads never create, update, or delete source events. Editing a field in EventJunction protects that field on refresh, and deleting a local copy keeps it hidden.
+Workspace owners can open **Integrations**. New events arrive as drafts. All sources can use a workspace template and optional field mapping. Remote reads never create, update, or delete source events. Editing a field in EventJunction protects that field on refresh, and deleting a local copy keeps it hidden.
 
 | Source | Setup |
 | --- | --- |
@@ -17,7 +17,7 @@ For WordPress and Eventbrite, select **Create a template for this source** under
 
 1. In Outlook on the web, open **Settings → Calendar → Shared calendars → Publish a calendar**.
 2. If publishing is available, choose the calendar and the level of detail you want to share. Use the generated **ICS** link. Treat it as private.
-3. In EventJunction, open **Integrations → Browse event imports → Calendar feed → Add connection**, paste the HTTPS ICS link, and select **Save and queue import**. Publishing availability depends on the account and organisation settings.
+3. In EventJunction, open **Integrations → Calendar feed → Add connection**, paste the HTTPS ICS link, and select **Save and queue import**. Publishing availability depends on the account and organisation settings.
 
 ## Sync and limits
 
