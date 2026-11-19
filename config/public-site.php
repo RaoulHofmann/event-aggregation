@@ -6,8 +6,8 @@ return [
     'legal_updated' => '18 November 2026',
     'pages' => [
         'home' => [
-            'title' => 'EventJunction — Create, import, and manage events',
-            'description' => 'Create events, import them from calendars and ticketing platforms, and manage them in one workspace with one API.',
+            'title' => 'EventJunction — Event Calendar and Management Software',
+            'description' => 'Event calendar software for teams. Create recurring events, import from calendars and ticketing platforms, and publish event listings through one API.',
         ],
         'pricing' => [
             'title' => 'Pricing — EventJunction',

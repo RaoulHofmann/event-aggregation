@@ -16,9 +16,13 @@ class PublicSiteTest extends TestCase
         config(['public-site.url' => 'https://example.test']);
         $this->get('/?ref=example')->assertOk()
             ->assertSee('<link rel="canonical" href="https://example.test/">', false)
-            ->assertSee('<meta name="description"', false)
+            ->assertSee('<title inertia>EventJunction — Event Calendar and Management Software</title>', false)
+            ->assertSee('<meta name="description" content="Event calendar software for teams.', false)
+            ->assertSee('<meta property="og:description" content="Event calendar software for teams.', false)
+            ->assertSee('<meta name="twitter:description" content="Event calendar software for teams.', false)
             ->assertSee('property="og:image" content="https://example.test/eventjunction-social.png"', false)
-            ->assertDontSee('noindex, nofollow');
+            ->assertDontSee('noindex, nofollow')
+            ->assertInertia(fn (Assert $page) => $page->where('pageTitle', config('public-site.pages.home.title')));
         $this->get('/login')->assertOk()->assertSee('noindex, nofollow')
             ->assertDontSee('rel="canonical"', false);
         $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: https://example.test/sitemap.xml');
@@ -50,8 +54,11 @@ class PublicSiteTest extends TestCase
         $html = $this->get('/?ref=example')->assertOk()->getContent();
         $this->assertSame(1, preg_match('~<script type="application/ld\+json">(.+?)</script>~s', $html, $matches));
         $data = json_decode($matches[1], true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('https://schema.org', $data['@context']);
         $this->assertSame('WebApplication', $data['@type']);
+        $this->assertSame('https://example.test/#application', $data['@id']);
         $this->assertSame('https://example.test/', $data['url']);
+        $this->assertSame(config('public-site.pages.home.description'), $data['description']);
         $this->assertSame(0, $data['offers']['price']);
         $this->get('/pricing')->assertOk()->assertDontSee('application/ld+json', false);
     }

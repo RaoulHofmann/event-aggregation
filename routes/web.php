@@ -26,7 +26,11 @@ Route::post('/user/api-tokens/{token}/reveal', [ApiTokenController::class, 'reve
 
 Route::get('/designs/homepage', fn () => Inertia::render('Designs/Homepage'))->name('designs.homepage');
 
-Route::get('/', fn () => Inertia::render('Welcome', ['canLogin' => Route::has('login'), 'canRegister' => Route::has('register')]))->name('home');
+Route::get('/', fn () => Inertia::render('Welcome', [
+    'canLogin' => Route::has('login'),
+    'canRegister' => Route::has('register'),
+    'pageTitle' => config('public-site.pages.home.title'),
+]))->name('home');
 
 Route::get('/sitemap.xml', fn () => response()->view('sitemap', [
     'urls' => array_map(
