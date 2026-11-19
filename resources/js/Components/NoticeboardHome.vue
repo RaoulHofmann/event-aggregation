@@ -372,11 +372,7 @@ const exampleFields = computed(() =>
     padding: 64px 0 55px;
 }
 .template-section-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 50px;
-    margin-bottom: 42px;
+    margin-bottom: 32px;
 }
 .template-story h2,
 .integrations-heading h2,
@@ -390,9 +386,8 @@ const exampleFields = computed(() =>
 .template-section-heading > p {
     font-size: 17px;
     line-height: 1.85;
-    max-width: 390px;
     color: #625c6f;
-    margin: 0 0 3px;
+    margin: 10px 0 0;
 }
 .template-workbench {
     border: 1px solid #b9b2c6;
@@ -825,13 +820,6 @@ const exampleFields = computed(() =>
     .template-story {
         display: block;
     }
-    .template-section-heading {
-        align-items: flex-start;
-        gap: 25px;
-    }
-    .template-section-heading > p {
-        max-width: 330px;
-    }
     .workbench-body {
         grid-template-columns: minmax(240px, 1fr) minmax(0, 1.6fr);
     }
@@ -854,13 +842,10 @@ const exampleFields = computed(() =>
 }
 @media (max-width: 700px) {
     .template-section-heading {
-        flex-direction: column;
-        gap: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 24px;
     }
     .template-section-heading > p {
         font-size: 16px;
-        max-width: none;
     }
     .workbench-body {
         grid-template-columns: 1fr;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Team;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\ProvisionTeam;
 use Illuminate\Http\RedirectResponse;
@@ -54,6 +55,8 @@ class AdminController extends Controller
             'activity' => DB::table('admin_actions')
                 ->leftJoin('users as actors', 'actors.id', '=', 'admin_actions.actor_id')
                 ->latest('admin_actions.id')->limit(12)->get(['admin_actions.id', 'action', 'target_id', 'target_type', 'admin_actions.created_at', 'actors.name as actor']),
+            'tickets' => SupportTicket::with(['requester:id,name,email', 'workspace:id,name'])
+                ->latest('id')->paginate(10, pageName: 'tickets_page')->withQueryString(),
         ]);
     }
 

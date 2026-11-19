@@ -7,6 +7,7 @@ This policy explains how EventJunction handles information when you use its webs
 - **Accounts and workspaces.** We store your name, email address, password hash, workspace memberships, invitations, and account approval status. Platform administrators can review and manage accounts and workspaces. We record actions such as approvals and suspensions.
 - **Event content.** We store events you create or import, including titles, descriptions, dates, time zones, locations, and any custom field values you choose to enter. Only include personal information that you have permission to use.
 - **Connected services.** When you connect a provider, we store the credentials or private feed URL needed to keep the connection working. Integration credentials are encrypted in storage. We also keep connection settings, sync results, and source identifiers used to match imported events.
+- **Support tickets.** We store the subject and message you submit with your account and workspace so platform administrators can respond to your enquiry.
 - **Operation and security.** We use session and security cookies to keep you signed in and protect requests. Technical logs and error reports may include request details, IP addresses, and device or browser information. We use these records to operate and secure the service and diagnose problems.
 
 ## How we use and share information

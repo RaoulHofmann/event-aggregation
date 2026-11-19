@@ -93,4 +93,26 @@ class PlatformAdministrationTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('teams', 1);
     }
+
+    public function test_workspace_support_ticket_is_visible_only_to_platform_administrators(): void
+    {
+        $owner = User::factory()->create();
+        $team = app(ProvisionTeam::class)->create($owner, 'Workshops', true);
+        $admin = $this->admin();
+        $payload = ['subject' => 'Calendar question', 'message' => "First line\nSecond line"];
+
+        $this->post('/support-tickets', $payload)->assertRedirect(route('login'));
+        $this->actingAs($owner)->postJson('/support-tickets', ['subject' => ''])->assertUnprocessable()
+            ->assertJsonValidationErrors(['subject', 'message']);
+        $this->post('/support-tickets', $payload + ['user_id' => $admin->id, 'team_id' => $team->id + 1])
+            ->assertRedirect(route('dashboard'))->assertSessionHas('success', 'Support ticket submitted.');
+        $this->assertDatabaseHas('public.support_tickets', $payload + ['user_id' => $owner->id, 'team_id' => $team->id]);
+        $this->get('/admin')->assertForbidden();
+        $this->get('/dashboard')->assertInertia(fn (Assert $page) => $page->missing('tickets'));
+        $this->actingAs($admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
+            ->where('tickets.data.0.subject', $payload['subject'])
+            ->where('tickets.data.0.message', $payload['message'])
+            ->where('tickets.data.0.requester.email', $owner->email)
+            ->where('tickets.data.0.workspace.name', $team->name));
+    }
 }

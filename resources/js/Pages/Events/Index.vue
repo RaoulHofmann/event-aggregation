@@ -1,10 +1,11 @@
 <script setup>
 import { computed, ref, watch, onMounted } from "vue";
-import { router, useForm } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import AppLayout from "@/Layouts/AppLayout.vue";
 import Modal from "@/Components/Modal.vue";
 import Handler from "./Handler.vue";
+import BulkActions from "./BulkActions.vue";
 const props = defineProps({
     events: Object,
     eventTemplates: Array,
@@ -12,7 +13,42 @@ const props = defineProps({
     openCreate: Boolean,
     filters: Object,
     undatedCount: Number,
+    bulkLimit: Number,
 });
+const page = usePage();
+const bulkSelected = ref(new Set());
+const bulkIds = computed(() => Array.from(bulkSelected.value));
+const visibleSelected = computed(() => props.events.data.filter((event) => bulkSelected.value.has(event.id)).length);
+const pageSelected = computed(() => props.events.data.length > 0 && visibleSelected.value === props.events.data.length);
+const bulkLimitReached = computed(() => bulkSelected.value.size >= props.bulkLimit);
+
+function toggleSelection(id, checked) {
+    if (!checked) bulkSelected.value.delete(id);
+    else if (!bulkLimitReached.value) bulkSelected.value.add(id);
+}
+
+function togglePage(input) {
+    const checked = input.checked && !bulkLimitReached.value;
+    for (const event of props.events.data) {
+        toggleSelection(event.id, checked);
+    }
+    input.checked = pageSelected.value;
+    input.indeterminate = visibleSelected.value > 0 && !pageSelected.value;
+}
+
+function clearSelection() {
+    bulkSelected.value.clear();
+}
+
+function bulkFinished() {
+    clearSelection();
+    if (props.events.current_page > props.events.last_page) {
+        router.visit(props.events.last_page_url, { preserveState: true, preserveScroll: true, replace: true });
+    }
+    load();
+}
+
+watch([() => page.props.auth.user.current_team_id, () => props.filters.undated], clearSelection);
 const view = ref(window.innerWidth < 768 ? "agenda" : "month"),
     anchor = ref(new Date()),
     displayZone = ref(
@@ -189,6 +225,7 @@ const setUndated = (undated) =>
     );
 let timer;
 watch([search, source, template, status], () => {
+    clearSelection();
     clearTimeout(timer);
     timer = setTimeout(() => {
         tableFilters();
@@ -529,7 +566,7 @@ const remove = (event) => {
                     </button>
                 </section>
             </div>
-            <div v-if="view === 'table'" class="overflow-x-auto">
+            <div v-if="view === 'table'">
                 <button
                     v-if="filters.undated"
                     class="m-4 workspace-secondary"
@@ -537,9 +574,22 @@ const remove = (event) => {
                 >
                     Show dated and undated events
                 </button>
+                <BulkActions :ids="bulkIds" @clear="clearSelection" @complete="bulkFinished" />
+                <p v-if="bulkLimitReached" role="status" class="px-4 py-2 text-sm text-slate-600">You can update or delete up to {{ bulkLimit }} events at a time.</p>
+                <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50">
                         <tr>
+                            <th scope="col" class="w-12 py-4 pl-4">
+                                <input
+                                    type="checkbox"
+                                    aria-label="Select events on this page"
+                                    :checked="pageSelected"
+                                    :indeterminate.prop="visibleSelected > 0 && !pageSelected"
+                                    :disabled="!events.data.length || (bulkLimitReached && !pageSelected && visibleSelected === 0)"
+                                    @change="togglePage($event.target)"
+                                />
+                            </th>
                             <th class="p-4">Event</th>
                             <th class="p-4">Schedule</th>
                             <th class="p-4">Source / status</th>
@@ -552,6 +602,15 @@ const remove = (event) => {
                             :key="e.id"
                             class="border-t"
                         >
+                            <td class="py-4 pl-4">
+                                <input
+                                    type="checkbox"
+                                    :aria-label="`Select ${e.title || e.event_data?.title || e.event_data?.name || 'event #' + e.id}`"
+                                    :checked="bulkSelected.has(e.id)"
+                                    :disabled="bulkLimitReached && !bulkSelected.has(e.id)"
+                                    @change="toggleSelection(e.id, $event.target.checked)"
+                                />
+                            </td>
                             <td class="p-4 font-medium">
                                 {{
                                     e.title ||
@@ -600,6 +659,7 @@ const remove = (event) => {
                         </tr>
                     </tbody>
                 </table>
+                </div>
                 <p v-if="!events.data.length" class="p-10 text-center">
                     No events match your search
                 </p>

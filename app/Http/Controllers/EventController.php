@@ -10,24 +10,32 @@ use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
 use App\Services\EventOccurrences;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class EventController extends Controller
 {
+    private const BULK_LIMIT = 500;
+
+    private const PUBLISH_RULES = ['title' => ['required', 'string'], 'starts_at' => ['required', 'date'], 'timezone' => ['required', 'timezone']];
+
+    private const CUSTOM_ALIASES = ['title' => 'title', 'name' => 'title', 'description' => 'description', 'start_date' => 'starts_at', 'end_date' => 'ends_at', 'timezone' => 'timezone', 'status' => 'status'];
+
     public function index(Request $request)
     {
         $filters = $request->validate(['search' => ['nullable', 'string', 'max:255'], 'source' => ['nullable', 'in:'.implode(',', InboundSources::EVENT_SOURCES)], 'template' => ['nullable', 'integer'], 'status' => ['nullable', 'in:draft,published,cancelled'], 'undated' => ['nullable', 'boolean']]);
-        $query = Event::latest()->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'ilike', '%'.$v.'%'))
+        $query = Event::latest()->orderByDesc('id')->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'ilike', '%'.$v.'%'))
             ->when($filters['source'] ?? null, fn ($q, $v) => $q->where('source', $v))
             ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
             ->when($filters['template'] ?? null, fn ($q, $v) => $q->where('template_id', $v))
             ->when($request->boolean('undated'), fn ($q) => $q->whereNull('starts_at'));
 
-        return Inertia::render('Events/Index', ['events' => $query->paginate(50)->withQueryString(), 'eventTemplates' => EventTemplate::orderBy('name')->get(), 'fieldTemplates' => FieldTemplate::orderBy('label')->get(), 'openCreate' => $request->boolean('create'), 'filters' => $filters, 'undatedCount' => Event::whereNull('starts_at')->count()]);
+        return Inertia::render('Events/Index', ['events' => $query->paginate(50)->withQueryString(), 'eventTemplates' => EventTemplate::orderBy('name')->get(), 'fieldTemplates' => FieldTemplate::orderBy('label')->get(), 'openCreate' => $request->boolean('create'), 'filters' => $filters, 'undatedCount' => Event::whereNull('starts_at')->count(), 'bulkLimit' => self::BULK_LIMIT]);
     }
 
     public function occurrences(Request $request, EventOccurrences $occurrences)
@@ -121,33 +129,14 @@ class EventController extends Controller
                 }
             }
         }
-        // Mirror explicitly supplied canonical fields for legacy template consumers.
-        $aliases = ['title' => 'title', 'name' => 'title', 'description' => 'description', 'start_date' => 'starts_at', 'end_date' => 'ends_at', 'timezone' => 'timezone', 'status' => 'status'];
-        foreach (FieldTemplate::whereIn('id', $template?->fields ?? [])->get() as $field) {
-            $key = $aliases[$field->field_id] ?? null;
-            if ($key && $request->exists($key) && (! in_array($key, ['starts_at', 'ends_at']) || $request->filled($key))) {
-                $data['event_data'][$field->field_id] = $request->input($key);
-            }
-        }
-        $request->merge(['event_data' => $data['event_data']]);
-        $rules = [];
-        $attributes = [];
-        foreach (FieldTemplate::whereIn('id', $template?->fields ?? [])->get() as $field) {
-            $type = match ($field->type) {
-                'number' => 'integer','decimal' => 'numeric','boolean', 'checkbox' => 'boolean','date','datetime' => 'date','email' => 'email','url','image','file' => 'url',default => 'string'
-            };
-            $attributes['event_data.'.$field->field_id] = $field->label;
-            $rules['event_data.'.$field->field_id] = [$field->required && ! in_array($field->type, ['boolean', 'checkbox']) ? 'required' : 'nullable', $type];
-            if ($field->type === 'select') {
-                $rules['event_data.'.$field->field_id][] = Rule::in(is_array($field->options) ? $field->options : (json_decode($field->options ?? '[]', true) ?: []));
-            }
-        }
+        $fields = FieldTemplate::whereIn('id', $template?->fields ?? [])->get();
+        $data['event_data'] = $this->mirrorCustomFields($data['event_data'], $request->only(array_values(self::CUSTOM_ALIASES)), $fields);
         if ($validateCustom) {
-            $request->validate($rules, [], $attributes);
+            $this->validateCustomFields($data['event_data'], $fields);
         }
 
         if ($request->input('status') === 'published' || $request->filled('recurrence')) {
-            $request->validate(['title' => ['required', 'string'], 'starts_at' => ['required', 'date'], 'timezone' => ['required', 'timezone']]);
+            $request->validate(self::PUBLISH_RULES);
         }
         if ($request->filled('recurrence.until') && $request->filled('starts_at') && substr($request->input('starts_at'), 0, 10) > $request->input('recurrence.until')) {
             throw ValidationException::withMessages(['recurrence.until' => 'The repeat end date must be on or after the first event date.']);
@@ -164,6 +153,37 @@ class EventController extends Controller
         $request->validate(['ends_at' => ['nullable', 'date', 'required_with:recurrence', 'after_or_equal:starts_at']]);
 
         return ['template_id' => $data['template_id'] ?? null, 'event_data' => $data['event_data']];
+    }
+
+    private function mirrorCustomFields(array $eventData, array $changes, iterable $fields): array
+    {
+        // Mirror explicitly supplied canonical fields for legacy template consumers.
+        foreach ($fields as $field) {
+            $key = self::CUSTOM_ALIASES[$field->field_id] ?? null;
+            if ($key && array_key_exists($key, $changes) && (! in_array($key, ['starts_at', 'ends_at']) || filled($changes[$key]))) {
+                $eventData[$field->field_id] = $changes[$key];
+            }
+        }
+
+        return $eventData;
+    }
+
+    private function validateCustomFields(array $eventData, iterable $fields): void
+    {
+        $rules = [];
+        $attributes = [];
+        foreach ($fields as $field) {
+            $type = match ($field->type) {
+                'number' => 'integer', 'decimal' => 'numeric', 'boolean', 'checkbox' => 'boolean', 'date', 'datetime' => 'date', 'email' => 'email', 'url', 'image', 'file' => 'url', default => 'string'
+            };
+            $name = 'event_data.'.$field->field_id;
+            $attributes[$name] = $field->label;
+            $rules[$name] = [$field->required && ! in_array($field->type, ['boolean', 'checkbox']) ? 'required' : 'nullable', $type];
+            if ($field->type === 'select') {
+                $rules[$name][] = Rule::in(is_array($field->options) ? $field->options : (json_decode($field->options ?? '[]', true) ?: []));
+            }
+        }
+        Validator::make(['event_data' => $eventData], $rules, [], $attributes)->validate();
     }
 
     private function canonical(Request $request, array $data): array
@@ -228,5 +248,88 @@ class EventController extends Controller
         $event->delete();
 
         return to_route('events.index')->with('success', 'Event removed from EventJunction.');
+    }
+
+    private function bulkSelection(Request $request): array
+    {
+        $selection = $request->validate([
+            'workspace_id' => ['required', 'integer'],
+            'ids' => ['required', 'list', 'min:1', 'max:'.self::BULK_LIMIT],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+        if ((int) $selection['workspace_id'] !== $request->user()->currentTeam->id) {
+            throw ValidationException::withMessages(['ids' => 'The workspace changed. Select the events again.']);
+        }
+
+        return $selection['ids'];
+    }
+
+    private function lockSelectedEvents(array $ids, bool $withTemplates = false): Collection
+    {
+        $query = Event::whereKey($ids)->orderBy('id')->lockForUpdate();
+        $events = ($withTemplates ? $query->with('template') : $query)->get();
+        if ($events->count() !== count($ids)) {
+            throw ValidationException::withMessages(['ids' => 'Some selected events are no longer available. Clear the selection and try again.']);
+        }
+
+        return $events;
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        $ids = $this->bulkSelection($request);
+        $changes = $request->validate([
+            'status' => ['sometimes', 'required', 'in:draft,published,cancelled'],
+            'location' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:100000'],
+        ]);
+        if (! $changes) {
+            throw ValidationException::withMessages(['changes' => 'Choose at least one field to update.']);
+        }
+
+        DB::transaction(function () use ($ids, $changes) {
+            $events = $this->lockSelectedEvents($ids, withTemplates: true);
+            $fields = FieldTemplate::whereKey($events->flatMap(fn (Event $event) => $event->template?->fields ?? [])->unique()->values()->all())->get()->keyBy('id');
+            foreach ($events as $event) {
+                $templateFields = $fields->only($event->template?->fields ?? []);
+                $updates = $changes;
+                $eventData = $event->event_data ?? [];
+                $updatedData = $this->mirrorCustomFields($eventData, $changes, $templateFields);
+                if ($updatedData !== $eventData) {
+                    $updates['event_data'] = $updatedData;
+                }
+                if (($changes['status'] ?? null) === 'published') {
+                    try {
+                        $this->validateCustomFields($updatedData, $templateFields);
+                        Validator::make($event->only(array_keys(self::PUBLISH_RULES)), self::PUBLISH_RULES)->validate();
+                    } catch (ValidationException $error) {
+                        $title = $event->title ?: "Event #{$event->id}";
+                        throw ValidationException::withMessages(['status' => "Cannot publish {$title}. ".$error->validator->errors()->first()]);
+                    }
+                }
+                if ($event->source !== 'eventnest') {
+                    $overrides = array_merge($event->local_overrides ?? [], array_keys($updates));
+                    if (array_key_exists('event_data', $updates)) {
+                        $overrides[] = 'template_id';
+                    }
+                    $updates['local_overrides'] = array_values(array_unique($overrides));
+                }
+                $event->forceFill($updates)->save();
+            }
+        }, 3);
+
+        return back()->with('success', trans_choice(':count event updated.|:count events updated.', count($ids)));
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $this->bulkSelection($request);
+        DB::transaction(function () use ($ids) {
+            foreach ($this->lockSelectedEvents($ids) as $event) {
+                $event->delete();
+            }
+        }, 3);
+
+        return back()->with('success', trans_choice(':count event deleted.|:count events deleted.', count($ids)));
     }
 }

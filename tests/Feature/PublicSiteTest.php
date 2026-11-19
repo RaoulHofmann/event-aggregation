@@ -43,4 +43,16 @@ class PublicSiteTest extends TestCase
         $this->actingAs($pending)->get('/privacy-policy')->assertOk();
         $this->get('/terms-of-service')->assertOk();
     }
+
+    public function test_homepage_includes_valid_structured_application_metadata(): void
+    {
+        config(['public-site.url' => 'https://example.test']);
+        $html = $this->get('/?ref=example')->assertOk()->getContent();
+        $this->assertSame(1, preg_match('~<script type="application/ld\+json">(.+?)</script>~s', $html, $matches));
+        $data = json_decode($matches[1], true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('WebApplication', $data['@type']);
+        $this->assertSame('https://example.test/', $data['url']);
+        $this->assertSame(0, $data['offers']['price']);
+        $this->get('/pricing')->assertOk()->assertDontSee('application/ld+json', false);
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\EventTemplateController;
 use App\Http\Controllers\FieldTemplateController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\IntegrationController;
+use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\InboundImportController;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequirePlatformAdmin;
@@ -50,7 +51,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', RequirePlatformAdmin
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', SetPostgresSchema::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:5,1')->name('support-tickets.store');
     Route::post('/events/preview', [EventController::class, 'preview'])->name('events.preview');
+    Route::patch('/events/bulk', [EventController::class, 'bulkUpdate'])->name('events.bulk.update');
+    Route::delete('/events/bulk', [EventController::class, 'bulkDestroy'])->name('events.bulk.destroy');
     Route::post('/events/{event}/exceptions', [EventController::class, 'exception'])->name('events.exceptions');
     Route::resource('events', EventController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
     Route::resource('event-templates', EventTemplateController::class)->parameters(['event-templates' => 'eventTemplate'])->only(['index', 'store', 'update', 'destroy']);

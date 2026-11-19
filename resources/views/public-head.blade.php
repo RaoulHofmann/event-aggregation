@@ -24,6 +24,20 @@
     <meta name="twitter:description" content="{{ $metadata['description'] }}">
     <meta name="twitter:image" content="{{ $socialImage }}">
     <meta name="twitter:image:alt" content="EventJunction. All your events. One place.">
+    @if ($pageRoute === 'home')
+        <script type="application/ld+json">{!! \Illuminate\Support\Js::encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebApplication',
+            '@id' => $canonicalUrl.'#application',
+            'name' => 'EventJunction',
+            'url' => $canonicalUrl,
+            'description' => $metadata['description'],
+            'image' => $socialImage,
+            'applicationCategory' => 'BusinessApplication',
+            'isAccessibleForFree' => true,
+            'offers' => ['@type' => 'Offer', 'price' => 0, 'url' => \App\Support\PublicSite::url('pricing')],
+        ]) !!}</script>
+    @endif
 @else
     <meta name="robots" content="noindex, nofollow">
 @endif

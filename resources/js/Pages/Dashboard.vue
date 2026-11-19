@@ -1,5 +1,5 @@
 <script setup>
-import { Link, usePage } from "@inertiajs/vue3";
+import { Link, useForm, usePage } from "@inertiajs/vue3";
 import {
     CalendarDays,
     Layers,
@@ -12,6 +12,11 @@ import {
 import AppLayout from "@/Layouts/AppLayout.vue";
 defineProps({ stats: Object, recentEvents: Array });
 const page = usePage();
+const supportForm = useForm({ subject: "", message: "" });
+const sendSupport = () => supportForm.post(route("support-tickets.store"), {
+    preserveScroll: true,
+    onSuccess: () => supportForm.reset(),
+});
 const metrics = [
     {
         key: "events",
@@ -161,6 +166,22 @@ const date = (e) =>
                         <a href="/docs/api">API docs <ArrowUpRight class="size-4" /></a>
                     </div>
                 </nav>
+                <details class="workspace-panel min-w-0 p-5">
+                    <summary class="cursor-pointer font-semibold">Contact support</summary>
+                    <form class="mt-4 max-w-2xl space-y-4" @submit.prevent="sendSupport">
+                        <div>
+                            <label for="support-subject" class="workspace-label">Subject</label>
+                            <input id="support-subject" v-model="supportForm.subject" class="workspace-input" maxlength="160" required />
+                            <p v-if="supportForm.errors.subject" class="mt-1 text-sm text-red-700" role="alert">{{ supportForm.errors.subject }}</p>
+                        </div>
+                        <div>
+                            <label for="support-message" class="workspace-label">Message</label>
+                            <textarea id="support-message" v-model="supportForm.message" class="workspace-input" rows="4" maxlength="5000" required />
+                            <p v-if="supportForm.errors.message" class="mt-1 text-sm text-red-700" role="alert">{{ supportForm.errors.message }}</p>
+                        </div>
+                        <button class="workspace-primary" :disabled="supportForm.processing">Submit ticket</button>
+                    </form>
+                </details>
             </div>
         </div></AppLayout
     >

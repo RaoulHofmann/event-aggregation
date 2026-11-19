@@ -9,6 +9,7 @@ const props = defineProps({
     users: Object,
     teams: Object,
     activity: Array,
+    tickets: Object,
 });
 
 const search = ref("");
@@ -177,6 +178,30 @@ const rename = (team) => {
                 </nav>
             </section>
         </div>
+
+        <section class="workspace-panel mb-8 min-w-0 p-5 sm:p-6" aria-labelledby="admin-tickets">
+            <h2 id="admin-tickets" class="text-xl font-semibold text-slate-950">Support tickets</h2>
+            <p v-if="!tickets.data.length" class="mt-4 text-sm text-slate-500">No tickets yet.</p>
+            <ul v-else class="mt-2 divide-y divide-slate-200">
+                <li v-for="ticket in tickets.data" :key="ticket.id" class="py-4">
+                    <details class="break-words">
+                        <summary class="cursor-pointer font-medium">{{ ticket.subject }}</summary>
+                        <p class="mt-2 text-sm text-slate-600">
+                            {{ ticket.requester?.name ?? "Deleted account" }}
+                            <span v-if="ticket.requester"> · {{ ticket.requester.email }}</span>
+                            <span v-if="ticket.workspace"> · {{ ticket.workspace.name }}</span>
+                            · <time :datetime="ticket.created_at">{{ date(ticket.created_at) }}</time>
+                        </p>
+                        <p class="mt-3 whitespace-pre-wrap text-sm text-slate-800">{{ ticket.message }}</p>
+                    </details>
+                </li>
+            </ul>
+            <nav v-if="tickets.last_page > 1" aria-label="Support ticket pages" class="mt-4 flex flex-wrap items-center gap-3 text-sm">
+                <Link v-if="tickets.prev_page_url" :href="tickets.prev_page_url" class="workspace-secondary" preserve-scroll>Previous</Link>
+                <span>Page {{ tickets.current_page }} of {{ tickets.last_page }}</span>
+                <Link v-if="tickets.next_page_url" :href="tickets.next_page_url" class="workspace-secondary" preserve-scroll>Next</Link>
+            </nav>
+        </section>
 
         <section class="workspace-panel p-5 sm:p-6" aria-labelledby="admin-activity">
             <h2 id="admin-activity" class="text-xl font-semibold text-slate-950">Recent admin actions</h2>
