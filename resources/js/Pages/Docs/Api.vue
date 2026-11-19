@@ -127,8 +127,9 @@ import ApiExample from "@/Components/ApiExample.vue";
                                             <code>humanitix</code>,
                                             <code>google_calendar</code>,
                                             <code>ics</code>, <code>csv</code>,
-                                            <code>wordpress</code>, or
-                                            <code>eventbrite</code>.
+                                            <code>wordpress</code>,
+                                            <code>eventbrite</code>, or
+                                            <code>website</code>.
                                         </td>
                                     </tr>
                                     <tr>

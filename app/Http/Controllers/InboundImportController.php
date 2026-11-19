@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\Inbound\CsvEvents;
+use App\Integrations\Inbound\ImportedEvent;
 use App\Integrations\Inbound\ImportException;
 use App\Integrations\Inbound\ImportOptions;
 use App\Integrations\Inbound\ImportWriter;
 use App\Integrations\Inbound\PublicFeedClient;
 use App\Integrations\Inbound\SourceTemplates;
+use App\Integrations\Inbound\WebsiteEvent;
 use App\Jobs\SyncInboundEvents;
+use App\Models\Event;
 use App\Models\EventTemplate;
 use App\Models\ProviderConnection;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -147,6 +152,68 @@ class InboundImportController extends Controller
         });
 
         return to_route('integrations.index')->with('success', "{$count} CSV events processed.");
+    }
+
+    public function previewWebsite(Request $request, WebsiteEvent $website)
+    {
+        $this->owner($request);
+        $data = $request->validate(['url' => ['required', 'string', 'max:2047'], 'timezone' => ['required', 'timezone']]);
+        try {
+            $event = $website->read($data['url'], $data['timezone']);
+        } catch (ImportException $error) {
+            throw ValidationException::withMessages(['url' => $error->getMessage()]);
+        }
+        $ticket = [
+            'user' => $request->user()->id,
+            'workspace' => $request->user()->current_team_id,
+            'expires' => now()->addMinutes(15)->timestamp,
+            'key' => $event->key,
+            'fields' => $event->fields,
+            'url' => $event->url,
+        ];
+
+        return response()->json([
+            'event' => $event->fields + ['url' => $event->url],
+            'preview' => Crypt::encryptString(json_encode($ticket, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    public function importWebsite(Request $request, ImportOptions $options, ImportWriter $writer)
+    {
+        $this->owner($request);
+        $data = $options->validate($request, [
+            'name' => ['prohibited'],
+            'timezone' => ['prohibited'],
+            'preview' => ['required', 'string', 'max:32768'],
+            'create_template' => ['prohibited'],
+        ], ['source_url']);
+        try {
+            $ticket = json_decode(Crypt::decryptString($data['preview']), true);
+        } catch (DecryptException) {
+            $ticket = null;
+        }
+        if (($ticket['user'] ?? null) !== $request->user()->id
+            || ($ticket['workspace'] ?? null) !== $request->user()->current_team_id
+            || ($ticket['expires'] ?? 0) <= now()->timestamp) {
+            throw ValidationException::withMessages(['preview' => 'Preview this event again before saving.']);
+        }
+
+        DB::transaction(function () use ($writer, $data, $ticket) {
+            DB::select("SELECT pg_advisory_xact_lock(hashtext(current_schema()), hashtext('website_import'))");
+            $connection = ProviderConnection::firstOrCreate(['provider' => 'website'], ['name' => 'Website imports', 'credentials' => [], 'status' => 'connected']);
+            if (Event::withTrashed()->where('provider_connection_id', $connection->id)->where('external_id', $ticket['key'])->exists()
+                || Event::where('source_url', $ticket['url'])->exists()) {
+                throw ValidationException::withMessages(['preview' => 'This listing has already been imported into this workspace.']);
+            }
+            $writer->write(
+                $connection,
+                [new ImportedEvent($ticket['key'], $ticket['fields'], $ticket['url'])],
+                isset($data['template_id']) ? (int) $data['template_id'] : null,
+                $data['field_mapping'] ?? [],
+            );
+        });
+
+        return to_route('integrations.index')->with('success', 'Event saved as a draft.');
     }
 
     private function parseCsv(CsvEvents $csv, array $data): array

@@ -101,7 +101,7 @@ class IntegrationController extends Controller
         $this->owner($request);
         DB::transaction(function () use ($connection) {
             $record = ProviderConnection::whereKey($connection)->lockForUpdate()->firstOrFail();
-            abort_if($record->provider === 'csv', 404);
+            abort_if(in_array($record->provider, InboundSources::MANUAL, true), 404);
             $updates = ['status' => 'disconnected', 'credentials' => [], 'last_error' => null];
             if (in_array($record->provider, ['google_calendar', ...InboundSources::SCHEDULED], true)) {
                 $updates['settings'] = array_replace($record->settings ?? [], ['revision' => (string) Str::uuid()]);

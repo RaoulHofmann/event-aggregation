@@ -136,6 +136,98 @@ class InboundImportsTest extends TestCase
         $this->assertSame('Updated upstream', $event->fresh()->source_snapshot['title']);
     }
 
+    public function test_website_preview_saves_attributed_draft_with_existing_template_without_fetching_again(): void
+    {
+        [$owner, $team] = $this->workspace();
+        $this->setSchema($team->schema_name);
+        $field = FieldTemplate::create(['field_id' => 'original_link', 'label' => 'Original link', 'type' => 'url', 'required' => true]);
+        $template = EventTemplate::create(['name' => 'Local listing', 'fields' => [$field->id]]);
+        DB::select("SELECT set_config('search_path', 'public', false)");
+        $url = 'https://events.example.test/garden-workshop';
+        $this->fakeWebsite($url, ['@graph' => [
+            ['@type' => 'WebPage'],
+            [
+                '@type' => ['Thing', 'https://schema.org/EducationEvent'],
+                'name' => 'Garden &amp; compost workshop',
+                'startDate' => '2026-12-02T10:00:00+08:00',
+                'endDate' => '2026-12-02T11:00:00+08:00',
+                'location' => ['@type' => 'Place', 'name' => 'Community garden'],
+                'description' => 'Full listing copy',
+                'image' => 'https://events.example.test/photo.jpg',
+                'url' => 'https://somewhere-else.example.test/workshop',
+            ],
+        ]]);
+
+        $preview = $this->actingAs($owner)->postJson('/integrations/imports/website/preview', [
+            'url' => $url, 'timezone' => 'Australia/Perth',
+        ])->assertOk()->assertJsonPath('event.title', 'Garden & compost workshop')
+            ->assertJsonPath('event.starts_at', '2026-12-02T02:00:00+00:00')
+            ->assertJsonPath('event.location', 'Community garden')
+            ->assertJsonPath('event.url', $url)
+            ->assertJsonPath('event.description', null)
+            ->assertJsonMissingPath('event.image')->json('preview');
+        $this->setSchema($team->schema_name);
+        $this->assertSame(0, Event::count());
+        DB::select("SELECT set_config('search_path', 'public', false)");
+
+        $data = ['preview' => $preview, 'template_id' => $template->id, 'field_mapping' => ['original_link' => 'source_url']];
+        $this->post('/integrations/imports/website', $data)->assertRedirect(route('integrations.index'));
+        $this->postJson('/integrations/imports/website', $data)->assertUnprocessable()
+            ->assertJsonValidationErrors('preview');
+        $this->getJson('/api/v1/events?source=website')->assertOk()
+            ->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.status', 'draft');
+        Http::assertSentCount(1);
+        Http::assertSent(fn ($request) => $request->method() === 'GET' && $request->url() === $url);
+        $this->setSchema($team->schema_name);
+        $event = Event::sole();
+        $this->assertSame($template->id, $event->template_id);
+        $this->assertSame($url, $event->source_url);
+        $this->assertSame(['original_link' => $url], $event->event_data);
+    }
+
+    public function test_website_import_rejects_multiple_events_and_requires_a_current_workspace_preview(): void
+    {
+        [$owner, $team] = $this->workspace();
+        [$other] = $this->workspace();
+        $event = ['@type' => 'Event', 'name' => 'Open day', 'startDate' => '2026-11-22'];
+        $url = 'https://events.example.test/open-day';
+        $this->fakeWebsite($url, $event);
+        $preview = $this->actingAs($owner)->postJson('/integrations/imports/website/preview', [
+            'url' => $url, 'timezone' => 'Australia/Perth',
+        ])->assertOk()->assertJsonPath('event.all_day', true)
+            ->assertJsonPath('event.ends_at', '2026-11-22T16:00:00+00:00')->json('preview');
+        $this->actingAs($other)->postJson('/integrations/imports/website', ['preview' => $preview])
+            ->assertUnprocessable()->assertJsonValidationErrors('preview');
+        $this->actingAs($owner);
+        app(ProvisionTeam::class)->create($owner, 'Another workspace');
+        $this->postJson('/integrations/imports/website', ['preview' => $preview])
+            ->assertUnprocessable()->assertJsonValidationErrors('preview');
+        $owner->switchTeam($team);
+        $this->actingAs($owner)->postJson('/integrations/imports/website', ['preview' => 'invalid'])
+            ->assertUnprocessable()->assertJsonValidationErrors('preview');
+        $this->travel(16)->minutes();
+        $this->postJson('/integrations/imports/website', ['preview' => $preview])
+            ->assertUnprocessable()->assertJsonValidationErrors('preview');
+        $this->postJson('/integrations/imports/website/preview', ['url' => 'https://127.0.0.1/listing', 'timezone' => 'UTC'])
+            ->assertUnprocessable()->assertJsonValidationErrors('url');
+        $listing = 'https://events.example.test/calendar';
+        $this->fakeWebsite($listing, [$event, array_replace($event, ['name' => 'Another event'])]);
+        $this->postJson('/integrations/imports/website/preview', ['url' => $listing, 'timezone' => 'UTC'])
+            ->assertUnprocessable()->assertJsonPath('errors.url.0', 'This page lists multiple events. Use the link to an individual event.');
+    }
+
+    private function fakeWebsite(string $url, array $jsonLd): void
+    {
+        $this->app->instance(PublicFeedClient::class, new class extends PublicFeedClient
+        {
+            protected function addresses(string $host): array
+            {
+                return ['93.184.216.34'];
+            }
+        });
+        Http::fake([$url => Http::response('<!doctype html><script type="application/ld+json">'.json_encode($jsonLd).'</script>')]);
+    }
+
     public function test_owners_create_private_feed_connections_and_members_cannot_read_credentials(): void
     {
         [$owner, $team] = $this->workspace();

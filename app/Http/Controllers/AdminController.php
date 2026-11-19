@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Integrations\Inbound\InboundSources;
 use App\Models\Team;
 use App\Models\SupportTicket;
 use App\Models\User;
@@ -82,7 +83,7 @@ class AdminController extends Controller
             if ($tables->contains('provider_connections')) {
                 $counts->selectSub(
                     DB::query()->fromRaw($qualifiedSchema.'.provider_connections')->selectRaw('count(*)')
-                        ->where('provider', '!=', 'csv')->where('status', '!=', 'disconnected'),
+                        ->whereNotIn('provider', InboundSources::MANUAL)->where('status', '!=', 'disconnected'),
                     'integrations_count',
                 );
             }

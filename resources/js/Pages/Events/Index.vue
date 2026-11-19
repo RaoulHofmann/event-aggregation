@@ -115,6 +115,7 @@ const sourceNames = {
     csv: "CSV import",
     wordpress: "WordPress",
     eventbrite: "Eventbrite",
+    website: "Website",
 };
 const sourceName = (source) => sourceNames[source] || source;
 const matches = (e) =>

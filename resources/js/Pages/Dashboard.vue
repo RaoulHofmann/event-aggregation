@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { Link, useForm, usePage } from "@inertiajs/vue3";
 import {
     CalendarDays,
@@ -12,7 +13,8 @@ import {
 import AppLayout from "@/Layouts/AppLayout.vue";
 defineProps({ stats: Object, recentEvents: Array });
 const page = usePage();
-const supportForm = useForm({ subject: "", message: "" });
+const websiteFeedback = computed(() => new URLSearchParams(page.url.split("?")[1]?.split("#")[0]).get("feedback") === "website-import");
+const supportForm = useForm({ subject: websiteFeedback.value ? "Website event import feedback" : "", message: "" });
 const sendSupport = () => supportForm.post(route("support-tickets.store"), {
     preserveScroll: true,
     onSuccess: () => supportForm.reset(),
@@ -166,7 +168,7 @@ const date = (e) =>
                         <a href="/docs/api">API docs <ArrowUpRight class="size-4" /></a>
                     </div>
                 </nav>
-                <details class="workspace-panel min-w-0 p-5">
+                <details id="support" :open="websiteFeedback" class="workspace-panel min-w-0 scroll-mt-6 p-5">
                     <summary class="cursor-pointer font-semibold">Contact support</summary>
                     <form class="mt-4 max-w-2xl space-y-4" @submit.prevent="sendSupport">
                         <div>

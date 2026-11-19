@@ -84,6 +84,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/', [InboundImportController::class, 'index'])->name('index');
         Route::post('/csv/preview', [InboundImportController::class, 'previewCsv'])->middleware('throttle:20,1')->name('csv.preview');
         Route::post('/csv', [InboundImportController::class, 'importCsv'])->middleware('throttle:10,1')->name('csv.store');
+        Route::post('/website/preview', [InboundImportController::class, 'previewWebsite'])->middleware('throttle:10,1')->name('website.preview');
+        Route::post('/website', [InboundImportController::class, 'importWebsite'])->middleware('throttle:10,1')->name('website.store');
         Route::post('/{provider}', [InboundImportController::class, 'store'])->middleware('throttle:20,1')->name('store');
         Route::put('/{connection}', [InboundImportController::class, 'update'])->middleware('throttle:20,1')->name('update');
     });

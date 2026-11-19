@@ -20,7 +20,7 @@ class ImportWriter
             if (in_array($active->status, ['disconnected', 'reconnect_required']) || ($active->settings['revision'] ?? null) !== ($connection->settings['revision'] ?? null)) {
                 throw new ImportException('The connection changed during import. Retry with the current settings.');
             }
-            if ($active->provider !== 'csv') {
+            if (! in_array($active->provider, InboundSources::MANUAL, true)) {
                 $templateId = $active->template_id;
                 $mapping = $active->field_mapping ?? [];
             }

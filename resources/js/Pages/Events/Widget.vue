@@ -18,6 +18,7 @@ const sourceNames = {
     csv: "CSV import",
     wordpress: "WordPress",
     eventbrite: "Eventbrite",
+    website: "Website",
 };
 const form = useForm({
     title: props.widget?.title ?? "Upcoming events",

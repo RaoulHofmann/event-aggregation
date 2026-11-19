@@ -156,7 +156,7 @@ jobs:
           site = 'https://eventjunction.app'
           read = lambda name: Path('/tmp/eventjunction-' + name).read_text()
           home = read('home.html')
-          assert all(name in home for name in ['integrations.index', 'api.v1.occurrences', 'admin.index', 'account.status', 'widgets.upcoming.example', 'EventJunction']), 'Updated application routes were not served'
+          assert all(name in home for name in ['integrations.index', 'integrations.imports.website.preview', 'api.v1.occurrences', 'admin.index', 'account.status', 'widgets.upcoming.example', 'EventJunction']), 'Updated application routes were not served'
           assert 'Upcoming events' in read('widget.html') and 'Community garden workshop' in read('widget.html')
           assert 'frame-ancestors *' in read('widget.html.headers')
           assert 'x-frame-options:' not in read('widget.html.headers').lower(), 'Widget response still blocks cross-site framing'

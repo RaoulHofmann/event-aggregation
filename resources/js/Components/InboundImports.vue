@@ -5,6 +5,7 @@ import axios from "axios";
 import ProviderSetupGuide from "@/Components/ProviderSetupGuide.vue";
 import { integrationGuides } from "@/Lib/integrationGuides";
 import ImportTemplateFields from "@/Components/ImportTemplateFields.vue";
+import WebsiteEventImport from "@/Components/WebsiteEventImport.vue";
 import { importTimezones, localTimezone } from "@/Lib/importTimezones";
 
 const props = defineProps({
@@ -118,8 +119,9 @@ function disconnect(connection) {
 </script>
 
 <template>
-    <section id="event-imports" class="mt-6 scroll-mt-6" aria-label="Calendar feed, CSV, WordPress and Eventbrite">
+    <section id="event-imports" class="mt-6 scroll-mt-6" aria-label="Event imports">
         <div class="grid items-start gap-4 sm:grid-cols-2">
+            <WebsiteEventImport :event-templates="eventTemplates" :field-templates="fieldTemplates" />
             <article v-for="(info, key) in providers" :key="key" class="workspace-panel flex min-w-0 flex-col items-start p-5">
                 <h2 class="text-lg font-semibold">{{ info.label }}</h2>
                 <p class="mb-4 mt-2 text-sm leading-6 text-slate-600">{{ info.text }}</p>

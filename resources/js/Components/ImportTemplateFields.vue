@@ -5,20 +5,24 @@ const props = defineProps({
     eventTemplates: { type: Array, required: true },
     fieldTemplates: { type: Array, required: true },
     sourceFields: { type: Object, default: () => ({}) },
+    unavailableSources: { type: Array, default: () => [] },
     canCreateTemplate: Boolean,
 });
 const templateId = defineModel("templateId");
 const mapping = defineModel("mapping");
-const sources = computed(() => ({
-    title: "Event title",
-    description: "Description",
-    starts_at: "Start date and time",
-    ends_at: "End date and time",
-    timezone: "Timezone",
-    location: "Location",
-    status: "Import status",
-    ...Object.fromEntries(Object.entries(props.sourceFields).map(([key, field]) => [key, field.label])),
-}));
+const sources = computed(() => {
+    const labels = {
+        title: "Event title",
+        description: "Description",
+        starts_at: "Start date and time",
+        ends_at: "End date and time",
+        timezone: "Timezone",
+        location: "Location",
+        status: "Import status",
+        ...Object.fromEntries(Object.entries(props.sourceFields).map(([key, field]) => [key, field.label])),
+    };
+    return Object.fromEntries(Object.entries(labels).filter(([key]) => !props.unavailableSources.includes(key)));
+});
 const starterFieldLabels = computed(() => Object.values(props.sourceFields).map((field) => field.label));
 const fields = computed(() => {
     const template = props.eventTemplates.find((item) => item.id === Number(templateId.value));
