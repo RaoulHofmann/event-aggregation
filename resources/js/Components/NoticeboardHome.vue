@@ -1,6 +1,7 @@
 <script setup>
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import { ref, computed } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import { ArrowUpRight } from "lucide-vue-next";
 import EventProgrammeDemo from "@/Components/EventProgrammeDemo.vue";
 import ApiExample from "@/Components/ApiExample.vue";
@@ -8,6 +9,10 @@ import WorkspaceAccessDemo from "@/Components/WorkspaceAccessDemo.vue";
 import ProviderSetupGuide from "@/Components/ProviderSetupGuide.vue";
 import { integrationGuides } from "@/Lib/integrationGuides";
 
+const page = usePage();
+const signedIn = computed(() => !!page.props.auth?.user);
+const accountHref = computed(() => signedIn.value ? route("dashboard") : route("login"));
+const accountLabel = computed(() => signedIn.value ? "Dashboard" : "Sign in");
 const exampleType = ref("workshop");
 const exampleOrigin = ref("native");
 const exampleFields = computed(() =>
@@ -36,7 +41,7 @@ const exampleFields = computed(() =>
                 <a href="#workspaces">Workspaces</a>
                 <a href="/docs/api">API docs</a>
                 <a href="/pricing">Pricing</a>
-                <a href="/login">Sign in</a>
+                <a :href="accountHref">{{ accountLabel }}</a>
             </nav>
         </header>
         <div id="early-access" class="work-in-progress" role="note">
@@ -50,8 +55,8 @@ const exampleFields = computed(() =>
                         <p class="intro">
                             Create and import events in one workspace. Read them through one API.
                         </p>
-                        <a href="/register" class="dark-button"
-                            >Start your workspace
+                        <a :href="signedIn ? accountHref : route('register')" class="dark-button"
+                            >{{ signedIn ? "Dashboard" : "Start your workspace" }}
                             <ArrowUpRight aria-hidden="true" /></a
                         ><a class="quiet-link" href="#api-first"
                             >See API examples</a
@@ -246,7 +251,7 @@ const exampleFields = computed(() =>
                 <nav aria-label="Footer navigation">
                     <a href="/pricing">Pricing</a
                     ><a href="/docs/api">API documentation</a
-                    ><a href="/login">Sign in</a>
+                    ><a :href="accountHref">{{ accountLabel }}</a>
                     <a href="/privacy-policy">Privacy</a>
                     <a href="/terms-of-service">Terms</a>
                 </nav>
