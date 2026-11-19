@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\AuthorizeApiWrite;
 use App\Http\Middleware\GuardRegistration;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequireActiveAccount;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -22,9 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prependToPriorityList(SubstituteBindings::class, SetPostgresSchema::class);
+        $middleware->appendToPriorityList(SetPostgresSchema::class, AuthorizeApiWrite::class);
         $middleware->prependToPriorityList(SetPostgresSchema::class, RequireActiveAccount::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, RequirePlatformAdmin::class);
-        $middleware->alias(['abilities' => CheckAbilities::class]);
+        $middleware->alias(['abilities' => CheckAbilities::class, 'ability' => CheckForAnyAbility::class]);
         $middleware->web(append: [
             RequireActiveAccount::class,
             GuardRegistration::class,

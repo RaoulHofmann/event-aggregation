@@ -6,6 +6,7 @@ defineProps({
     tokens: Array,
     availablePermissions: Array,
     defaultPermissions: Array,
+    workspaceName: String,
 });
 </script>
 
@@ -23,6 +24,7 @@ defineProps({
                     :tokens="tokens"
                     :available-permissions="availablePermissions"
                     :default-permissions="defaultPermissions"
+                    :workspace-name="workspaceName"
                 />
             </div>
         </div>

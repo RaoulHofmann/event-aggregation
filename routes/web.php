@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EventController;
@@ -19,6 +20,9 @@ use Inertia\Inertia;
 Route::get('/pricing', fn () => Inertia::render('Pricing'))->name('pricing');
 
 Route::get('/docs/api', fn () => Inertia::render('Docs/Api'))->name('docs.api');
+
+Route::post('/user/api-tokens/{token}/reveal', [ApiTokenController::class, 'reveal'])
+    ->middleware(['auth', 'verified', 'throttle:15,1'])->whereNumber('token')->name('api-tokens.reveal');
 
 Route::get('/designs/homepage', fn () => Inertia::render('Designs/Homepage'))->name('designs.homepage');
 

@@ -23,6 +23,9 @@ import ApiExample from "@/Components/ApiExample.vue";
                 event records for listings, and occurrences for a calendar that
                 includes repeating dates and local changes.
             </p>
+            <p class="mt-3">
+                <a :href="route('l5-swagger.default.api')" class="font-semibold underline">Open the Swagger API reference</a>
+            </p>
             <p class="release-note">
                 EventJunction is a work in progress. Access and usage are currently
                 free. Future pricing is to be determined; limits and features
@@ -50,8 +53,8 @@ import ApiExample from "@/Components/ApiExample.vue";
                             <li>
                                 Open
                                 <a href="/user/api-tokens">API access</a> and
-                                create a token with the
-                                <code>read</code> permission.
+                                create a key with <strong>All API data</strong> or
+                                <strong>Events and occurrences only</strong>.
                             </li>
                             <li>
                                 Store that token in your application’s
@@ -62,10 +65,10 @@ import ApiExample from "@/Components/ApiExample.vue";
                             </li>
                         </ol>
                         <p>
-                            Tokens read the authenticated user’s current
-                            workspace. Membership is checked on every request.
-                            If that account switches workspaces, subsequent
-                            token requests use its current selection. Keep
+                            All-data read keys use the account’s current workspace.
+                            Events-only keys and write-enabled keys use the workspace
+                            selected when the key was created. Membership is checked
+                            on every request. Keep
                             tokens server-side; a website should fetch data
                             through its own backend rather than expose a token
                             in public JavaScript.
@@ -238,9 +241,12 @@ import ApiExample from "@/Components/ApiExample.vue";
                             </li>
                         </ul>
                         <p>
-                            The current public API reads events. Manage event
-                            creation, edits, templates and connections through
-                            the EventJunction workspace.
+                            Read-only keys are the default. To create or update events,
+                            templates or custom fields, grant the corresponding write
+                            permission in API Access. Write keys and events-only keys
+                            use the workspace selected when the key was created.
+                            See the <a :href="route('l5-swagger.default.api')" class="underline">Swagger reference</a>
+                            for request bodies and responses.
                         </p>
                     </section>
                 </div>

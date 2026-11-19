@@ -6,6 +6,7 @@ use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class FieldTemplateController extends Controller
@@ -32,7 +33,10 @@ class FieldTemplateController extends Controller
 
     public function store(Request $request)
     {
-        FieldTemplate::create($this->data($request));
+        $field = FieldTemplate::create($this->data($request));
+        if ($request->routeIs('api.v1.field-templates.store')) {
+            return response()->json(['data' => $field->refresh()], 201, ['Location' => route('api.v1.field-templates.show', $field)]);
+        }
 
         return to_route('field-templates.index')->with('success', 'Field created.');
     }
@@ -40,9 +44,21 @@ class FieldTemplateController extends Controller
     public function update(Request $request, FieldTemplate $fieldTemplate)
     {
         abort_if($fieldTemplate->system_field, 403);
-        $fieldTemplate->update($this->data($request, $fieldTemplate));
+        $api = $request->routeIs('api.v1.field-templates.update');
+        if ($api && $request->has('field_id') && $request->input('field_id') !== $fieldTemplate->field_id) {
+            throw ValidationException::withMessages(['field_id' => 'The field ID cannot be changed.']);
+        }
+        $fieldTemplate->update($this->data($request, $fieldTemplate) + ($api ? ['required' => false, 'options' => null, 'validation_rules' => null] : []));
+        if ($api) {
+            return $this->apiShow($fieldTemplate);
+        }
 
         return to_route('field-templates.index')->with('success', 'Field updated.');
+    }
+
+    public function apiShow(FieldTemplate $fieldTemplate)
+    {
+        return response()->json(['data' => $fieldTemplate]);
     }
 
     public function destroy(FieldTemplate $fieldTemplate)

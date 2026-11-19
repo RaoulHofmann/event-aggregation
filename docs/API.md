@@ -1,12 +1,28 @@
 # EventJunction API
 
-`GET /api/v1/events` returns native and imported events for the authenticated user's current workspace. Supply `Authorization: Bearer <token>` and `Accept: application/json`. Create a token with `read` permission in API access. Workspace membership is checked before route binding or tenant queries.
+See the [API guide](https://eventjunction.app/docs/api) and [interactive Swagger reference](https://eventjunction.app/api/documentation) for supported endpoints.
+
+### Keys and write access
+
+- **Read all** uses the account's current workspace unless the key also has write permissions. **Events and occurrences only** uses the workspace selected when the key was created and can read the v1 events and occurrences endpoints.
+- A new read-only key can optionally save an encrypted copy that its owner can reveal in API Access. Write-enabled keys are shown once. Old keys were stored as hashes and cannot be recovered.
+- Write permissions are separate for create and update. They belong to the selected workspace, and the key owner must still have the relevant workspace role. Owners and admins can write templates and fields. Editors can write events.
+
+| Resource | Create | Replace | Permission prefix |
+| --- | --- | --- | --- |
+| Events | `POST /api/v1/events` | `PUT /api/v1/events/{id}` | `events` |
+| Event templates | `POST /api/v1/event-templates` | `PUT /api/v1/event-templates/{id}` | `templates` |
+| Custom fields | `POST /api/v1/field-templates` | `PUT /api/v1/field-templates/{id}` | `templates` |
+
+Append `:create` or `:update` to the permission prefix. POST returns `201`, a `Location` header, and a `data` object. PUT returns `200` with the updated `data` object. Fetch the current record through GET at the corresponding item URL with a read permission. PUT replaces editable fields. Event PUT requires `title` and `status`, and any custom answers are supplied as `custom_fields` keyed by stable field ID. New events default to drafts. Imported event updates stay local and use the editor's existing override rules. Deletion remains a workspace action.
+
+`GET /api/v1/events` returns native and imported events for the workspace accessible to the key. Supply `Authorization: Bearer <token>` and `Accept: application/json` without session cookies. Create a key with `read` or `events:read` permission in API Access. Workspace membership is checked before route binding or tenant queries.
 
 Filters: `source=eventnest|humanitix|google_calendar|ics|csv|wordpress|eventbrite`, `status=draft|published|cancelled`, inclusive ISO 8601 `starts_after` and `starts_before`, one-based `page`, and `per_page` (1–100, default 25). Results contain `data`, `links` and `meta`. Rate limit: 60 requests/minute per authenticated user. Native EventJunction records continue to use the `eventnest` source value for API compatibility.
 
 Each event includes canonical title, description, start/end timestamps, IANA timezone, location, status, source metadata, template and custom fields. UTC timestamps and the event timezone are separate. Drafts are included for authenticated integrations; use `status=published` for a public listing.
 
-The legacy `/api/events` remains available with template ID/name filtering and grouped responses. Native events are managed in EventJunction. Imported events can be edited locally with protected overrides; no changes are sent to the connected sources. Regenerate Swagger documentation with `php artisan l5-swagger:generate`.
+The legacy `/api/events` remains available with template ID/name filtering and grouped responses. Imported events can be edited locally with protected overrides. Regenerate Swagger documentation with `php artisan l5-swagger:generate`.
 
 ### Calendar occurrences
 

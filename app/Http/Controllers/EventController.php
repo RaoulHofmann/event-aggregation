@@ -88,6 +88,11 @@ class EventController extends Controller
         return response()->json($event);
     }
 
+    public function apiShow(Event $event): EventResource
+    {
+        return new EventResource($event->load('template'));
+    }
+
     public function get(Request $request)
     {
         $filters = $request->validate(['template_id' => ['nullable', 'integer', 'min:1'], 'template_name' => ['nullable', 'string', 'max:255'], 'limit' => ['nullable', 'integer', 'min:1', 'max:1000']]);
@@ -115,11 +120,11 @@ class EventController extends Controller
         return EventResource::collection($events);
     }
 
-    private function data(Request $request, bool $validateCustom = true): array
+    private function data(Request $request, bool $validateCustom = true, ?int $retainedTemplateId = null): array
     {
         $data = $request->validate(['template_id' => ['nullable', Rule::exists('event_templates', 'id')->whereNull('deleted_at')], 'event_data' => ['present', 'array'], 'title' => ['sometimes', 'nullable', 'string', 'max:255'], 'description' => ['sometimes', 'nullable', 'string', 'max:100000'], 'location' => ['sometimes', 'nullable', 'string', 'max:5000'], 'status' => ['sometimes', 'in:draft,published,cancelled'], 'starts_at' => ['sometimes', 'nullable', 'date'], 'ends_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:starts_at'], 'timezone' => ['sometimes', 'nullable', 'timezone'], 'all_day' => ['sometimes', 'boolean'], 'recurrence' => ['nullable', 'array:frequency,interval,weekdays,monthly_mode,count,until'], 'recurrence.frequency' => ['required_with:recurrence', 'in:daily,weekly,monthly,yearly'], 'recurrence.interval' => ['required_with:recurrence', 'integer', 'min:1', 'max:100'], 'recurrence.count' => ['required_with:recurrence', 'integer', 'min:1', 'max:1000'], 'recurrence.until' => ['nullable', 'date_format:Y-m-d'], 'recurrence.weekdays' => ['sometimes', 'array', 'min:1', 'max:7'], 'recurrence.weekdays.*' => ['integer', 'between:1,7', 'distinct'], 'recurrence.monthly_mode' => ['sometimes', 'in:date,weekday']]);
         $template = ! empty($data['template_id']) ? EventTemplate::findOrFail($data['template_id']) : null;
-        abort_unless(! $template || $template->source === 'eventnest', 403, 'This template is managed by its provider.');
+        abort_unless(! $template || $template->source === 'eventnest' || $template->id === $retainedTemplateId, 403, 'This template is managed by its provider.');
         foreach (['starts_at', 'ends_at'] as $key) {
             $value = $request->input($key);
             if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/', $value)) {
@@ -197,17 +202,35 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
+        $api = $request->routeIs('api.v1.events.store');
+        if ($api) {
+            $this->prepareApiInput($request);
+        }
         $data = $this->data($request);
-        DB::transaction(fn () => Event::create($data)->forceFill($this->canonical($request, $data['event_data']))->save());
+        $event = DB::transaction(function () use ($data, $request) {
+            $event = new Event($data);
+            $event->forceFill($this->canonical($request, $data['event_data']))->save();
+
+            return $event;
+        });
+
+        if ($api) {
+            return $this->apiShow($event)->response()->setStatusCode(201)
+                ->header('Location', route('api.v1.events.show', $event));
+        }
 
         return to_route('events.index')->with('success', 'Event created successfully.');
     }
 
     public function update(Request $request, Event $event)
     {
-        $data = $this->data($request);
-        DB::transaction(function () use ($event, $data, $request) {
+        $api = $request->routeIs('api.v1.events.update');
+        if ($api) {
+            $this->prepareApiInput($request, replacing: true);
+        }
+        $event = DB::transaction(function () use ($event, $request, $api) {
             $event = Event::whereKey($event->id)->lockForUpdate()->firstOrFail();
+            $data = $this->data($request, retainedTemplateId: $api ? $event->template_id : null);
             $canonical = $this->canonical($request, $data['event_data']);
             $changingSchedule = $event->recurrence != $canonical['recurrence'] || $event->starts_at?->toIso8601String() !== $canonical['starts_at']?->toIso8601String() || $event->timezone !== $canonical['timezone'] || $event->all_day !== $canonical['all_day'];
             if ($changingSchedule && DB::table('event_exceptions')->where('event_id', $event->id)->exists()) {
@@ -238,9 +261,25 @@ class EventController extends Controller
                 $event->forceFill(['local_overrides' => array_values(array_unique($overrides))]);
             }
             $event->fill($data)->forceFill($canonical)->save();
+
+            return $event;
         });
 
+        if ($api) {
+            return $this->apiShow($event);
+        }
+
         return to_route('events.index')->with('success', 'Event updated successfully.');
+    }
+
+    private function prepareApiInput(Request $request, bool $replacing = false): void
+    {
+        $body = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'status' => [$replacing ? 'required' : 'sometimes', 'in:draft,published,cancelled'],
+            'custom_fields' => ['sometimes', 'array'],
+        ]);
+        $request->merge(['event_data' => $body['custom_fields'] ?? []]);
     }
 
     public function destroy(Event $event)

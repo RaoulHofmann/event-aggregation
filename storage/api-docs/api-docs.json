@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "EventJunction API",
-        "description": "Native and imported workspace events",
+        "description": "Use Authorize with an API key. Read-only keys are the default. Creating or updating records requires a workspace-scoped key with the corresponding write permission.",
         "version": "1.0.0"
     },
     "servers": [
@@ -14,40 +14,23 @@
     "paths": {
         "/api/v1/events": {
             "get": {
-                "summary": "List native and imported workspace events",
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List native and imported events",
+                "description": "Returns event records and recurrence definitions. Use calendar occurrences for expanded dates.",
                 "operationId": "7f33096a817e7236930659cbf660accb",
                 "parameters": [
                     {
-                        "name": "source",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "eventnest",
-                                "humanitix",
-                                "google_calendar",
-                                "ics",
-                                "csv",
-                                "wordpress",
-                                "eventbrite"
-                            ]
-                        }
+                        "$ref": "#/components/parameters/Source"
                     },
                     {
-                        "name": "status",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "draft",
-                                "published",
-                                "cancelled"
-                            ]
-                        }
+                        "$ref": "#/components/parameters/Status"
                     },
                     {
                         "name": "starts_after",
                         "in": "query",
+                        "description": "Inclusive lower bound on the event start.",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
@@ -56,6 +39,7 @@
                     {
                         "name": "starts_before",
                         "in": "query",
+                        "description": "Inclusive upper bound on the event start.",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
@@ -93,10 +77,10 @@
                                                 "$ref": "#/components/schemas/CanonicalEvent"
                                             }
                                         },
-                                        "meta": {
+                                        "links": {
                                             "type": "object"
                                         },
-                                        "links": {
+                                        "meta": {
                                             "type": "object"
                                         }
                                     },
@@ -106,16 +90,160 @@
                         }
                     },
                     "401": {
-                        "description": "Authentication required"
+                        "$ref": "#/components/responses/Unauthorized"
                     },
                     "403": {
-                        "description": "Read permission and workspace membership required"
+                        "$ref": "#/components/responses/Forbidden"
                     },
                     "422": {
-                        "description": "Invalid filters"
+                        "$ref": "#/components/responses/InvalidParameters"
                     },
                     "429": {
-                        "description": "Rate limit exceeded"
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create an event",
+                "description": "Requires events:create. New events default to draft.",
+                "operationId": "1ff36e03a3de49cb9188ae394159a084",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventWrite"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CanonicalEvent"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/occurrences": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List calendar occurrences",
+                "description": "Returns events overlapping a window of up to 93 days, sorted by start. Limited to 500 candidate events and 5,000 occurrences.",
+                "operationId": "4d77f54ba86cb6aa991a93d962748934",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "ISO date or timestamp.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-11-01T00:00:00Z"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "Exclusive ISO date or timestamp.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-12-01T00:00:00Z"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search event titles.",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "template",
+                        "in": "query",
+                        "description": "Event template ID.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/Source"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Status"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Calendar occurrences",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Occurrence"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
                     }
                 },
                 "security": [
@@ -127,11 +255,718 @@
         },
         "/api/events": {
             "get": {
-                "summary": "Legacy template-grouped event listing",
+                "tags": [
+                    "Legacy"
+                ],
+                "summary": "List events using the legacy format",
+                "description": "Returns records grouped by template name. Filtering by template returns a flat list. An empty result has HTTP 200 and a body status of 204. New clients should use /api/v1/events.",
                 "operationId": "90fe1c0b0cd23e4cf375c9229468c779",
+                "parameters": [
+                    {
+                        "name": "template_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "template_name",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 1000,
+                            "minimum": 1
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Legacy event response"
+                        "description": "Legacy response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/event-templates": {
+            "get": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "List event templates",
+                "operationId": "eb7f5f96941fa9b48ae263aa3b39f8a9",
+                "responses": {
+                    "200": {
+                        "description": "Event templates in the current workspace",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "fields": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                },
+                                                "nullable": true
+                                            },
+                                            "layout": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "nullable": true
+                                            },
+                                            "source": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/field-templates": {
+            "get": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "List custom field definitions",
+                "operationId": "4eecd9e726b0accc56fadb5fedc897df",
+                "responses": {
+                    "200": {
+                        "description": "Field definitions in the current workspace",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "field_id": {
+                                                "description": "Key used in custom_fields.",
+                                                "type": "string"
+                                            },
+                                            "label": {
+                                                "type": "string"
+                                            },
+                                            "type": {
+                                                "type": "string"
+                                            },
+                                            "required": {
+                                                "type": "boolean"
+                                            },
+                                            "options": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "nullable": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get the authenticated account",
+                "operationId": "2d13160feaf8b35c1889a4bcdaf913cd",
+                "responses": {
+                    "200": {
+                        "description": "Account profile with the current workspace ID",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "current_team_id": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/events/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get an event",
+                "description": "Requires read or events:read.",
+                "operationId": "f27d40a01c11fbc9ed58d51043329e08",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workspace record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CanonicalEvent"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Replace an event",
+                "description": "Requires events:update. Send the complete editable record. An imported event is updated in EventJunction only.",
+                "operationId": "b53dc99844f39fd3615b30a811a4f063",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/EventWrite"
+                                    },
+                                    {
+                                        "required": [
+                                            "status"
+                                        ],
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Workspace record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CanonicalEvent"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/event-templates/{id}": {
+            "get": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "Get a template",
+                "description": "Requires read.",
+                "operationId": "a7948b97ef481ddd06dce30cbadcd9ee",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workspace record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TemplateWrite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "Replace a template",
+                "description": "Requires templates:update. Send the complete editable record.",
+                "operationId": "0645af48d44c465b64a0e7f754c8aba4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TemplateWrite"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Workspace record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TemplateWrite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/event-templates": {
+            "post": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "Create a template",
+                "description": "Requires templates:create.",
+                "operationId": "7b49b8f26d3c34393adfd2e2718c8493",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TemplateWrite"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TemplateWrite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/field-templates/{id}": {
+            "get": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "Get a field",
+                "description": "Requires read.",
+                "operationId": "1d1e72d4c6a5750185e3fb8b96c338e5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workspace record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FieldWrite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "Replace a field",
+                "description": "Requires templates:update. Send the complete editable record.",
+                "operationId": "3987b3f13ee458d6c94039587d21b706",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FieldWrite"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Workspace record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FieldWrite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/field-templates": {
+            "post": {
+                "tags": [
+                    "Templates"
+                ],
+                "summary": "Create a field",
+                "description": "Requires templates:create.",
+                "operationId": "484b368920a05cb6f99745859a265077",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/FieldWrite"
+                                    },
+                                    {
+                                        "required": [
+                                            "field_id"
+                                        ],
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FieldWrite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/InvalidParameters"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
                     }
                 },
                 "security": [
@@ -144,6 +979,202 @@
     },
     "components": {
         "schemas": {
+            "EventWrite": {
+                "required": [
+                    "title"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Summer workshop"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "Required for PUT. POST defaults to draft.",
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "cancelled"
+                        ]
+                    },
+                    "starts_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "ends_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "example": "Australia/Perth"
+                    },
+                    "all_day": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "recurrence": {
+                        "properties": {
+                            "frequency": {
+                                "type": "string",
+                                "enum": [
+                                    "daily",
+                                    "weekly",
+                                    "monthly",
+                                    "yearly"
+                                ]
+                            },
+                            "interval": {
+                                "type": "integer",
+                                "maximum": 100,
+                                "minimum": 1
+                            },
+                            "count": {
+                                "type": "integer",
+                                "maximum": 1000,
+                                "minimum": 1
+                            },
+                            "until": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "weekdays": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer",
+                                    "maximum": 7,
+                                    "minimum": 1
+                                }
+                            },
+                            "monthly_mode": {
+                                "type": "string",
+                                "enum": [
+                                    "date",
+                                    "weekday"
+                                ]
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "template_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "custom_fields": {
+                        "type": "object",
+                        "example": {
+                            "audience": "Adults"
+                        },
+                        "additionalProperties": true
+                    }
+                },
+                "type": "object"
+            },
+            "TemplateWrite": {
+                "required": [
+                    "name",
+                    "fields",
+                    "layout"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Workshop"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "fields": {
+                        "description": "Custom field numeric IDs.",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "example": [
+                            12
+                        ]
+                    },
+                    "layout": {
+                        "description": "Field IDs grouped by column. Each field appears once.",
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "example": [
+                            [
+                                12
+                            ],
+                            []
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "FieldWrite": {
+                "required": [
+                    "label",
+                    "type"
+                ],
+                "properties": {
+                    "field_id": {
+                        "description": "Required on POST. Stable key used in event custom_fields.",
+                        "type": "string",
+                        "example": "audience"
+                    },
+                    "label": {
+                        "type": "string",
+                        "example": "Audience"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "number",
+                            "date",
+                            "datetime",
+                            "email",
+                            "url",
+                            "select",
+                            "boolean",
+                            "textarea",
+                            "decimal",
+                            "image"
+                        ]
+                    },
+                    "required": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "nullable": true
+                    },
+                    "validation_rules": {
+                        "type": "array",
+                        "items": {},
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "CanonicalEvent": {
                 "properties": {
                     "id": {
@@ -174,6 +1205,9 @@
                         "type": "string",
                         "nullable": true
                     },
+                    "all_day": {
+                        "type": "boolean"
+                    },
                     "status": {
                         "type": "string",
                         "enum": [
@@ -181,6 +1215,45 @@
                             "published",
                             "cancelled"
                         ]
+                    },
+                    "recurrence": {
+                        "properties": {
+                            "frequency": {
+                                "type": "string",
+                                "enum": [
+                                    "daily",
+                                    "weekly",
+                                    "monthly",
+                                    "yearly"
+                                ]
+                            },
+                            "interval": {
+                                "type": "integer"
+                            },
+                            "count": {
+                                "type": "integer"
+                            },
+                            "until": {
+                                "type": "string",
+                                "format": "date",
+                                "nullable": true
+                            },
+                            "weekdays": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            "monthly_mode": {
+                                "type": "string",
+                                "enum": [
+                                    "date",
+                                    "weekday"
+                                ]
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
                     },
                     "source": {
                         "properties": {
@@ -203,15 +1276,208 @@
                             "url": {
                                 "type": "string",
                                 "nullable": true
+                            },
+                            "local_overrides": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "synced_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "template": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "nullable": true
+                            },
+                            "name": {
+                                "type": "string",
+                                "nullable": true
                             }
                         },
                         "type": "object"
                     },
                     "custom_fields": {
-                        "type": "object"
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "additionalProperties": true
+                            },
+                            {
+                                "type": "array",
+                                "items": {}
+                            }
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     }
                 },
                 "type": "object"
+            },
+            "Occurrence": {
+                "properties": {
+                    "id": {
+                        "description": "Event ID and original local date. Rescheduling retains this ID.",
+                        "type": "string",
+                        "example": "42@2026-11-21"
+                    },
+                    "event_id": {
+                        "type": "integer"
+                    },
+                    "occurrence_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "starts_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "ends_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "end_date": {
+                        "description": "Exclusive for all-day events.",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    },
+                    "all_day": {
+                        "type": "boolean"
+                    },
+                    "recurring": {
+                        "type": "boolean"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "cancelled"
+                        ]
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "eventnest",
+                            "humanitix",
+                            "google_calendar",
+                            "ics",
+                            "csv",
+                            "wordpress",
+                            "eventbrite"
+                        ]
+                    },
+                    "source_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "template_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "custom_fields": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "additionalProperties": true
+                            },
+                            {
+                                "type": "array",
+                                "items": {}
+                            }
+                        ]
+                    },
+                    "mapping_warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "local_overrides": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "Unauthorized": {
+                "description": "Authentication required"
+            },
+            "Forbidden": {
+                "description": "The key or workspace role lacks permission, or the workspace is unavailable"
+            },
+            "NotFound": {
+                "description": "No matching record in the selected workspace"
+            },
+            "InvalidParameters": {
+                "description": "Invalid parameters or occurrence limits exceeded"
+            },
+            "RateLimited": {
+                "description": "Versioned requests are limited to 60 per minute per authenticated user"
+            }
+        },
+        "parameters": {
+            "Source": {
+                "name": "source",
+                "in": "query",
+                "description": "Provider key. Omit to include all sources. Native events use eventnest.",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "eventnest",
+                        "humanitix",
+                        "google_calendar",
+                        "ics",
+                        "csv",
+                        "wordpress",
+                        "eventbrite"
+                    ]
+                }
+            },
+            "Status": {
+                "name": "status",
+                "in": "query",
+                "description": "Use published for a public listing. Authenticated requests can also return drafts.",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "published",
+                        "cancelled"
+                    ]
+                }
             }
         },
         "securitySchemes": {
@@ -221,5 +1487,19 @@
                 "scheme": "bearer"
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "Events"
+        },
+        {
+            "name": "Templates"
+        },
+        {
+            "name": "Account"
+        },
+        {
+            "name": "Legacy"
+        }
+    ]
 }

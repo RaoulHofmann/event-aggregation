@@ -35,7 +35,10 @@ class EventTemplateController extends Controller
 
     public function store(Request $request)
     {
-        EventTemplate::create($this->data($request));
+        $template = EventTemplate::create($this->data($request) + ['source' => 'eventnest']);
+        if ($request->routeIs('api.v1.event-templates.store')) {
+            return response()->json(['data' => $template], 201, ['Location' => route('api.v1.event-templates.show', $template)]);
+        }
 
         return to_route('event-templates.index')->with('success', 'Template created.');
     }
@@ -43,9 +46,18 @@ class EventTemplateController extends Controller
     public function update(Request $request, EventTemplate $eventTemplate)
     {
         abort_unless($eventTemplate->source === 'eventnest', 403);
-        $eventTemplate->update($this->data($request, $eventTemplate));
+        $api = $request->routeIs('api.v1.event-templates.update');
+        $eventTemplate->update($this->data($request, $eventTemplate) + ($api ? ['description' => null] : []));
+        if ($api) {
+            return $this->apiShow($eventTemplate);
+        }
 
         return to_route('event-templates.index')->with('success', 'Template updated.');
+    }
+
+    public function apiShow(EventTemplate $eventTemplate)
+    {
+        return response()->json(['data' => $eventTemplate]);
     }
 
     public function destroy(EventTemplate $eventTemplate)

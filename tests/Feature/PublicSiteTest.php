@@ -55,4 +55,26 @@ class PublicSiteTest extends TestCase
         $this->assertSame(0, $data['offers']['price']);
         $this->get('/pricing')->assertOk()->assertDontSee('application/ld+json', false);
     }
+
+    public function test_swagger_reference_lists_public_read_and_write_endpoints(): void
+    {
+        $this->get(route('l5-swagger.default.api', absolute: false))
+            ->assertOk()
+            ->assertSee('API reference', false)
+            ->assertSee('href="/docs/api"', false)
+            ->assertSee('persistAuthorization: false', false);
+
+        $specification = $this->getJson(route('l5-swagger.default.docs', absolute: false))->assertOk()->json();
+        $this->assertEqualsCanonicalizing([
+            '/api/v1/events', '/api/v1/occurrences', '/api/events', '/api/event-templates',
+            '/api/field-templates', '/api/user', '/api/v1/events/{id}',
+            '/api/v1/event-templates', '/api/v1/event-templates/{id}',
+            '/api/v1/field-templates', '/api/v1/field-templates/{id}',
+        ], array_keys($specification['paths']));
+        $this->assertEqualsCanonicalizing(['get', 'post'], array_keys($specification['paths']['/api/v1/events']));
+        $this->assertEqualsCanonicalizing(['get', 'put'], array_keys($specification['paths']['/api/v1/events/{id}']));
+        $this->assertArrayHasKey('requestBody', $specification['paths']['/api/v1/event-templates']['post']);
+        $this->assertSame('bearer', $specification['components']['securitySchemes']['apiKey']['scheme']);
+        $this->assertTrue($specification['paths']['/api/v1/occurrences']['get']['parameters'][0]['required']);
+    }
 }
