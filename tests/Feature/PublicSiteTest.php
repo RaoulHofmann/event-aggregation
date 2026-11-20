@@ -36,10 +36,13 @@ class PublicSiteTest extends TestCase
         config(['public-site.contact_email' => 'privacy@example.test']);
         $this->get('/privacy-policy')->assertOk()->assertInertia(
             fn (Assert $page) => $page->component('PrivacyPolicy')->where('legal.email', 'privacy@example.test')
+                ->where('legal.updated', config('public-site.privacy_updated'))
                 ->where('policy', fn (string $html) => str_contains($html, 'Limited Use requirements'))
+                ->where('policy', fn (string $html) => str_contains($html, 'How we protect sensitive data'))
+                ->where('policy', fn (string $html) => str_contains($html, 'permanent deletion'))
         );
         $this->get('/terms-of-service')->assertOk()->assertInertia(
-            fn (Assert $page) => $page->component('TermsOfService')->has('terms')->has('legal.updated')
+            fn (Assert $page) => $page->component('TermsOfService')->has('terms')->where('legal.updated', config('public-site.legal_updated'))
         );
 
         $pending = User::factory()->create();

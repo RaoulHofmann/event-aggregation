@@ -4,6 +4,7 @@ return [
     'url' => env('PUBLIC_SITE_URL', env('APP_URL', 'http://localhost')),
     'contact_email' => env('EVENTJUNCTION_LEGAL_EMAIL'),
     'legal_updated' => '18 November 2026',
+    'privacy_updated' => '20 November 2026',
     'pages' => [
         'home' => [
             'title' => 'EventJunction — Event Calendar and Management Software',

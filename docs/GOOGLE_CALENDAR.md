@@ -9,14 +9,14 @@ Google Calendar supplies events to EventJunction. EventJunction never creates, c
 3. Add these read-only scopes under Data Access:
    - `https://www.googleapis.com/auth/calendar.calendarlist.readonly`
    - `https://www.googleapis.com/auth/calendar.events.readonly`
-4. Create a **Web application** OAuth client. Add the exact redirect URI `https://event-aggregator.fly.dev/integrations/google/callback`. A server-side flow needs no JavaScript origin. For development add the exact local callback separately.
+4. Create a **Web application** OAuth client. Add the exact redirect URI `https://eventjunction.app/integrations/google/callback`. A server-side flow needs no JavaScript origin. For development add the exact local callback separately.
 5. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` as application secrets, never source files or chat messages. On Fly:
 
    ```sh
    flyctl secrets set --app event-aggregator \
      GOOGLE_CLIENT_ID='YOUR_CLIENT_ID' \
      GOOGLE_CLIENT_SECRET='YOUR_CLIENT_SECRET' \
-     GOOGLE_REDIRECT_URI='https://event-aggregator.fly.dev/integrations/google/callback'
+     GOOGLE_REDIRECT_URI='https://eventjunction.app/integrations/google/callback'
    ```
 
 6. Apply public and tenant migrations during release. The existing Fly release command runs both. Ensure the production callback is available before connecting.

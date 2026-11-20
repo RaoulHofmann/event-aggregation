@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'turnstileSiteKey' => fn () => $request->routeIs('register') ? config('services.turnstile.site_key') : null,
             'legal' => fn () => $request->routeIs('policy.show', 'terms.show') ? [
-                'updated' => config('public-site.legal_updated'),
+                'updated' => config($request->routeIs('policy.show') ? 'public-site.privacy_updated' : 'public-site.legal_updated'),
                 'email' => filter_var(config('public-site.contact_email'), FILTER_VALIDATE_EMAIL) ?: null,
             ] : null,
             'flash' => ['success' => fn () => $request->session()->get('success'), 'error' => fn () => $request->session()->get('error')],

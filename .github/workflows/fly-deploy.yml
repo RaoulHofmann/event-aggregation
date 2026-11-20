@@ -166,6 +166,7 @@ jobs:
               assert f'rel="canonical" href="{site}{path}"' in html, f'Wrong canonical URL on {path}'
               assert f'content="{site}/eventjunction-social.png"' in html, f'Wrong social preview URL on {path}'
           assert 'Limited Use requirements' in read('privacy.html')
+          assert 'How we protect sensitive data' in read('privacy.html')
           assert 'Acceptable use' in read('terms.html')
           assert f'Sitemap: {site}/sitemap.xml' in read('robots.txt')
           sitemap = ElementTree.fromstring(read('sitemap.xml'))

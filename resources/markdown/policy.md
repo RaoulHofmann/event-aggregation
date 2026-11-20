@@ -20,13 +20,24 @@ Service providers help us host, store, deliver, and monitor the service. These m
 
 ## Google Calendar
 
-EventJunction requests read-only access to list the calendars you can read and retrieve events from calendars you select. It uses event titles, times, time zones, descriptions, locations, and other event metadata to import, display, and refresh those events. It does not import attendee lists or write changes to your Google Calendar.
+When a workspace owner connects Google Calendar, EventJunction requests two read-only permissions. One lists the calendars the Google account can read, so the owner can choose which calendars to connect. The other retrieves events from the selected calendars for import and refresh.
+
+We store the Google account’s primary calendar identifier to recognise the connection, the selected calendar names and identifiers, and the OAuth tokens needed for scheduled imports. Imported records include event titles, descriptions, locations, dates, times, time zones, status, source links, and the identifiers needed to match events during refresh. We do not store structured attendee lists, attachments, or conferencing credentials from the Google Calendar API. Event descriptions and locations may contain personal information entered by event organisers. EventJunction never writes changes to Google Calendar.
+
+Google events arrive as drafts. Workspace members and API clients with the applicable permissions can access imported records. A workspace may share events through an API client it authorises, or publish events and enable a public widget that displays titles, dates, times, and locations. Choose calendars and review event details before sharing them, including before giving someone an API key that can access drafts. We use Google data to provide and maintain the Calendar import and these user-facing event features.
 
 EventJunction’s use and transfer of information received from Google APIs to any other app will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
 
+## How we protect sensitive data
+
+- **Encryption in transit.** EventJunction’s public site and its connections to Google use HTTPS. Our production application is configured to require TLS for connections to its database.
+- **Protection of stored credentials.** We encrypt Google OAuth access and refresh tokens and other integration credentials before storing them in the database. Google tokens are kept on the server and used to authorise imports from the calendars you select.
+- **Workspace access controls.** Workspaces store event data in separate database schemas. The application checks workspace membership and permissions before granting access. Only workspace owners can connect or manage Google Calendar integrations. Imported records start as drafts, and the public widget only includes published events from a workspace that has enabled it.
+
 ## Your choices and retention
 
-- **Disconnect an integration** in EventJunction to stop future imports and remove its stored credentials. You can also revoke EventJunction’s access in your Google account. Events already imported are kept in your workspace until removed.
+- **Disconnect Google Calendar** under Integrations to stop future imports and clear the stored connection credentials. You can also revoke EventJunction’s access on the [Google account connections page](https://myaccount.google.com/connections). Disconnecting keeps previously imported events and the connection’s settings in your workspace.
+- **Delete imported events** from the Events page to remove them from the workspace interface, API, and public widget. Event deletion retains a record in storage to prevent the next sync from bringing the event back. You can request permanent deletion of stored Google data using the privacy contact below.
 - **Manage access** through your workspace’s membership settings and revoke API tokens that are no longer needed.
 - **Delete your account** from your profile where that option is available. For access, correction, deletion, or other privacy requests, use the contact information below. If your information was added by a workspace, its owner can also help with the records they manage.
 
