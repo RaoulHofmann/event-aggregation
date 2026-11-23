@@ -39,7 +39,10 @@ class PublicSiteTest extends TestCase
                 ->where('legal.updated', config('public-site.privacy_updated'))
                 ->where('policy', fn (string $html) => str_contains($html, 'Limited Use requirements'))
                 ->where('policy', fn (string $html) => str_contains($html, 'How we protect sensitive data'))
-                ->where('policy', fn (string $html) => str_contains($html, 'permanent deletion'))
+                ->where('policy', fn (string $html) => str_contains($html, 'calendar.calendarlist.readonly')
+                    && str_contains($html, 'calendar.events.readonly')
+                    && str_contains($html, 'How Google data is shared')
+                    && str_contains($html, 'Request permanent deletion of Google data'))
         );
         $this->get('/terms-of-service')->assertOk()->assertInertia(
             fn (Assert $page) => $page->component('TermsOfService')->has('terms')->where('legal.updated', config('public-site.legal_updated'))

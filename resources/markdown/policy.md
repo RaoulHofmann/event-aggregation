@@ -20,11 +20,20 @@ Service providers help us host, store, deliver, and monitor the service. These m
 
 ## Google Calendar
 
-When a workspace owner connects Google Calendar, EventJunction requests two read-only permissions. One lists the calendars the Google account can read, so the owner can choose which calendars to connect. The other retrieves events from the selected calendars for import and refresh.
+### Data we access and use
 
-We store the Google account’s primary calendar identifier to recognise the connection, the selected calendar names and identifiers, and the OAuth tokens needed for scheduled imports. Imported records include event titles, descriptions, locations, dates, times, time zones, status, source links, and the identifiers needed to match events during refresh. We do not store structured attendee lists, attachments, or conferencing credentials from the Google Calendar API. Event descriptions and locations may contain personal information entered by event organisers. EventJunction never writes changes to Google Calendar.
+A workspace owner can grant EventJunction two read-only Google Calendar permissions.
 
-Google events arrive as drafts. Workspace members and API clients with the applicable permissions can access imported records. A workspace may share events through an API client it authorises, or publish events and enable a public widget that displays titles, dates, times, and locations. Choose calendars and review event details before sharing them, including before giving someone an API key that can access drafts. We use Google data to provide and maintain the Calendar import and these user-facing event features.
+- **See your calendar list** (`calendar.calendarlist.readonly`). We read the names, identifiers, and time zones of calendars your Google account can read so you can choose which ones to connect. We store the primary calendar identifier to recognise the connection and the details of the calendars you select.
+- **View events on your calendars** (`calendar.events.readonly`). We read events from the selected calendars and store titles, descriptions, locations, dates, times, time zones, status, source links, and event identifiers. We use these details to import events as drafts, match them during scheduled refreshes, and let you manage them in EventJunction. The importer leaves out structured attendee lists, attachments, and conferencing credentials. Event descriptions and locations can still contain personal information or links entered by event organisers.
+
+We store OAuth access and refresh tokens to authorise scheduled imports. EventJunction never writes changes to Google Calendar.
+
+### How Google data is shared
+
+Workspace members and API clients with the applicable permissions can access imported records, including drafts. Workspace users can publish an imported event and, if the workspace has enabled a public widget, the widget can display its title, dates, times, and location. Giving an API client access or publishing an event can share information outside the workspace. Review event details and API permissions before sharing.
+
+Fly.io hosts EventJunction and Supabase hosts its database. These providers process Google data as needed to run the service. We use Google data to provide and maintain the Calendar import and related user-facing event features. EventJunction does not sell Google data or use it for advertising.
 
 EventJunction’s use and transfer of information received from Google APIs to any other app will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
 
@@ -36,8 +45,9 @@ EventJunction’s use and transfer of information received from Google APIs to a
 
 ## Your choices and retention
 
-- **Disconnect Google Calendar** under Integrations to stop future imports and clear the stored connection credentials. You can also revoke EventJunction’s access on the [Google account connections page](https://myaccount.google.com/connections). Disconnecting keeps previously imported events and the connection’s settings in your workspace.
-- **Delete imported events** from the Events page to remove them from the workspace interface, API, and public widget. Event deletion retains a record in storage to prevent the next sync from bringing the event back. You can request permanent deletion of stored Google data using the privacy contact below.
+- **Disconnect Google Calendar** under Integrations to stop future imports and clear the stored connection credentials. You can also revoke EventJunction’s access on the [Google account connections page](https://myaccount.google.com/connections). Previously imported events and connection settings remain in the workspace after disconnection. They do not automatically expire.
+- **Delete imported events** from the Events page to remove them from the workspace interface, API, and public widget. EventJunction keeps the deleted records in storage to prevent the next sync from bringing those events back.
+- **Request permanent deletion of Google data** using the privacy contact below or **Contact support** on the EventJunction dashboard. Include the workspace name and identify the Google connection or events you want removed so we can locate the records and verify the request.
 - **Manage access** through your workspace’s membership settings and revoke API tokens that are no longer needed.
 - **Delete your account** from your profile where that option is available. For access, correction, deletion, or other privacy requests, use the contact information below. If your information was added by a workspace, its owner can also help with the records they manage.
 
