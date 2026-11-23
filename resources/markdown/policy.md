@@ -31,7 +31,7 @@ We store OAuth access and refresh tokens to authorise scheduled imports. EventJu
 
 ### How Google data is shared
 
-Workspace members and API clients with the applicable permissions can access imported records, including drafts. Workspace users can publish an imported event and, if the workspace has enabled a public widget, the widget can display its title, dates, times, and location. Giving an API client access or publishing an event can share information outside the workspace. Review event details and API permissions before sharing.
+Workspace members and API clients with the applicable permissions can access imported records, including drafts. Workspace users can publish an imported event and, if the workspace has enabled a public widget, the widget can display its title, dates, times, location, and attached cover image. Workspace owners can also opt in to showing event descriptions in widget detail pages. Giving an API client access or publishing an event can share information outside the workspace. Review event details and API permissions before sharing.
 
 Fly.io hosts EventJunction and Supabase hosts its database. These providers process Google data as needed to run the service. We use Google data to provide and maintain the Calendar import and related user-facing event features. EventJunction does not sell Google data or use it for advertising.
 

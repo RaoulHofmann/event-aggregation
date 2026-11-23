@@ -142,6 +142,7 @@ jobs:
           fetch / home.html
           fetch /pricing pricing.html
           fetch /embed/upcoming/example widget.html
+          fetch '/embed/upcoming/example?theme=sage&event=garden-workshop' widget-detail.html
           fetch /privacy-policy privacy.html
           fetch /terms-of-service terms.html
           fetch /robots.txt robots.txt
@@ -160,6 +161,9 @@ jobs:
           assert 'Upcoming events' in read('widget.html') and 'Community garden workshop' in read('widget.html')
           assert 'frame-ancestors *' in read('widget.html.headers')
           assert 'x-frame-options:' not in read('widget.html.headers').lower(), 'Widget response still blocks cross-site framing'
+          assert all(marker in read('widget-detail.html') for marker in ['theme-sage', 'Back to events', 'Plant seasonal seedlings'])
+          assert 'frame-ancestors *' in read('widget-detail.html.headers')
+          assert 'x-frame-options:' not in read('widget-detail.html.headers').lower(), 'Widget details still block cross-site framing'
           assert 'x-frame-options: sameorigin' in read('home.html.headers').lower(), 'Homepage frame protection is missing'
           for filename, path in [('home.html', '/'), ('pricing.html', '/pricing'), ('privacy.html', '/privacy-policy'), ('terms.html', '/terms-of-service')]:
               html = read(filename)

@@ -56,13 +56,14 @@ const scene = ref(0),
     root = ref(null);
 const event = computed(() => events[Math.min(1, Math.floor(scene.value / 2))]),
     isApi = computed(() => scene.value % 2 === 1 || scene.value === 4);
-const durations = [3500, 4800, 3500, 4800, 5500];
+const durations = [3500, 4800, 3500, 4800, 5500, 8500];
 const labels = [
     "Created event",
     "Event API",
     "Imported event",
     "Same API",
     "All sources",
+    "Website widget",
 ];
 const request = computed(
     () =>
@@ -102,7 +103,7 @@ const schedule = () => {
     stop();
     if (!paused.value && !reduced.value && visible.value && foreground.value)
         timer = setTimeout(
-            () => (scene.value = (scene.value + 1) % 5),
+            () => (scene.value = (scene.value + 1) % labels.length),
             durations[scene.value],
         );
 };
@@ -150,7 +151,7 @@ onUnmounted(() => {
     <section
         ref="root"
         class="programme-demo"
-        aria-label="Event to API demonstration"
+        aria-label="Example events, API and widget"
         :class="{ 'is-paused': paused, 'reduced-motion': reduced }"
     >
         <div class="demo-masthead">
@@ -165,8 +166,16 @@ onUnmounted(() => {
             ></div>
             <Transition name="programme-scene" mode="out-in" appear
                 ><div :key="scene" class="scene-frame" :data-scene="scene">
+                    <iframe
+                        v-if="scene === 5"
+                        class="demo-widget"
+                        :src="route('widgets.upcoming.example', { theme: 'sage' }, false)"
+                        title="Website widget demonstration"
+                        @mouseenter="paused = true"
+                        @focus="paused = true"
+                    ></iframe>
                     <article
-                        v-if="!isApi"
+                        v-else-if="!isApi"
                         class="demo-event"
                         :class="event.colour"
                     >
@@ -303,7 +312,7 @@ onUnmounted(() => {
             {{
                 reduced
                     ? "Auto-play is off for reduced motion. Select a view to explore."
-                    : "Events become data, then back to the next event."
+                    : "Explore event listings, API responses and the embedded widget."
             }}
             Illustrative data; no live API requests.
         </p>
@@ -354,7 +363,8 @@ onUnmounted(() => {
     position: relative;
 }
 .demo-event,
-.demo-api {
+.demo-api,
+.demo-widget {
     height: 100%;
     border: 1.5px solid #4a4236;
     box-shadow: 0 9px 18px #3c322712;
@@ -362,6 +372,7 @@ onUnmounted(() => {
     flex-direction: column;
     overflow: hidden;
 }
+.demo-widget { width: 100%; background: #f2f7f0; }
 .demo-event {
     rotate: -1deg;
     padding: 25px 26px;

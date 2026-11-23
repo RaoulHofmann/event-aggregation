@@ -62,6 +62,7 @@ use OpenApi\Attributes as OA;
         new OA\Schema(schema: 'CanonicalEvent', type: 'object', properties: [
             new OA\Property(property: 'id', type: 'integer'),
             new OA\Property(property: 'title', type: 'string'),
+            new OA\Property(property: 'image_url', description: 'Public cover image URL for a published event with an uploaded cover.', type: 'string', format: 'uri', nullable: true),
             new OA\Property(property: 'description', type: 'string', nullable: true),
             new OA\Property(property: 'starts_at', type: 'string', format: 'date-time', nullable: true),
             new OA\Property(property: 'ends_at', type: 'string', format: 'date-time', nullable: true),
@@ -96,6 +97,7 @@ use OpenApi\Attributes as OA;
             new OA\Property(property: 'event_id', type: 'integer'),
             new OA\Property(property: 'occurrence_date', type: 'string', format: 'date'),
             new OA\Property(property: 'title', type: 'string'),
+            new OA\Property(property: 'image_url', description: 'Public cover image URL for a published event with an uploaded cover.', type: 'string', format: 'uri', nullable: true),
             new OA\Property(property: 'starts_at', type: 'string', format: 'date-time'),
             new OA\Property(property: 'ends_at', type: 'string', format: 'date-time'),
             new OA\Property(property: 'start_date', type: 'string', format: 'date'),

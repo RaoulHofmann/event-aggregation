@@ -9,6 +9,8 @@ const props = defineProps({
     embedUrl: String,
     templates: Array,
     sources: Array,
+    appearance: Object,
+    themes: Object,
 });
 const sourceNames = {
     eventnest: "EventJunction",
@@ -24,6 +26,7 @@ const form = useForm({
     title: props.widget?.title ?? "Upcoming events",
     source: props.widget?.source ?? "",
     template_id: props.widget?.template_id ?? "",
+    appearance: { ...props.appearance },
 });
 const disableForm = useForm({});
 const copied = ref(false);
@@ -31,6 +34,8 @@ const embedCode = ref(null);
 const snippet = computed(() => props.embedUrl
     ? `<iframe src="${props.embedUrl}" title="Upcoming events" loading="lazy" width="100%" height="420" style="border:0"></iframe>`
     : "");
+const preview = computed(() => props.previewPath || route("widgets.upcoming.example", { theme: form.appearance.theme }, false));
+const previewKey = computed(() => JSON.stringify([props.widget, props.appearance]));
 
 watch(snippet, () => copied.value = false);
 
@@ -55,7 +60,7 @@ function disableWidget() {
     <AppLayout title="Website widget">
         <Link :href="route('events.index')" class="text-sm font-medium text-emerald-800 underline">Back to events</Link>
         <h1 class="mb-2 mt-4 text-3xl font-semibold">Website widget</h1>
-        <p class="mb-6 max-w-2xl text-sm text-slate-600">Show up to 12 published occurrences from the next 60 days. Anyone with the embed link can see their titles, times, and locations.</p>
+        <p class="mb-6 max-w-2xl text-sm text-slate-600">Show up to 12 published occurrences from the next 60 days. Anyone with the embed link can see their titles, times, locations and cover images.</p>
 
         <div class="grid items-start gap-6 xl:grid-cols-2">
             <div class="space-y-6">
@@ -80,6 +85,32 @@ function disableWidget() {
                             <option v-for="template in templates" :key="template.id" :value="template.id">{{ template.name }}</option>
                         </select>
                     </div>
+                    <fieldset class="space-y-4 rounded-lg border border-slate-200 p-4">
+                        <legend class="px-1 text-sm font-semibold">Appearance and branding</legend>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="widget-theme" class="workspace-label">Colour theme</label>
+                                <select id="widget-theme" v-model="form.appearance.theme" class="workspace-input">
+                                    <option v-for="(label, key) in themes" :key="key" :value="key">{{ label }}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="widget-brand" class="workspace-label">Organisation name</label>
+                                <input id="widget-brand" v-model="form.appearance.brand" class="workspace-input" maxlength="70" placeholder="Optional" />
+                            </div>
+                        </div>
+                        <div class="grid gap-3 text-sm">
+                            <label class="flex items-center gap-2"><input v-model="form.appearance.compact" type="checkbox" /> Use compact spacing</label>
+                            <label class="flex items-center gap-2"><input v-model="form.appearance.show_credit" type="checkbox" /> Show EventJunction credit</label>
+                            <div>
+                                <label class="flex items-center gap-2">
+                                    <input v-model="form.appearance.show_description" type="checkbox" aria-describedby="widget-description-help" />
+                                    Show event descriptions on detail pages
+                                </label>
+                                <p id="widget-description-help" class="mt-1 pl-5 text-xs text-slate-600">Descriptions from published events will be visible to anyone with the embed link.</p>
+                            </div>
+                        </div>
+                    </fieldset>
                     <p v-for="(error, field) in form.errors" :key="field" class="text-sm text-red-700" role="alert">{{ error }}</p>
                     <div class="flex flex-wrap items-center gap-3">
                         <button class="workspace-primary" :disabled="form.processing || disableForm.processing">{{ widget ? "Save settings" : "Enable widget" }}</button>
@@ -95,9 +126,12 @@ function disableWidget() {
                 </section>
             </div>
 
-            <section v-if="previewPath" class="workspace-panel overflow-hidden" aria-labelledby="widget-preview-heading">
-                <h2 id="widget-preview-heading" class="border-b px-5 py-4 font-semibold">Preview</h2>
-                <iframe :key="widget.title + widget.source + widget.template_id" :src="previewPath" title="Upcoming events widget preview" class="block h-[420px] w-full border-0"></iframe>
+            <section class="workspace-panel overflow-hidden" aria-labelledby="widget-preview-heading">
+                <div class="border-b px-5 py-4">
+                    <h2 id="widget-preview-heading" class="font-semibold">{{ widget ? "Published widget preview" : "Example widget preview" }}</h2>
+                    <p v-if="widget && form.isDirty" class="mt-1 text-sm text-slate-600">Save to update the preview.</p>
+                </div>
+                <iframe :key="previewKey" :src="preview" title="Upcoming events widget preview" class="block h-[460px] w-full border-0"></iframe>
             </section>
         </div>
     </AppLayout>

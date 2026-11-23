@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import EditorChrome from "@/Components/EditorChrome.vue";
+import WorkspaceImages from "@/Components/WorkspaceImages.vue";
 import axios from "axios";
 import { Link, useForm } from "@inertiajs/vue3";
 import { CalendarDays, X, ArrowRight, Layers } from "lucide-vue-next";
@@ -51,7 +52,18 @@ const form = useForm({
     location: props.event?.location || "",
     all_day: props.event?.all_day || false,
     recurrence: props.event?.recurrence || null,
+    cover_image_id: props.event?.cover_image_id || null,
 });
+const showImages = ref(false);
+const uploadingImage = ref(false);
+const imagePickerButton = ref(null);
+async function chooseImage(image) {
+    form.cover_image_id = image.id;
+    form.clearErrors("cover_image_id");
+    showImages.value = false;
+    await nextTick();
+    imagePickerButton.value?.focus();
+}
 for (const field of props.fields) {
     const value = form.event_data[field.field_id];
     if (typeof value !== "string" || !["date", "datetime"].includes(field.type))
@@ -232,6 +244,7 @@ const previewDates = async () => {
     }
 };
 const submit = () => {
+    if (uploadingImage.value || form.processing) return;
     if (!form.title.trim()) {
         form.setError("title", "Enter an event title.");
         section.value = "details";
@@ -384,6 +397,37 @@ const submit = () => {
                                     placeholder="Venue, address or online location"
                                 />
                             </div>
+                            <fieldset class="space-y-3 rounded-xl border border-slate-200 p-4">
+                                <legend class="px-1 text-sm font-semibold">Cover image</legend>
+                                <p class="text-xs text-slate-600">Published covers can be viewed by anyone with the image link.</p>
+                                <img
+                                    v-if="form.cover_image_id"
+                                    :src="route('assets.images.show', form.cover_image_id)"
+                                    alt="Selected event cover"
+                                    class="max-h-48 w-full rounded-lg bg-slate-50 object-contain sm:max-w-xs"
+                                />
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        ref="imagePickerButton"
+                                        type="button"
+                                        class="workspace-secondary"
+                                        :aria-expanded="showImages"
+                                        aria-controls="event-image-picker"
+                                        :disabled="uploadingImage"
+                                        @click="showImages = !showImages"
+                                    >{{ showImages ? 'Close image picker' : 'Upload or choose image' }}</button>
+                                    <button
+                                        v-if="form.cover_image_id"
+                                        type="button"
+                                        class="workspace-secondary"
+                                        :disabled="uploadingImage"
+                                        @click="form.cover_image_id = null"
+                                    >Remove cover</button>
+                                </div>
+                                <div v-if="showImages" id="event-image-picker" class="border-t border-slate-200 pt-3">
+                                    <WorkspaceImages selectable @select="chooseImage" @uploading="uploadingImage = $event" />
+                                </div>
+                            </fieldset>
                             <button
                                 type="button"
                                 class="workspace-secondary"
@@ -774,7 +818,7 @@ const submit = () => {
                         Cancel</button
                     ><button
                         class="workspace-primary"
-                        :disabled="form.processing"
+                        :disabled="form.processing || uploadingImage"
                     >
                         {{
                             form.processing

@@ -8,12 +8,14 @@ use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\EventTemplate;
 use App\Models\FieldTemplate;
+use App\Models\WorkspaceImage;
 use App\Services\EventOccurrences;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -45,7 +47,7 @@ class EventController extends Controller
         $to = CarbonImmutable::parse($data['to'])->utc();
         abort_if($from->diffInDays($to) > 93, 422, 'Choose a calendar window of 93 days or fewer.');
 
-        return response()->json(['data' => $occurrences->window($from, $to, $data)]);
+        return response()->json(['data' => $occurrences->window($from, $to, $data, $request->attributes->get('api_workspace')->id)]);
     }
 
     public function exception(Request $request, Event $event)
@@ -207,8 +209,11 @@ class EventController extends Controller
             $this->prepareApiInput($request);
         }
         $data = $this->data($request);
-        $event = DB::transaction(function () use ($data, $request) {
+        $event = DB::transaction(function () use ($data, $request, $api) {
             $event = new Event($data);
+            if (! $api) {
+                $this->setCover($request, $event);
+            }
             $event->forceFill($this->canonical($request, $data['event_data']))->save();
 
             return $event;
@@ -260,6 +265,9 @@ class EventController extends Controller
                 }
                 $event->forceFill(['local_overrides' => array_values(array_unique($overrides))]);
             }
+            if (! $api) {
+                $this->setCover($request, $event);
+            }
             $event->fill($data)->forceFill($canonical)->save();
 
             return $event;
@@ -270,6 +278,22 @@ class EventController extends Controller
         }
 
         return to_route('events.index')->with('success', 'Event updated successfully.');
+    }
+
+    private function setCover(Request $request, Event $event): void
+    {
+        $data = $request->validate(['cover_image_id' => ['sometimes', 'nullable', 'uuid']]);
+        if (! array_key_exists('cover_image_id', $data)) {
+            return;
+        }
+        $id = $data['cover_image_id'];
+        if ($id !== null && ! WorkspaceImage::whereKey($id)->lockForUpdate()->first()) {
+            throw ValidationException::withMessages(['cover_image_id' => 'Choose an available image from this workspace.']);
+        }
+        $event->cover_image_id = $id;
+        if ($id !== null && $event->cover_public_id === null) {
+            $event->cover_public_id = Str::random(40);
+        }
     }
 
     private function prepareApiInput(Request $request, bool $replacing = false): void

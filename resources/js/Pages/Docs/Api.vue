@@ -97,6 +97,12 @@ import ApiExample from "@/Components/ApiExample.vue";
                             pagination <code>links</code>, and
                             <code>meta</code>.
                         </p>
+                        <p>
+                            Published events with an uploaded cover include a
+                            public <code>image_url</code> in event and occurrence
+                            responses. The URL follows the event’s current cover
+                            and stops serving it if the event is unpublished.
+                        </p>
                         <div class="table-scroll">
                             <table>
                                 <caption class="sr-only">

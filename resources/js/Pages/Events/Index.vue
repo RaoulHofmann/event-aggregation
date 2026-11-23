@@ -706,6 +706,12 @@ const remove = (event) => {
                         Close
                     </button>
                 </div>
+                <img
+                    v-if="details.image_url"
+                    :src="details.image_url"
+                    alt=""
+                    class="max-h-64 w-full rounded-lg bg-slate-50 object-contain"
+                />
                 <p>
                     {{
                         details.all_day

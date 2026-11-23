@@ -11,6 +11,7 @@ use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\InboundImportController;
+use App\Http\Controllers\WorkspaceImageController;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequirePlatformAdmin;
 use App\Support\PublicSite;
@@ -26,6 +27,10 @@ Route::prefix('embed/upcoming')->withoutMiddleware('web')->middleware('throttle:
     Route::get('/example', [CalendarWidgetController::class, 'example'])->name('widgets.upcoming.example');
     Route::get('/{widget}', [CalendarWidgetController::class, 'show'])->where('widget', '[A-Za-z0-9]{40}')->name('widgets.upcoming.show');
 });
+
+Route::get('/media/events/{workspace}/{cover}', [WorkspaceImageController::class, 'cover'])
+    ->where(['workspace' => '[1-9][0-9]{0,17}', 'cover' => '[A-Za-z0-9]{40}'])
+    ->withoutMiddleware('web')->middleware('throttle:240,1')->name('events.cover');
 
 Route::post('/user/api-tokens/{token}/reveal', [ApiTokenController::class, 'reveal'])
     ->middleware(['auth', 'verified', 'throttle:15,1'])->whereNumber('token')->name('api-tokens.reveal');
@@ -65,6 +70,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', RequirePlatformAdmin
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', SetPostgresSchema::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::prefix('/assets')->name('assets.')->middleware('auth:web')->group(function () {
+        Route::get('/', [WorkspaceImageController::class, 'index'])->name('index');
+        Route::get('/images', [WorkspaceImageController::class, 'list'])->name('images.list');
+        Route::post('/images', [WorkspaceImageController::class, 'store'])->middleware('throttle:20,1')->name('images.store');
+        Route::get('/images/{image}', [WorkspaceImageController::class, 'show'])->whereUuid('image')->name('images.show');
+        Route::delete('/images/{image}', [WorkspaceImageController::class, 'destroy'])->whereUuid('image')
+            ->withTrashed()->middleware('throttle:20,1')->name('images.destroy');
+    });
     Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:5,1')->name('support-tickets.store');
     Route::post('/events/preview', [EventController::class, 'preview'])->name('events.preview');
     Route::patch('/events/bulk', [EventController::class, 'bulkUpdate'])->name('events.bulk.update');

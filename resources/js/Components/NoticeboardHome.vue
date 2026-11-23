@@ -15,6 +15,8 @@ const accountHref = computed(() => signedIn.value ? route("dashboard") : route("
 const accountLabel = computed(() => signedIn.value ? "Dashboard" : "Sign in");
 const exampleType = ref("workshop");
 const exampleOrigin = ref("native");
+const widgetTheme = ref("paper");
+const widgetThemes = { paper: "Warm paper", sage: "Soft sage", lilac: "Lilac", ink: "Midnight" };
 const exampleFields = computed(() =>
     exampleType.value === "workshop"
         ? [
@@ -230,10 +232,13 @@ const exampleFields = computed(() =>
                 <section id="website-widget" class="widget-showcase" aria-labelledby="website-widget-heading">
                     <div>
                         <h2 id="website-widget-heading">Upcoming events on your website</h2>
-                        <p>Show your published events in a calendar that updates when you change them in EventJunction.</p>
+                        <p>Match the widget to your site, then let visitors open event details without leaving the page.</p>
                         <p>Workspace owners can enable it under <strong>Events → Website widget</strong> and paste the embed code into an HTML block.</p>
+                        <div class="widget-themes" role="group" aria-label="Example widget colour theme">
+                            <button v-for="(label, theme) in widgetThemes" :key="theme" type="button" :aria-pressed="widgetTheme === theme" @click="widgetTheme = theme">{{ label }}</button>
+                        </div>
                     </div>
-                    <iframe :src="route('widgets.upcoming.example', undefined, false)" title="Example upcoming events widget" loading="lazy"></iframe>
+                    <iframe :src="route('widgets.upcoming.example', { theme: widgetTheme }, false)" title="Example upcoming events widget" loading="lazy"></iframe>
                 </section>
             </div>
             <div class="integrations-band">
@@ -663,6 +668,10 @@ const exampleFields = computed(() =>
     background: #fffaf1;
     box-shadow: 0 12px 28px #40344915;
 }
+.widget-themes { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
+.widget-themes button { border: 1px solid #bfb4cd; border-radius: 5px; padding: 5px 10px; color: #403449; font-size: 13px; }
+.widget-themes button:hover { background: #e2dceb; }
+.widget-themes button[aria-pressed="true"] { color: white; background: #493c56; border-color: #493c56; }
 @media (max-width: 700px) {
     .widget-showcase { grid-template-columns: minmax(0, 1fr); padding-block: 40px; }
     .widget-showcase iframe { height: 405px; }

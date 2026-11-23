@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class EventOccurrences
 {
     // Local dates determine identity; UTC instants determine overlap. No scheduler is needed.
-    public function forEvent(Event $event, Date $from, Date $to, bool $ignoreExceptions = false): array
+    public function forEvent(Event $event, Date $from, Date $to, bool $ignoreExceptions = false, ?int $workspace = null): array
     {
         if (! $event->starts_at) {
             return [];
@@ -22,6 +22,7 @@ class EventOccurrences
         $results = [];
         $matched = 0;
         $until = $rule && ! empty($rule['until']) ? Date::parse($rule['until'], $zone)->endOfDay() : null;
+        $imageUrl = $event->publishedCoverUrl($workspace);
         // Each series is explicitly finite (at most 1000 occurrences).
         foreach ($this->candidates($start, $rule) as $candidate) {
             if ($candidate->format('H:i:s') !== $start->format('H:i:s')) {
@@ -53,6 +54,7 @@ class EventOccurrences
                 'start_date' => $actualStart->toDateString(), 'end_date' => $actualEnd->toDateString(),
                 'timezone' => $zone, 'all_day' => $event->all_day, 'source' => $event->source,
                 'status' => $event->status, 'template_id' => $event->template_id, 'recurring' => (bool) $rule,
+                'image_url' => $imageUrl,
                 'local_overrides' => $event->local_overrides ?? [], 'mapping_warnings' => $event->source_snapshot['mapping_warnings'] ?? [], 'custom_fields' => $event->event_data, 'location' => $event->location, 'description' => $event->description, 'source_url' => $event->source_url,
             ];
         }
@@ -109,7 +111,7 @@ class EventOccurrences
         }
     }
 
-    public function window(Date $from, Date $to, array $filters = []): array
+    public function window(Date $from, Date $to, array $filters = [], ?int $workspace = null): array
     {
         $events = Event::whereNotNull('starts_at')->where(function ($q) use ($from, $to) {
             $q->whereNotNull('recurrence')->orWhere(function ($q) use ($from, $to) {
@@ -123,7 +125,7 @@ class EventOccurrences
         abort_if($events->count() > 500, 422, 'Too many events for this calendar. Narrow the date range or use the table.');
         $items = [];
         foreach ($events as $event) {
-            array_push($items, ...$this->forEvent($event, $from, $to));
+            array_push($items, ...$this->forEvent($event, $from, $to, workspace: $workspace));
             abort_if(count($items) > 5000, 422, 'Too many occurrences. Narrow the date range or filters.');
         }
         usort($items, fn ($a, $b) => strcmp($a['starts_at'], $b['starts_at']));

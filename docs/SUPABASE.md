@@ -36,3 +36,17 @@ Set `DB_SSLROOTCERT=/etc/eventjunction/supabase-ca.crt`. Stage the database URL 
 - If rollback is needed, restore the previous database URL **and** its previous TLS settings, then redeploy. Writes in the new database will stay there. Import credentials, API tokens, and accounts from either database do not follow a connection switch.
 
 Supabase Auth is a separate project. Adopting it later will require mapping Supabase identities to Laravel users and preserving workspace membership, invitations, and API access.
+
+## Event cover images
+
+In Supabase Storage, create a **private** bucket named `eventjunction-images`. Limit uploads to 5 MiB and allow `image/jpeg`, `image/png`, and `image/webp`. Keep the bucket private and leave browser uploads disabled. Laravel manages uploads, workspace access, and published image URLs.
+
+Stage these Fly secrets before deploying image uploads. Use the Supabase project URL and its server-only legacy `service_role` key. If your bucket has a different name, set `SUPABASE_STORAGE_BUCKET` to match. Keep the key out of Git, browser code, and chat messages.
+
+```sh
+flyctl secrets set --stage --app event-aggregator \
+  SUPABASE_STORAGE_URL='https://PROJECT_REF.supabase.co' \
+  SUPABASE_STORAGE_KEY='SERVER_ONLY_SERVICE_ROLE_KEY'
+```
+
+After deploying, upload an image in **Image library** and attach it to a draft. Confirm its preview requires workspace access. Publish and open the event’s `image_url` from a signed-out browser, then switch the event back to draft and confirm the same URL returns 404.

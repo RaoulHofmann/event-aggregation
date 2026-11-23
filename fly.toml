@@ -23,6 +23,7 @@ console_command = 'php /var/www/html/artisan tinker'
   SESSION_COOKIE = 'eventjunction_session'
   DB_CONNECTION = 'pgsql'
   DB_SSLMODE = 'require'
+  WORKSPACE_IMAGES_USE_SUPABASE = 'true'
 
 [http_service]
   internal_port = 8080

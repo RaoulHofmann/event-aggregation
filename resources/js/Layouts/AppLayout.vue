@@ -16,6 +16,7 @@ import {
     LogOut,
     Check,
     Plus,
+    Images,
 } from "lucide-vue-next";
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import Dropdown from "@/Components/Dropdown.vue";
@@ -31,6 +32,7 @@ watch(
 const items = computed(() => [
     ["Overview", LayoutDashboard, "dashboard", "dashboard"],
     ["Events", CalendarDays, "events.index", "events.*"],
+    ["Image library", Images, "assets.index", "assets.*"],
     ["Event templates", Layers, "event-templates.index", "event-templates.*"],
     [
         "Custom fields",

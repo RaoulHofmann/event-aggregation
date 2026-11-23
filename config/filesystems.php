@@ -15,6 +15,13 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'workspace_images' => [
+        'remote' => env('WORKSPACE_IMAGES_USE_SUPABASE', false),
+        'url' => env('SUPABASE_STORAGE_URL'),
+        'key' => env('SUPABASE_STORAGE_KEY'),
+        'bucket' => env('SUPABASE_STORAGE_BUCKET', 'eventjunction-images'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
@@ -29,6 +36,12 @@ return [
     */
 
     'disks' => [
+
+        'workspace_images' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/workspace-images'),
+            'visibility' => 'private',
+        ],
 
         'local' => [
             'driver' => 'local',
