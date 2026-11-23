@@ -141,6 +141,7 @@ jobs:
           fetch /up health
           fetch / home.html
           fetch /pricing pricing.html
+          fetch /login login.html
           fetch /embed/upcoming/example widget.html
           fetch '/embed/upcoming/example?theme=sage&event=garden-workshop' widget-detail.html
           fetch /privacy-policy privacy.html
@@ -157,6 +158,9 @@ jobs:
           site = 'https://eventjunction.app'
           read = lambda name: Path('/tmp/eventjunction-' + name).read_text()
           home = read('home.html')
+          gtm = 'https://www.googletagmanager.com/gtm.js?id=GTM-T2VCZSNS'
+          assert gtm in home and gtm in read('pricing.html'), 'Public site Google Tag Manager is missing'
+          assert gtm not in read('login.html') and gtm not in read('widget.html'), 'Google Tag Manager is running outside public site pages'
           assert all(name in home for name in ['integrations.index', 'integrations.imports.website.preview', 'api.v1.occurrences', 'admin.index', 'account.status', 'widgets.upcoming.example', 'EventJunction']), 'Updated application routes were not served'
           assert 'Upcoming events' in read('widget.html') and 'Community garden workshop' in read('widget.html')
           assert 'frame-ancestors *' in read('widget.html.headers')

@@ -3,6 +3,7 @@
 return [
     'url' => env('PUBLIC_SITE_URL', env('APP_URL', 'http://localhost')),
     'contact_email' => env('EVENTJUNCTION_LEGAL_EMAIL'),
+    'google_tag_manager_id' => env('GOOGLE_TAG_MANAGER_ID'),
     'legal_updated' => '18 November 2026',
     'privacy_updated' => '23 November 2026',
     'pages' => [

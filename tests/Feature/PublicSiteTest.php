@@ -11,6 +11,18 @@ class PublicSiteTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_google_tag_manager_is_limited_to_signed_out_public_pages(): void
+    {
+        $this->get('/')->assertOk()->assertDontSee('googletagmanager.com/gtm.js', false);
+        config(['public-site.google_tag_manager_id' => 'GTM-T2VCZSNS']);
+        $tag = 'https://www.googletagmanager.com/gtm.js?id=GTM-T2VCZSNS';
+        $this->get('/')->assertOk()->assertSeeInOrder(["'gtm.start'", $tag], false);
+        $this->get('/pricing')->assertOk()->assertSee($tag, false);
+        $this->get('/login')->assertOk()->assertDontSee($tag, false);
+        $this->get('/embed/upcoming/example')->assertOk()->assertDontSee($tag, false);
+        $this->actingAs(User::factory()->create())->get('/')->assertOk()->assertDontSee($tag, false);
+    }
+
     public function test_public_metadata_and_sitemap_use_the_configured_origin(): void
     {
         config(['public-site.url' => 'https://example.test']);

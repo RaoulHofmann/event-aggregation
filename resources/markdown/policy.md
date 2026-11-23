@@ -9,6 +9,7 @@ This policy explains how EventJunction handles information when you use its webs
 - **Connected services.** When you connect a provider, we store the credentials or private feed URL needed to keep the connection working. Integration credentials are encrypted in storage. We also keep connection settings, sync results, and source identifiers used to match imported events.
 - **Support tickets.** We store the subject and message you submit with your account and workspace so platform administrators can respond to your enquiry.
 - **Operation and security.** We use session and security cookies to keep you signed in and protect requests. Technical logs and error reports may include request details, IP addresses, and device or browser information. We use these records to operate and secure the service and diagnose problems.
+- **Public website measurement.** We use Google Tag Manager on public pages viewed while signed out. Depending on which tags are enabled, they may use cookies and process information such as page visits and browser or device details. Your browser settings let you control cookies. [Google privacy policy](https://policies.google.com/privacy)
 
 ## How we use and share information
 

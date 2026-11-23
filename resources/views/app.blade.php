@@ -6,6 +6,17 @@
 
         @include('public-head')
 
+        @php($tagManagerId = config('public-site.google_tag_manager_id'))
+        @if ($tagManagerId && auth()->guest() && request()->routeIs(...array_keys(config('public-site.pages'))))
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
+                function gtag() { window.dataLayer.push(arguments); }
+                gtag('js', new Date());
+            </script>
+            <script async src="https://www.googletagmanager.com/gtm.js?id={{ $tagManagerId }}"></script>
+        @endif
+
         <link rel="icon" type="image/svg+xml" href="{{ asset('eventjunction.svg') }}">
 
         <!-- Fonts -->
