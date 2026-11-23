@@ -28,6 +28,7 @@ const events = [
         ends_at: "2026-11-21T04:00:00+00:00",
         external_id: null,
         colour: "saffron",
+        image: "/images/examples/community-garden.webp",
     },
     {
         id: 43,
@@ -46,6 +47,7 @@ const events = [
         ends_at: "2026-11-22T05:00:00+00:00",
         external_id: "example-market",
         colour: "periwinkle",
+        image: "/images/examples/local-makers.webp",
     },
 ];
 const scene = ref(0),
@@ -198,6 +200,7 @@ onUnmounted(() => {
                                 <p>{{ event.description }}</p>
                             </div>
                         </div>
+                        <img class="demo-event-photo" :src="event.image" alt="" width="1120" height="630" />
                         <div class="event-venue">
                             <span
                                 ><Clock3 aria-hidden="true" />{{
@@ -889,9 +892,20 @@ onUnmounted(() => {
 }
 .event-main {
     gap: 22px;
-    margin: 28px 0 24px;
-    flex: 1;
+    margin: 20px 0 14px;
+    flex: 0 0 auto;
     align-items: flex-start;
+}
+.demo-event-photo {
+    width: 100%;
+    max-width: 270px;
+    height: 0;
+    min-height: 52px;
+    max-height: 96px;
+    flex: 1 1 0;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 14px;
 }
 .date-block {
     min-width: 66px;
@@ -928,6 +942,7 @@ onUnmounted(() => {
     gap: 10px;
     padding-top: 16px;
     border-color: #6e583f38;
+    margin-top: auto;
     font-size: 11px;
     font-weight: 500;
 }
@@ -998,8 +1013,9 @@ onUnmounted(() => {
     }
     .event-main {
         gap: 16px;
-        margin: 24px 0 22px;
+        margin: 16px 0 12px;
     }
+    .demo-event-photo { max-width: 220px; max-height: 74px; }
     .date-block {
         min-width: 52px;
         padding: 11px 6px;

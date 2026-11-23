@@ -17,6 +17,7 @@ import {
     Check,
     Plus,
     Images,
+    PanelTop,
 } from "lucide-vue-next";
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 import Dropdown from "@/Components/Dropdown.vue";
@@ -31,7 +32,10 @@ watch(
 );
 const items = computed(() => [
     ["Overview", LayoutDashboard, "dashboard", "dashboard"],
-    ["Events", CalendarDays, "events.index", "events.*"],
+    ["Events", CalendarDays, "events.index", "events.index"],
+    ...(user.value.current_team?.user_id === user.value.id
+        ? [["Website widget", PanelTop, "events.widget", "events.widget"]]
+        : []),
     ["Image library", Images, "assets.index", "assets.*"],
     ["Event templates", Layers, "event-templates.index", "event-templates.*"],
     [

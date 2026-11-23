@@ -93,13 +93,36 @@ class CalendarWidgetTest extends TestCase
         $member->switchTeam($workspace);
         $this->get('/embed/upcoming/example')->assertOk()->assertSee('Example calendar')->assertHeaderMissing('Set-Cookie');
         $this->get('/embed/upcoming/example?theme=ink&event=garden-workshop')
-            ->assertOk()->assertSee('theme-ink')->assertSee('Plant seasonal seedlings')->assertSee('href="/embed/upcoming/example?theme=ink"', false);
+            ->assertOk()->assertSee('theme-ink')->assertSee('Plant seasonal seedlings')->assertSee('href="/embed/upcoming/example?theme=ink"', false)
+            ->assertSee('/images/examples/community-garden.webp', false);
         $this->get('/events/widget')->assertRedirect(route('login'));
         $this->actingAs($member)->get('/events/widget')->assertForbidden();
+        $this->get('/events/widget/preview')->assertForbidden();
         $this->put('/events/widget', ['title' => 'Member calendar'])->assertForbidden();
         $this->delete('/events/widget')->assertForbidden();
         $this->actingAs($owner)->putJson('/events/widget', ['title' => 'Calendar', 'template_id' => 999])->assertUnprocessable()
             ->assertJsonValidationErrors('template_id');
+    }
+
+    public function test_owner_can_preview_all_appearance_changes_with_sample_data_before_saving(): void
+    {
+        $owner = User::factory()->create();
+        app(ProvisionTeam::class)->create($owner, 'Programme');
+        $parameters = [
+            'title' => 'Custom agenda',
+            'appearance' => ['theme' => 'ink', 'brand' => 'Sample brand', 'compact' => 1, 'show_description' => 0, 'show_credit' => 0],
+        ];
+        $path = '/events/widget/preview?';
+        $this->actingAs($owner)->get($path.http_build_query($parameters))->assertOk()
+            ->assertHeaderMissing('X-EventJunction-Embed')
+            ->assertSee('Custom agenda')->assertSee('Sample brand')->assertSee('agenda compact')
+            ->assertSee('theme-ink')->assertSee('/images/examples/local-makers.webp', false)
+            ->assertDontSee('>EventJunction<', false);
+        $parameters['event'] = 'garden-workshop';
+        $this->get($path.http_build_query($parameters))->assertOk()->assertDontSee('Plant seasonal seedlings');
+        $parameters['appearance']['show_description'] = 1;
+        $this->get($path.http_build_query($parameters))->assertOk()->assertSee('Plant seasonal seedlings');
+        $this->assertDatabaseCount('public.calendar_widgets', 0);
     }
 
     public function test_widget_branding_keeps_the_embed_url_and_descriptions_require_opt_in(): void

@@ -29,7 +29,6 @@ class CalendarWidgetController extends Controller
 
         return Inertia::render('Events/Widget', [
             'widget' => $widget?->only('title', 'source', 'template_id'),
-            'previewPath' => $path,
             'embedUrl' => $path ? PublicSite::url($path) : null,
             'templates' => EventTemplate::orderBy('name')->get(['id', 'name']),
             'sources' => InboundSources::EVENT_SOURCES,
@@ -45,12 +44,7 @@ class CalendarWidgetController extends Controller
             'title' => ['required', 'string', 'max:100'],
             'source' => ['nullable', Rule::in(InboundSources::EVENT_SOURCES)],
             'template_id' => ['nullable', 'integer', Rule::exists('event_templates', 'id')->whereNull('deleted_at')],
-            'appearance' => ['sometimes', 'required', 'array:theme,brand,compact,show_description,show_credit'],
-            'appearance.theme' => ['required_with:appearance', Rule::in(array_keys(CalendarWidget::THEMES))],
-            'appearance.brand' => ['nullable', 'string', 'max:70'],
-            'appearance.compact' => ['required_with:appearance', 'boolean'],
-            'appearance.show_description' => ['required_with:appearance', 'boolean'],
-            'appearance.show_credit' => ['required_with:appearance', 'boolean'],
+            ...$this->appearanceRules(),
         ]);
 
         $row = [
@@ -62,10 +56,7 @@ class CalendarWidgetController extends Controller
         ];
         $changes = ['title', 'source', 'template_id', 'updated_at'];
         if (isset($settings['appearance'])) {
-            foreach (['compact', 'show_description', 'show_credit'] as $option) {
-                $settings['appearance'][$option] = (bool) $settings['appearance'][$option];
-            }
-            $row['appearance'] = json_encode($settings['appearance'], JSON_THROW_ON_ERROR);
+            $row['appearance'] = json_encode($this->normaliseAppearance($settings['appearance']), JSON_THROW_ON_ERROR);
             $changes[] = 'appearance';
         }
         CalendarWidget::upsert([$row], ['team_id'], $changes);
@@ -112,7 +103,6 @@ class CalendarWidgetController extends Controller
 
     public function example(Request $request)
     {
-        $start = Date::now('Australia/Perth')->addDays(3)->setTime(10, 0);
         $theme = $request->query()['theme'] ?? null;
         $theme = is_string($theme) && isset(CalendarWidget::THEMES[$theme]) ? $theme : 'paper';
         $appearance = [
@@ -126,14 +116,51 @@ class CalendarWidgetController extends Controller
             'show_description' => true,
         ] + CalendarWidget::APPEARANCE;
 
+        return $this->agenda($request, 'Upcoming events', $this->exampleEvents(), $appearance, example: true, query: $theme === 'paper' ? [] : ['theme' => $theme]);
+    }
+
+    public function preview(Request $request)
+    {
+        $this->ownedWorkspace($request);
+        $settings = $request->validate(['title' => ['nullable', 'string', 'max:100'], ...$this->appearanceRules()]);
+        $appearance = $this->normaliseAppearance($settings['appearance'] ?? []);
+
+        return $this->agenda($request, $settings['title'] ?? 'Upcoming events', $this->exampleEvents(), $appearance, example: true, query: $settings, private: true);
+    }
+
+    private function appearanceRules(): array
+    {
+        return [
+            'appearance' => ['sometimes', 'required', 'array:theme,brand,compact,show_description,show_credit'],
+            'appearance.theme' => ['required_with:appearance', Rule::in(array_keys(CalendarWidget::THEMES))],
+            'appearance.brand' => ['nullable', 'string', 'max:70'],
+            'appearance.compact' => ['required_with:appearance', 'boolean'],
+            'appearance.show_description' => ['required_with:appearance', 'boolean'],
+            'appearance.show_credit' => ['required_with:appearance', 'boolean'],
+        ];
+    }
+
+    private function normaliseAppearance(array $appearance): array
+    {
+        $appearance += CalendarWidget::APPEARANCE;
+        foreach (['compact', 'show_description', 'show_credit'] as $option) {
+            $appearance[$option] = (bool) $appearance[$option];
+        }
+
+        return $appearance;
+    }
+
+    private function exampleEvents(): array
+    {
+        $start = Date::now('Australia/Perth')->addDays(3)->setTime(10, 0);
+        $market = $start->addDay()->setTime(9, 0);
         $events = [
-            ['id' => 'garden-workshop', 'title' => 'Community garden workshop', 'location' => 'Fremantle Community Garden', 'starts_at' => $start->toIso8601String(), 'ends_at' => $start->addHours(2)->toIso8601String(), 'description' => 'Plant seasonal seedlings and learn how to keep your garden growing through the warmer months. Gloves and tools are provided.'],
-            ['id' => 'open-day', 'title' => 'Neighbourhood open day', 'location' => 'Maylands Community Hall', 'starts_at' => $start->addDays(3)->startOfDay()->toIso8601String(), 'all_day' => true, 'description' => 'Meet groups from around Maylands, see what they run throughout the year, and find something to join.'],
+            ['id' => 'garden-workshop', 'title' => 'Community garden workshop', 'location' => 'Fremantle Community Garden', 'starts_at' => $start->toIso8601String(), 'ends_at' => $start->addHours(2)->toIso8601String(), 'image_url' => '/images/examples/community-garden.webp', 'description' => 'Plant seasonal seedlings and learn how to keep your garden growing through the warmer months. Gloves and tools are provided.'],
+            ['id' => 'makers-market', 'title' => 'Local makers market', 'location' => 'Perth Town Hall', 'starts_at' => $market->toIso8601String(), 'ends_at' => $market->addHours(4)->toIso8601String(), 'image_url' => '/images/examples/local-makers.webp', 'description' => 'Browse ceramics, prints and small-batch goods from local makers, and meet the people who made them.'],
             ['id' => 'repair-cafe', 'title' => 'Repair café', 'location' => 'Perth Tool Library', 'starts_at' => $start->addDays(6)->setTime(14, 0)->toIso8601String(), 'description' => 'Bring a small household item and work with a volunteer to see if it can be repaired.'],
         ];
-        $events = array_map(fn ($event) => $event + ['timezone' => $start->timezoneName, 'all_day' => false], $events);
 
-        return $this->agenda($request, 'Upcoming events', $events, $appearance, example: true);
+        return array_map(fn ($event) => $event + ['timezone' => $start->timezoneName, 'all_day' => false], $events);
     }
 
     private function ownedWorkspace(Request $request): Team
@@ -144,11 +171,10 @@ class CalendarWidgetController extends Controller
         return $workspace;
     }
 
-    private function agenda(Request $request, string $title, array $events, array $appearance, ?string $message = null, int $status = 200, bool $example = false)
+    private function agenda(Request $request, string $title, array $events, array $appearance, ?string $message = null, int $status = 200, bool $example = false, array $query = [], bool $private = false)
     {
         $selected = $request->query()['event'] ?? null;
         $path = $request->getBaseUrl().$request->getPathInfo();
-        $query = $example && $appearance['theme'] !== 'paper' ? ['theme' => $appearance['theme']] : [];
         $link = fn (array $parameters) => $path.($parameters ? '?'.http_build_query($parameters, encoding_type: PHP_QUERY_RFC3986) : '');
         $back = $link($query);
         $items = array_map(function (array $event) use ($link, $query) {
@@ -158,6 +184,7 @@ class CalendarWidgetController extends Controller
                 'title' => $event['title'],
                 'url' => $link($query + ['event' => $event['id']]),
                 'location' => $event['location'],
+                'cover' => empty($event['image_url']) ? null : parse_url($event['image_url'], PHP_URL_PATH),
                 'day' => $start->format('j'),
                 'month' => $start->format('M'),
                 'date' => $start->format('l j F Y'),
@@ -171,17 +198,16 @@ class CalendarWidgetController extends Controller
             if ($index === false) {
                 return $this->agendaResponse(compact('title', 'appearance', 'example', 'back') + [
                     'items' => [], 'detail' => null, 'message' => 'This event is no longer listed.', 'showBack' => true,
-                ], 404);
+                ], 404, $private);
             }
             $event = $events[$index];
             $detail = $items[$index] + [
                 'description' => $appearance['show_description'] ? $event['description'] ?? null : null,
-                'cover' => empty($event['image_url']) ? null : parse_url($event['image_url'], PHP_URL_PATH),
             ];
             $this->setDetailTime($detail, $event);
         }
 
-        return $this->agendaResponse(compact('title', 'items', 'message', 'example', 'appearance', 'detail', 'back') + ['showBack' => $selected !== null], $status);
+        return $this->agendaResponse(compact('title', 'items', 'message', 'example', 'appearance', 'detail', 'back') + ['showBack' => $selected !== null], $status, $private);
     }
 
     private function setDetailTime(array &$detail, array $event): void
@@ -201,14 +227,19 @@ class CalendarWidgetController extends Controller
         }
     }
 
-    private function agendaResponse(array $data, int $status)
+    private function agendaResponse(array $data, int $status, bool $private)
     {
-        return response()->view('widgets.upcoming', $data, $status, [
+        $ancestors = $private ? "'self'" : '*';
+        $headers = [
             'Cache-Control' => 'no-store',
             'X-Robots-Tag' => 'noindex, nofollow',
             'Referrer-Policy' => 'no-referrer',
-            'Content-Security-Policy' => "default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors *",
-            'X-EventJunction-Embed' => '1',
-        ]);
+            'Content-Security-Policy' => "default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors {$ancestors}",
+        ];
+        if (! $private) {
+            $headers['X-EventJunction-Embed'] = '1';
+        }
+
+        return response()->view('widgets.upcoming', $data, $status, $headers);
     }
 }

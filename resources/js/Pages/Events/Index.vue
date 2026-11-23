@@ -306,7 +306,6 @@ const remove = (event) => {
         <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
             <h1 class="text-3xl font-semibold">Events</h1>
             <div class="flex flex-wrap gap-3">
-                <Link v-if="page.props.auth.user.current_team?.user_id === page.props.auth.user.id" :href="route('events.widget')" class="workspace-secondary">Website widget</Link>
                 <button class="workspace-primary" @click="open()">Create event</button>
             </div>
         </div>

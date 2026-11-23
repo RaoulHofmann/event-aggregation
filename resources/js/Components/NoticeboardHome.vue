@@ -233,7 +233,7 @@ const exampleFields = computed(() =>
                     <div>
                         <h2 id="website-widget-heading">Upcoming events on your website</h2>
                         <p>Match the widget to your site, then let visitors open event details without leaving the page.</p>
-                        <p>Workspace owners can enable it under <strong>Events → Website widget</strong> and paste the embed code into an HTML block.</p>
+                        <p>Workspace owners can enable it from <strong>Website widget</strong> in the sidebar and paste the embed code into an HTML block.</p>
                         <div class="widget-themes" role="group" aria-label="Example widget colour theme">
                             <button v-for="(label, theme) in widgetThemes" :key="theme" type="button" :aria-pressed="widgetTheme === theme" @click="widgetTheme = theme">{{ label }}</button>
                         </div>
@@ -662,7 +662,7 @@ const exampleFields = computed(() =>
 }
 .widget-showcase iframe {
     width: 100%;
-    height: 356px;
+    height: 420px;
     border: 1px solid #bfb4cd;
     border-radius: 12px;
     background: #fffaf1;

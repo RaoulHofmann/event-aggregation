@@ -1,11 +1,10 @@
 <script setup>
-import { computed, ref, watch } from "vue";
-import { Link, useForm } from "@inertiajs/vue3";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { useForm } from "@inertiajs/vue3";
 import AppLayout from "@/Layouts/AppLayout.vue";
 
 const props = defineProps({
     widget: Object,
-    previewPath: String,
     embedUrl: String,
     templates: Array,
     sources: Array,
@@ -34,8 +33,37 @@ const embedCode = ref(null);
 const snippet = computed(() => props.embedUrl
     ? `<iframe src="${props.embedUrl}" title="Upcoming events" loading="lazy" width="100%" height="420" style="border:0"></iframe>`
     : "");
-const preview = computed(() => props.previewPath || route("widgets.upcoming.example", { theme: form.appearance.theme }, false));
-const previewKey = computed(() => JSON.stringify([props.widget, props.appearance]));
+const previewEvent = ref(null);
+const previewVersion = ref(0);
+const previewUrl = computed(() => route("events.widget.preview", {
+    title: form.title,
+    appearance: {
+        ...form.appearance,
+        compact: Number(form.appearance.compact),
+        show_description: Number(form.appearance.show_description),
+        show_credit: Number(form.appearance.show_credit),
+    },
+    event: previewEvent.value || undefined,
+}, false));
+const preview = ref(previewUrl.value);
+let previewTimer;
+watch(() => [form.title, { ...form.appearance }], () => {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => { preview.value = previewUrl.value; }, 260);
+});
+onBeforeUnmount(() => clearTimeout(previewTimer));
+
+function showPreview(event = null) {
+    clearTimeout(previewTimer);
+    previewEvent.value = event;
+    preview.value = previewUrl.value;
+    previewVersion.value++;
+}
+
+function syncPreviewView({ target }) {
+    const url = new URL(target.contentWindow.location.href);
+    previewEvent.value = url.searchParams.get("event");
+}
 
 watch(snippet, () => copied.value = false);
 
@@ -58,8 +86,7 @@ function disableWidget() {
 
 <template>
     <AppLayout title="Website widget">
-        <Link :href="route('events.index')" class="text-sm font-medium text-emerald-800 underline">Back to events</Link>
-        <h1 class="mb-2 mt-4 text-3xl font-semibold">Website widget</h1>
+        <h1 class="mb-2 text-3xl font-semibold">Website widget</h1>
         <p class="mb-6 max-w-2xl text-sm text-slate-600">Show up to 12 published occurrences from the next 60 days. Anyone with the embed link can see their titles, times, locations and cover images.</p>
 
         <div class="grid items-start gap-6 xl:grid-cols-2">
@@ -126,12 +153,19 @@ function disableWidget() {
                 </section>
             </div>
 
-            <section class="workspace-panel overflow-hidden" aria-labelledby="widget-preview-heading">
-                <div class="border-b px-5 py-4">
-                    <h2 id="widget-preview-heading" class="font-semibold">{{ widget ? "Published widget preview" : "Example widget preview" }}</h2>
-                    <p v-if="widget && form.isDirty" class="mt-1 text-sm text-slate-600">Save to update the preview.</p>
+            <section class="workspace-panel overflow-hidden xl:sticky xl:top-5" aria-labelledby="widget-preview-heading">
+                <div class="space-y-3 border-b px-5 py-4">
+                    <div class="flex flex-wrap items-baseline justify-between gap-2">
+                        <h2 id="widget-preview-heading" class="font-semibold">Live preview</h2>
+                        <a v-if="embedUrl" :href="embedUrl" target="_blank" rel="noopener" class="text-sm font-medium text-emerald-800 underline">Open published widget</a>
+                    </div>
+                    <p class="text-sm text-slate-600">Try your changes with sample events. Save to update your embed.</p>
+                    <div class="flex flex-wrap gap-2" role="group" aria-label="Widget preview view">
+                        <button type="button" class="workspace-secondary aria-pressed:border-emerald-700 aria-pressed:bg-emerald-50" :aria-pressed="!previewEvent" @click="showPreview()">Agenda</button>
+                        <button type="button" class="workspace-secondary aria-pressed:border-emerald-700 aria-pressed:bg-emerald-50" :aria-pressed="!!previewEvent" @click="showPreview('garden-workshop')">Event detail</button>
+                    </div>
                 </div>
-                <iframe :key="previewKey" :src="preview" title="Upcoming events widget preview" class="block h-[460px] w-full border-0"></iframe>
+                <iframe :key="previewVersion" :src="preview" title="Upcoming events widget preview" class="block h-[460px] w-full border-0" @load="syncPreviewView"></iframe>
             </section>
         </div>
     </AppLayout>

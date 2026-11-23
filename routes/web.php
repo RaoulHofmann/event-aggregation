@@ -83,6 +83,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::patch('/events/bulk', [EventController::class, 'bulkUpdate'])->name('events.bulk.update');
     Route::delete('/events/bulk', [EventController::class, 'bulkDestroy'])->name('events.bulk.destroy');
     Route::get('/events/widget', [CalendarWidgetController::class, 'index'])->name('events.widget');
+    Route::get('/events/widget/preview', [CalendarWidgetController::class, 'preview'])->middleware('throttle:120,1')->name('events.widget.preview');
     Route::put('/events/widget', [CalendarWidgetController::class, 'save'])->name('events.widget.save');
     Route::delete('/events/widget', [CalendarWidgetController::class, 'disable'])->name('events.widget.disable');
     Route::post('/events/{event}/exceptions', [EventController::class, 'exception'])->name('events.exceptions');
