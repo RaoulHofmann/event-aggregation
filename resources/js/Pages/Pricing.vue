@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { Head, usePage } from "@inertiajs/vue3";
 import { ArrowUpRight, Check } from "lucide-vue-next";
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
+import PublicSiteHeader from "@/Components/PublicSiteHeader.vue";
 
 const page = usePage();
 const signedIn = computed(() => !!page.props.auth?.user);
@@ -17,17 +18,7 @@ const features = [
 <template>
     <Head title="Pricing — EventJunction" />
     <div class="pricing-page">
-        <header class="pricing-header">
-            <a href="/" class="wordmark" aria-label="EventJunction home">
-                <EventJunctionMark class="size-8 shrink-0" />EventJunction
-            </a>
-            <nav aria-label="Main navigation">
-                <a href="/#website-widget">Widget</a>
-                <a href="/#integrations">Integrations</a>
-                <a href="/docs/api">API docs</a>
-                <a :href="signedIn ? '/dashboard' : '/login'">{{ signedIn ? "Dashboard" : "Sign in" }}</a>
-            </nav>
-        </header>
+        <PublicSiteHeader />
         <main>
             <section class="pricing-intro" aria-labelledby="pricing-heading">
                 <h1 id="pricing-heading">Pricing</h1>
@@ -75,11 +66,11 @@ const features = [
     color: #29251f;
     font: 18px/1.7 Arial, Helvetica, sans-serif;
 }
-.pricing-header, .pricing-intro, .pricing-grid, .pricing-footer {
+.pricing-intro, .pricing-grid, .pricing-footer {
     width: min(1280px, calc(100% - 2 * var(--page-gutter)));
     margin-inline: auto;
 }
-.pricing-header, .pricing-footer {
+.pricing-footer {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -87,7 +78,6 @@ const features = [
     gap: 16px 24px;
     padding-block: 25px;
 }
-.pricing-header { border-bottom: 1px solid #cdbb9f; }
 .wordmark {
     display: inline-flex;
     align-items: center;
@@ -96,7 +86,7 @@ const features = [
     font-weight: 900;
     letter-spacing: -1.6px;
 }
-.pricing-page nav { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 15px; font-weight: 600; }
+.pricing-footer nav { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 15px; font-weight: 600; }
 .pricing-page a:focus-visible { outline: 2px solid #9b5f3f; outline-offset: 4px; }
 .pricing-intro { padding-block: clamp(34px, 6vw, 72px); }
 .pricing-intro h1 {
@@ -127,7 +117,6 @@ const features = [
 @media (max-width: 710px) {
     .pricing-page { --page-gutter: 20px; }
     .pricing-grid { grid-template-columns: minmax(0, 1fr); }
-    .pricing-header .wordmark { font-size: 26px; }
-    .pricing-page nav { gap: 8px 15px; }
+    .pricing-footer nav { gap: 8px 15px; }
 }
 </style>

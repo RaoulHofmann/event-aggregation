@@ -1,5 +1,6 @@
 <script setup>
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
+import PublicSiteHeader from "@/Components/PublicSiteHeader.vue";
 import { ref, computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { ArrowUpRight } from "lucide-vue-next";
@@ -33,20 +34,7 @@ const exampleFields = computed(() =>
 </script>
 <template>
     <div class="noticeboard-home">
-        <header class="home-header">
-            <a href="/" class="wordmark" aria-label="EventJunction home">
-                <EventJunctionMark class="size-8 shrink-0" />EventJunction
-            </a>
-            <nav aria-label="Main navigation">
-                <a href="#templates">Templates</a>
-                <a href="#integrations">Integrations</a>
-                <a href="#workspaces">Workspaces</a>
-                <a href="#website-widget">Widget</a>
-                <a href="/docs/api">API docs</a>
-                <a href="/pricing">Pricing</a>
-                <a :href="accountHref">{{ accountLabel }}</a>
-            </nav>
-        </header>
+        <PublicSiteHeader />
         <div id="early-access" class="work-in-progress" role="note">
             <strong>Early access</strong> · Free to use while in development. Pricing TBD.
         </div>
@@ -302,7 +290,6 @@ const exampleFields = computed(() =>
     outline: 2px solid #9b5f3f;
     outline-offset: 4px;
 }
-.home-header,
 .work-in-progress,
 .hero,
 .template-story,
@@ -314,14 +301,6 @@ const exampleFields = computed(() =>
     width: min(var(--page-width), calc(100% - var(--page-gutter) * 2));
     margin-inline: auto;
 }
-.home-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-    padding: 25px 0;
-    border-bottom: 1px solid #cdbb9f;
-}
 .wordmark {
     display: inline-flex;
     align-items: center;
@@ -330,13 +309,6 @@ const exampleFields = computed(() =>
     font-weight: 900;
     letter-spacing: -1.6px;
     white-space: nowrap;
-}
-.home-header nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 28px;
-    font-size: 16px;
-    font-weight: 600;
 }
 .work-in-progress {
     padding: 15px 0;
@@ -759,26 +731,13 @@ const exampleFields = computed(() =>
     .home-footer {
         flex-wrap: wrap;
     }
-    .home-header nav {
-        gap: 22px;
-    }
 }
 @media (max-width: 640px) {
     .noticeboard-home {
         --page-gutter: 24px;
     }
-    .home-header {
-        padding: 20px 0;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
     .wordmark {
         font-size: 28px;
-    }
-    .home-header nav {
-        font-size: 14px;
-        gap: 20px;
-        flex-wrap: wrap;
     }
     .work-in-progress {
         font-size: 13px;

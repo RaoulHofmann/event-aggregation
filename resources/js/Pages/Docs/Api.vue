@@ -1,20 +1,12 @@
 <script setup>
-import EventJunctionMark from "@/Components/EventJunctionMark.vue";
+import PublicSiteHeader from "@/Components/PublicSiteHeader.vue";
 import { Head } from "@inertiajs/vue3";
 import ApiExample from "@/Components/ApiExample.vue";
 </script>
 <template>
     <Head title="EventJunction API documentation" />
     <div class="api-docs">
-        <header>
-            <a href="/" class="brand">
-                <EventJunctionMark class="inline size-7 align-middle" /> EventJunction
-            </a>
-            <nav>
-                <a href="/">Home</a><a href="/user/api-tokens">API access</a
-                ><a href="/register">Get started</a>
-            </nav>
-        </header>
+        <PublicSiteHeader />
         <main>
             <p class="eyebrow">DEVELOPER DOCUMENTATION / V1</p>
             <h1>One API for<br />your event programme.</h1>
@@ -47,7 +39,7 @@ import ApiExample from "@/Components/ApiExample.vue";
                         <h2>Get connected</h2>
                         <ol>
                             <li>
-                                Create an account and select the workspace you
+                                <a href="/register">Create an account</a> and select the workspace you
                                 want to read.
                             </li>
                             <li>
@@ -281,25 +273,6 @@ import ApiExample from "@/Components/ApiExample.vue";
     color: inherit;
     text-underline-offset: 4px;
 }
-.api-docs header {
-    padding: 24px 6vw;
-    border-bottom: 2px solid #27231f;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-.brand {
-    font-size: 30px;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-    text-decoration: none;
-}
-.api-docs header nav {
-    display: flex;
-    gap: 24px;
-    font-size: 16px;
-}
 .api-docs main {
     max-width: 1440px;
     margin: auto;
@@ -431,13 +404,6 @@ import ApiExample from "@/Components/ApiExample.vue";
         flex-direction: row;
         flex-wrap: wrap;
         gap: 12px 20px;
-    }
-    .api-docs header {
-        flex-wrap: wrap;
-    }
-    .api-docs header nav {
-        font-size: 15px;
-        gap: 20px;
     }
     .api-docs main {
         padding: 35px 6vw;
