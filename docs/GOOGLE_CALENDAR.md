@@ -20,7 +20,7 @@ Google Calendar supplies events to EventJunction. EventJunction never creates, c
    ```
 
 6. Apply public and tenant migrations during release. The existing Fly release command runs both. Ensure the production callback is available before connecting.
-7. As a workspace owner, open **Integrations → Connect Google**, approve both read-only permissions, choose calendars, optionally select an existing event template and field mappings, then **Save and import**.
+7. As a workspace owner, open **Integrations → Connect Google**, review and agree to the EventJunction data disclosure, then approve both read-only permissions in Google. Choose calendars, optionally select an existing event template and field mappings, then **Save and import**.
 
 External apps in Testing generally receive refresh tokens that expire after seven days with these scopes. For long-term public access, complete Google's production consent/verification requirements (including verified domains and privacy information if required). Reconnect when authorization expires or is revoked. Disconnect drops local credentials; users can also revoke EventJunction from their Google account's third-party permissions.
 

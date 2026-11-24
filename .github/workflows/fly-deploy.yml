@@ -141,6 +141,8 @@ jobs:
           fetch /up health
           fetch / home.html
           fetch /pricing pricing.html
+          fetch /docs/api api.html
+          fetch /guides/embed-event-calendar embed-guide.html
           fetch /login login.html
           fetch /embed/upcoming/example widget.html
           fetch '/embed/upcoming/example?theme=sage&event=garden-workshop' widget-detail.html
@@ -154,6 +156,7 @@ jobs:
           python3 - <<'PYVERIFY'
           from pathlib import Path
           from xml.etree import ElementTree
+          import re
 
           site = 'https://eventjunction.app'
           read = lambda name: Path('/tmp/eventjunction-' + name).read_text()
@@ -162,6 +165,10 @@ jobs:
           assert gtm in home and gtm in read('pricing.html'), 'Public site Google Tag Manager is missing'
           assert gtm not in read('login.html') and gtm not in read('widget.html'), 'Google Tag Manager is running outside public site pages'
           assert all(name in home for name in ['integrations.index', 'integrations.imports.website.preview', 'api.v1.occurrences', 'admin.index', 'account.status', 'widgets.upcoming.example', 'EventJunction']), 'Updated application routes were not served'
+          assert re.search(r'<h2\b[^>]*>Available integrations</h2>', home), 'Homepage content is missing from the initial HTML'
+          assert re.search(r'<h1\b[^>]*>Pricing</h1>', read('pricing.html')), 'Pricing content is missing from the initial HTML'
+          assert re.search(r'<h2\b[^>]*>Get connected</h2>', read('api.html')), 'API documentation content is missing from the initial HTML'
+          assert re.search(r'<h2\b[^>]*>Set up your calendar</h2>', read('embed-guide.html')), 'Calendar embed guide content is missing from the initial HTML'
           assert 'Upcoming events' in read('widget.html') and 'Community garden workshop' in read('widget.html')
           assert 'frame-ancestors *' in read('widget.html.headers')
           assert 'x-frame-options:' not in read('widget.html.headers').lower(), 'Widget response still blocks cross-site framing'
@@ -179,7 +186,7 @@ jobs:
           assert f'Sitemap: {site}/sitemap.xml' in read('robots.txt')
           sitemap = ElementTree.fromstring(read('sitemap.xml'))
           urls = {node.text for node in sitemap.findall('.//{*}loc')}
-          assert urls == {site + path for path in ['/', '/pricing', '/docs/api', '/privacy-policy', '/terms-of-service']}
+          assert urls == {site + path for path in ['/', '/pricing', '/docs/api', '/guides/embed-event-calendar', '/privacy-policy', '/terms-of-service']}
           assert Path('/tmp/eventjunction-social.png').read_bytes().startswith(bytes.fromhex('89504e470d0a1a0a'))
           print('Verified custom domain, health, guest admin protection, legal pages, metadata, and sitemap.')
           PYVERIFY

@@ -56,7 +56,7 @@ const exampleFields = computed(() =>
                     <div class="hero-copy">
                         <h1>ALL YOUR<br />EVENTS.<br /><em>ONE PLACE.</em></h1>
                         <p class="intro">
-                            Create and import events in one workspace. Read them through one API.
+                            Bring your calendars, ticketing platforms and events you create into one workspace. Publish them on your website or read them through one API.
                         </p>
                         <a :href="signedIn ? accountHref : route('register')" class="dark-button"
                             >{{ signedIn ? "Dashboard" : "Start your workspace" }}
@@ -233,7 +233,8 @@ const exampleFields = computed(() =>
                     <div>
                         <h2 id="website-widget-heading">Upcoming events on your website</h2>
                         <p>Match the widget to your site, then let visitors open event details without leaving the page.</p>
-                        <p>Workspace owners can enable it from <strong>Website widget</strong> in the sidebar and paste the embed code into an HTML block.</p>
+                        <p>Workspace owners can enable the widget from the sidebar. Copy its embed code into an HTML block on your site. It updates when you publish or edit events in EventJunction.</p>
+                        <a href="/guides/embed-event-calendar" class="mt-3 inline-block font-semibold underline underline-offset-4">How to embed an event calendar</a>
                         <div class="widget-themes" role="group" aria-label="Example widget colour theme">
                             <button v-for="(label, theme) in widgetThemes" :key="theme" type="button" :aria-pressed="widgetTheme === theme" @click="widgetTheme = theme">{{ label }}</button>
                         </div>
@@ -246,7 +247,7 @@ const exampleFields = computed(() =>
                     <header class="integrations-heading">
                         <h2 id="integrations-heading">Available integrations</h2>
                         <a class="integrations-link" href="/integrations">
-                            Open integrations <ArrowUpRight aria-hidden="true" />
+                            {{ signedIn ? "Open integrations" : "Sign in to connect" }} <ArrowUpRight aria-hidden="true" />
                         </a>
                     </header>
                     <ul class="integration-directory">

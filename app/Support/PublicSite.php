@@ -24,4 +24,15 @@ class PublicSite
             'offers' => ['@type' => 'Offer', 'price' => 0, 'url' => self::url('pricing')],
         ];
     }
+
+    public static function website(): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            '@id' => self::url().'#website',
+            'name' => 'EventJunction',
+            'url' => self::url(),
+        ];
+    }
 }

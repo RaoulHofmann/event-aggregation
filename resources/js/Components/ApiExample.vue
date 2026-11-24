@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { apiExamples } from "@/Lib/apiExamples";
-const examples = apiExamples(window.location.origin),
+const examples = apiExamples(typeof window === "undefined" ? "https://eventjunction.app" : window.location.origin),
     active = ref("all-sources"),
     copied = ref(false),
     failed = ref(false);

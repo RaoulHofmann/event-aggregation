@@ -26,6 +26,7 @@
     <meta name="twitter:image:alt" content="EventJunction. All your events. One place.">
     @if ($pageRoute === 'home')
         <script type="application/ld+json">{!! \Illuminate\Support\Js::encode(\App\Support\PublicSite::webApplication()) !!}</script>
+        <script type="application/ld+json">{!! \Illuminate\Support\Js::encode(\App\Support\PublicSite::website()) !!}</script>
     @endif
 @else
     <meta name="robots" content="noindex, nofollow">

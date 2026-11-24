@@ -2,6 +2,8 @@
 
 # 1. Ignore Laravel-specific files we don't need
 bootstrap/cache/*
+bootstrap/public-render
+storage/app/public-pages
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*

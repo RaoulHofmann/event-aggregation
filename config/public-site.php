@@ -5,7 +5,7 @@ return [
     'contact_email' => env('EVENTJUNCTION_LEGAL_EMAIL'),
     'google_tag_manager_id' => env('GOOGLE_TAG_MANAGER_ID'),
     'legal_updated' => '18 November 2026',
-    'privacy_updated' => '23 November 2026',
+    'privacy_updated' => '24 November 2026',
     'pages' => [
         'home' => [
             'title' => 'EventJunction — Event Calendar and Management Software',
@@ -18,6 +18,10 @@ return [
         'docs.api' => [
             'title' => 'API documentation — EventJunction',
             'description' => 'Read native and imported events from one workspace using the EventJunction API. Find authentication instructions, endpoints, and request examples.',
+        ],
+        'docs.embed-calendar' => [
+            'title' => 'How to embed an event calendar — EventJunction',
+            'description' => 'Learn how to add a branded upcoming events calendar to your website with EventJunction’s embeddable widget.',
         ],
         'terms.show' => [
             'title' => 'Terms of Service — EventJunction',

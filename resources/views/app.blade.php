@@ -6,8 +6,11 @@
 
         @include('public-head')
 
-        @php($tagManagerId = config('public-site.google_tag_manager_id'))
-        @if ($tagManagerId && auth()->guest() && request()->routeIs(...array_keys(config('public-site.pages'))))
+        @php
+            $tagManagerId = config('public-site.google_tag_manager_id');
+            $isPublicPage = request()->routeIs(...array_keys(config('public-site.pages')));
+        @endphp
+        @if ($tagManagerId && auth()->guest() && $isPublicPage)
             <script>
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
@@ -29,6 +32,22 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
-        @inertia
+        @php
+            $isPublicPage = request()->routeIs(...array_keys(config('public-site.pages')));
+            $legal = $page['props']['policy'] ?? $page['props']['terms'] ?? null;
+            $prerender = storage_path('app/public-pages/'.str_replace('/', '-', $page['component']).'.html');
+        @endphp
+        @if ($isPublicPage && $legal)
+            <div id="app" data-page="{{ json_encode($page) }}">
+                <main class="prose mx-auto max-w-3xl p-6">
+                    <a href="/">EventJunction home</a>
+                    {!! $legal !!}
+                </main>
+            </div>
+        @elseif ($isPublicPage && auth()->guest() && ! app(\Illuminate\Foundation\Vite::class)->isRunningHot() && is_file($prerender))
+            <div id="app" data-page="{{ json_encode($page) }}">{!! file_get_contents($prerender) !!}</div>
+        @else
+            @inertia
+        @endif
     </body>
 </html>

@@ -5,6 +5,8 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/public-pages
+/bootstrap/public-render
 /vendor
 .env
 .env.backup

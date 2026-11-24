@@ -59,10 +59,11 @@ const csvExample = "title,starts_at,timezone,external_id\nGarden workshop,2026-1
             </template>
             <template v-else-if="provider === 'google_calendar'">
                 <ol>
-                    <li>Under <strong>Integrations</strong>, choose <strong>Connect Google</strong> and sign in with the Google account that can read the calendars you want.</li>
+                    <li>Under <strong>Integrations</strong>, choose <strong>Connect Google</strong>, review the data disclosure, and continue to the Google account that can read the calendars you want.</li>
                     <li>Approve read-only access to your calendars and events.</li>
                     <li>Select the calendars and an optional event template, then choose <strong>Save and import</strong>.</li>
                 </ol>
+                <p>Use <strong>Disconnect</strong> to stop future imports and clear the stored connection credentials. Delete imported events from <strong>Events</strong> to remove them from the workspace, API and widget. To request permanent removal, use <strong>Contact support</strong> on the dashboard or the <a href="/privacy-policy">privacy policy contact</a>.</p>
             </template>
         </div>
     </details>

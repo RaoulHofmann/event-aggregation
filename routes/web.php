@@ -22,6 +22,7 @@ use Inertia\Inertia;
 Route::get('/pricing', fn () => Inertia::render('Pricing'))->name('pricing');
 
 Route::get('/docs/api', fn () => Inertia::render('Docs/Api'))->name('docs.api');
+Route::get('/guides/embed-event-calendar', fn () => Inertia::render('Docs/EmbedCalendar'))->name('docs.embed-calendar');
 
 Route::prefix('embed/upcoming')->withoutMiddleware('web')->middleware('throttle:120,1')->group(function () {
     Route::get('/example', [CalendarWidgetController::class, 'example'])->name('widgets.upcoming.example');
@@ -90,7 +91,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('events', EventController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
     Route::resource('event-templates', EventTemplateController::class)->parameters(['event-templates' => 'eventTemplate'])->only(['index', 'store', 'update', 'destroy']);
     Route::resource('field-templates', FieldTemplateController::class)->parameters(['field-templates' => 'fieldTemplate'])->only(['index', 'store', 'update', 'destroy']);
-    Route::get('/integrations/google/connect', [GoogleCalendarController::class, 'connect'])->middleware('throttle:20,1')->name('integrations.google.connect');
+    Route::get('/integrations/google/connect', [GoogleCalendarController::class, 'disclosure'])->middleware('throttle:20,1')->name('integrations.google.connect');
+    Route::post('/integrations/google/connect', [GoogleCalendarController::class, 'connect'])->middleware('throttle:20,1')->name('integrations.google.authorize');
     Route::get('/integrations/google/callback', [GoogleCalendarController::class, 'callback'])->middleware('throttle:20,1')->name('integrations.google.callback');
     Route::get('/integrations/google/{connection}/edit', [GoogleCalendarController::class, 'edit'])->middleware('throttle:20,1')->name('integrations.google.edit');
     Route::put('/integrations/google/{connection}', [GoogleCalendarController::class, 'update'])->middleware('throttle:20,1')->name('integrations.google.update');

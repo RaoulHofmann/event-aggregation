@@ -2,7 +2,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && npm run build:public-pages",
+        "build:public-pages": "vite build --ssr resources/js/prerender-public.js --outDir bootstrap/public-render --target node18 && node bootstrap/public-render/prerender-public.js",
         "dev": "vite"
     },
     "devDependencies": {

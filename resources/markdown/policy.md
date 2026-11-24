@@ -30,13 +30,19 @@ A workspace owner can grant EventJunction two read-only Google Calendar permissi
 
 We store OAuth access and refresh tokens to authorise scheduled imports. EventJunction never writes changes to Google Calendar.
 
+The connection screen explains what EventJunction accesses, stores and shares. It asks for your agreement before sending you to Google to grant read-only access. If we plan to access a new type of Google data or use it for a new purpose, we will explain the change and ask for your consent first.
+
 ### How Google data is shared
 
 Workspace members and API clients with the applicable permissions can access imported records, including drafts. Workspace users can publish an imported event and, if the workspace has enabled a public widget, the widget can display its title, dates, times, location, and attached cover image. Workspace owners can also opt in to showing event descriptions in widget detail pages. Giving an API client access or publishing an event can share information outside the workspace. Review event details and API permissions before sharing.
 
-Fly.io hosts EventJunction and Supabase hosts its database. These providers process Google data as needed to run the service. We use Google data to provide and maintain the Calendar import and related user-facing event features. EventJunction does not sell Google data or use it for advertising.
+Fly.io hosts EventJunction and Supabase hosts its database. These providers process Google data as needed to run the service. We use Google data to provide and maintain the Calendar import and related user-facing event features. EventJunction does not sell Google data or use it for advertising, lending decisions or AI model training.
+
+EventJunction personnel can read specific Google data when you explicitly agree, when needed for security, or where legally required. The Limited Use rules also allow internal use of aggregated, anonymised data.
 
 EventJunction’s use and transfer of information received from Google APIs to any other app will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
+
+The use of information received from Google Workspace scopes also adheres to the [Google Workspace API User Data and Developer Policy](https://developers.google.com/workspace/workspace-api-user-data-developer-policy), including its Limited Use requirements.
 
 ## How we protect sensitive data
 

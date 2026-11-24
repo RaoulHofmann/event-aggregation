@@ -17,6 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class GoogleCalendarIntegrationTest extends TestCase
@@ -59,7 +60,12 @@ class GoogleCalendarIntegrationTest extends TestCase
     {
         [$user, $team] = $this->connection();
         DB::select("SELECT set_config('search_path','public',false)");
-        $response = $this->actingAs($user)->get('/integrations/google/connect');
+        $this->actingAs($user)->get('/integrations/google/connect')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Integrations/GoogleCalendarConsent')->where('connectionId', null))
+            ->assertSessionMissing('google_calendar_oauth');
+        $this->postJson('/integrations/google/connect', ['consent' => false])->assertUnprocessable()
+            ->assertJsonValidationErrors('consent')->assertSessionMissing('google_calendar_oauth');
+        $response = $this->post('/integrations/google/connect', ['consent' => true]);
         $response->assertRedirect();
         parse_str(parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
         $this->assertSame(implode(' ', GoogleCalendarClient::SCOPES), $query['scope']);
@@ -89,6 +95,15 @@ class GoogleCalendarIntegrationTest extends TestCase
         $this->withSession(['google_calendar_oauth' => array_replace($flow, ['expires_at' => now()->subMinute()->timestamp])])->get('/integrations/google/callback?state=state&code=secret-code')->assertForbidden();
         $this->withSession(['google_calendar_oauth' => array_replace($flow, ['team_id' => $team->id + 1])])->get('/integrations/google/callback?state=state&code=secret-code')->assertForbidden();
         Http::assertNothingSent();
+    }
+
+    public function test_consent_submitted_with_inertia_triggers_full_google_navigation(): void
+    {
+        [$user] = $this->connection();
+        $response = $this->actingAs($user)->post('/integrations/google/connect', ['consent' => true], ['X-Inertia' => 'true']);
+
+        $response->assertStatus(409)->assertSessionHas('google_calendar_oauth');
+        $this->assertStringStartsWith('https://accounts.google.com/o/oauth2/v2/auth?', $response->headers->get('X-Inertia-Location'));
     }
 
     public function test_owner_only_calendar_selection_mapping_and_provider_routes(): void
@@ -311,7 +326,7 @@ class GoogleCalendarIntegrationTest extends TestCase
     public function test_disconnect_invalidates_pending_reconnect_callback(): void
     {
         [$user, $team, $connection] = $this->connection();
-        $this->actingAs($user)->get('/integrations/google/connect?connection='.$connection->id)->assertRedirect();
+        $this->actingAs($user)->post('/integrations/google/connect', ['connection' => $connection->id, 'consent' => true])->assertRedirect();
         $flow = session('google_calendar_oauth');
         $this->delete('/integrations/'.$connection->id)->assertRedirect();
         Http::fake(['oauth2.googleapis.com/token' => Http::response(['access_token' => 'new-access', 'refresh_token' => 'new-refresh', 'expires_in' => 3600, 'scope' => implode(' ', GoogleCalendarClient::SCOPES)]), 'www.googleapis.com/calendar/v3/users/me/calendarList*' => Http::response($this->calendars())]);

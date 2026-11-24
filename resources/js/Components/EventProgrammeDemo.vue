@@ -29,6 +29,7 @@ const events = [
         external_id: null,
         colour: "saffron",
         image: "/images/examples/community-garden.webp",
+        imageAlt: "Gardening gloves on a raised vegetable bed",
     },
     {
         id: 43,
@@ -48,6 +49,7 @@ const events = [
         external_id: "example-market",
         colour: "periwinkle",
         image: "/images/examples/local-makers.webp",
+        imageAlt: "Handmade mugs and bowls at a market stall",
     },
 ];
 const scene = ref(0),
@@ -200,7 +202,7 @@ onUnmounted(() => {
                                 <p>{{ event.description }}</p>
                             </div>
                         </div>
-                        <img class="demo-event-photo" :src="event.image" alt="" width="1120" height="630" />
+                        <img class="demo-event-photo" :src="event.image" :alt="event.imageAlt" width="1120" height="630" />
                         <div class="event-venue">
                             <span
                                 ><Clock3 aria-hidden="true" />{{

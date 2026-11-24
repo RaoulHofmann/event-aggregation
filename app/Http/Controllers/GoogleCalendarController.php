@@ -28,17 +28,27 @@ class GoogleCalendarController extends Controller
         return ProviderConnection::where('provider', 'google_calendar')->findOrFail($id);
     }
 
-    public function connect(Request $request, GoogleCalendarClient $client)
+    public function disclosure(Request $request, GoogleCalendarClient $client)
     {
         $this->owner($request);
         abort_unless($client->configured(), 503, 'Google Calendar has not been configured.');
         $input = $request->validate(['connection' => ['nullable', 'integer']]);
-        $connection = ! empty($input['connection']) ? $this->connection($input['connection']) : null;
+        $connection = isset($input['connection']) ? $this->connection($input['connection']) : null;
+
+        return Inertia::render('Integrations/GoogleCalendarConsent', ['connectionId' => $connection?->id]);
+    }
+
+    public function connect(Request $request, GoogleCalendarClient $client)
+    {
+        $this->owner($request);
+        abort_unless($client->configured(), 503, 'Google Calendar has not been configured.');
+        $input = $request->validate(['connection' => ['nullable', 'integer'], 'consent' => ['accepted']]);
+        $connection = isset($input['connection']) ? $this->connection($input['connection']) : null;
         $state = Str::random(64);
         $verifier = Str::random(64);
         $request->session()->put('google_calendar_oauth', ['state' => $state, 'verifier' => $verifier, 'user_id' => $request->user()->id, 'team_id' => $request->user()->current_team_id, 'expires_at' => now()->addMinutes(10)->timestamp, 'connection_id' => $connection?->id, 'revision' => $connection?->settings['revision'] ?? null]);
 
-        return redirect()->away('https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query(['client_id' => config('services.google_calendar.client_id'), 'redirect_uri' => config('services.google_calendar.redirect_uri'), 'response_type' => 'code', 'scope' => implode(' ', GoogleCalendarClient::SCOPES), 'state' => $state, 'code_challenge' => rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '='), 'code_challenge_method' => 'S256', 'access_type' => 'offline', 'prompt' => 'consent', 'include_granted_scopes' => 'false']));
+        return Inertia::location('https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query(['client_id' => config('services.google_calendar.client_id'), 'redirect_uri' => config('services.google_calendar.redirect_uri'), 'response_type' => 'code', 'scope' => implode(' ', GoogleCalendarClient::SCOPES), 'state' => $state, 'code_challenge' => rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '='), 'code_challenge_method' => 'S256', 'access_type' => 'offline', 'prompt' => 'consent', 'include_granted_scopes' => 'false']));
     }
 
     public function callback(Request $request, GoogleCalendarClient $client)

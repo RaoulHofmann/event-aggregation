@@ -40,7 +40,11 @@ class PublicSiteTest extends TestCase
         $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: https://example.test/sitemap.xml');
         $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
             ->assertSee('https://example.test/privacy-policy')->assertSee('https://example.test/terms-of-service')
+            ->assertSee('https://example.test/guides/embed-event-calendar')
             ->assertDontSee('/designs/homepage')->assertDontSee('/admin');
+        $this->get('/guides/embed-event-calendar')->assertOk()
+            ->assertSee('<link rel="canonical" href="https://example.test/guides/embed-event-calendar">', false)
+            ->assertInertia(fn (Assert $page) => $page->component('Docs/EmbedCalendar'));
     }
 
     public function test_legal_documents_are_available_to_guests_and_pending_users(): void
@@ -51,6 +55,7 @@ class PublicSiteTest extends TestCase
                 ->where('legal.updated', config('public-site.privacy_updated'))
                 ->where('policy', fn (string $html) => str_contains($html, 'Limited Use requirements'))
                 ->where('policy', fn (string $html) => str_contains($html, 'How we protect sensitive data'))
+                ->where('policy', fn (string $html) => str_contains($html, 'Google Workspace API User Data and Developer Policy'))
                 ->where('policy', fn (string $html) => str_contains($html, 'calendar.calendarlist.readonly')
                     && str_contains($html, 'calendar.events.readonly')
                     && str_contains($html, 'How Google data is shared')
@@ -78,6 +83,11 @@ class PublicSiteTest extends TestCase
         $this->assertSame('https://example.test/', $data['url']);
         $this->assertSame(config('public-site.pages.home.description'), $data['description']);
         $this->assertSame(0, $data['offers']['price']);
+        $this->assertSame(2, preg_match_all('~<script type="application/ld\+json">(.+?)</script>~s', $html, $blocks));
+        $website = json_decode($blocks[1][1], true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('WebSite', $website['@type']);
+        $this->assertSame('EventJunction', $website['name']);
+        $this->assertSame('https://example.test/', $website['url']);
         $this->get('/pricing')->assertOk()->assertDontSee('application/ld+json', false);
     }
 
