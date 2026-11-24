@@ -1,9 +1,10 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import EventJunctionMark from "@/Components/EventJunctionMark.vue";
 
 const page = usePage();
+const header = ref(null);
 const signedIn = computed(() => Boolean(page.props.auth?.user));
 const currentPath = computed(() => page.url.split(/[?#]/, 1)[0]);
 const links = [
@@ -14,10 +15,25 @@ const links = [
     { label: "API docs", href: "/docs/api" },
     { label: "Pricing", href: "/pricing" },
 ];
+
+let resizeObserver;
+onMounted(() => {
+    const updateHeight = () => {
+        document.documentElement.style.setProperty("--public-header-height", `${header.value.offsetHeight}px`);
+    };
+    updateHeight();
+    resizeObserver = new ResizeObserver(updateHeight);
+    resizeObserver.observe(header.value);
+});
+
+onBeforeUnmount(() => {
+    resizeObserver?.disconnect();
+    document.documentElement.style.removeProperty("--public-header-height");
+});
 </script>
 
 <template>
-    <header class="public-header">
+    <header ref="header" class="public-header">
         <div class="header-inner">
             <a href="/" class="wordmark" aria-label="EventJunction home" :aria-current="currentPath === '/' ? 'page' : undefined">
                 <EventJunctionMark class="size-8 shrink-0" />EventJunction
@@ -32,6 +48,9 @@ const links = [
 
 <style scoped>
 .public-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
     background: #fff0dc;
     color: #29251f;
     font: 16px/1.7 Arial, Helvetica, sans-serif;
@@ -64,5 +83,18 @@ a:focus-visible { outline: 2px solid #9b5f3f; outline-offset: 4px; }
     .header-inner { width: calc(100% - 48px); padding-block: 20px; }
     .wordmark { font-size: 28px; }
     nav { font-size: 14px; }
+}
+</style>
+
+<style>
+html:has(.public-header) {
+    --public-header-height: 103px;
+    scroll-padding-top: calc(var(--public-header-height) + 12px);
+}
+@media (max-width: 900px) {
+    html:has(.public-header) { --public-header-height: 145px; }
+}
+@media (max-width: 375px) {
+    html:has(.public-header) { --public-header-height: 166px; }
 }
 </style>

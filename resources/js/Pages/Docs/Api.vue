@@ -308,7 +308,7 @@ import ApiExample from "@/Components/ApiExample.vue";
 }
 .docs-layout aside {
     position: sticky;
-    top: 25px;
+    top: calc(var(--public-header-height, 103px) + 16px);
     align-self: start;
 }
 .docs-layout aside nav {
