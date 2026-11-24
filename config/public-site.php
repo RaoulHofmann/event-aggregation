@@ -23,6 +23,10 @@ return [
             'title' => 'How to embed an event calendar — EventJunction',
             'description' => 'Learn how to add a branded upcoming events calendar to your website with EventJunction’s embeddable widget.',
         ],
+        'blog.index' => [
+            'title' => 'Blog — EventJunction',
+            'description' => 'Product updates and practical guides on organising, importing and publishing events with EventJunction.',
+        ],
         'terms.show' => [
             'title' => 'Terms of Service — EventJunction',
             'description' => 'Read the terms for using EventJunction and its event workspace, integrations, and API.',

@@ -81,9 +81,12 @@ const rename = (team) => {
 
 <template>
     <AppLayout title="Administration" wide>
-        <header class="mb-7">
-            <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Administration</h1>
-            <p class="mt-2 text-sm text-slate-600">Review registrations, manage access, and monitor workspace activity.</p>
+        <header class="mb-7 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Administration</h1>
+                <p class="mt-2 text-sm text-slate-600">Review registrations, manage access, and monitor workspace activity.</p>
+            </div>
+            <Link :href="route('admin.blog.index')" class="workspace-secondary">Blog posts</Link>
         </header>
 
         <section aria-label="Platform statistics" class="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">

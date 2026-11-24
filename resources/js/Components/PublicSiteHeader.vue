@@ -14,6 +14,7 @@ const links = [
     { label: "Widget", href: "/#website-widget" },
     { label: "API docs", href: "/docs/api" },
     { label: "Pricing", href: "/pricing" },
+    { label: "Blog", href: "/blog" },
 ];
 
 let resizeObserver;
@@ -91,10 +92,10 @@ html:has(.public-header) {
     --public-header-height: 103px;
     scroll-padding-top: calc(var(--public-header-height) + 12px);
 }
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
     html:has(.public-header) { --public-header-height: 145px; }
 }
 @media (max-width: 375px) {
-    html:has(.public-header) { --public-header-height: 166px; }
+    html:has(.public-header) { --public-header-height: 190px; }
 }
 </style>

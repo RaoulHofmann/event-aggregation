@@ -1,16 +1,16 @@
 @php
     $pageRoute = request()->route()?->getName();
-    $metadata = config('public-site.pages')[$pageRoute] ?? null;
+    $metadata = $publicMetadata ?? config('public-site.pages')[$pageRoute] ?? null;
 @endphp
 <title inertia>{{ $metadata['title'] ?? config('app.name') }}</title>
 @if ($metadata)
     @php
-        $canonicalUrl = \App\Support\PublicSite::url(route($pageRoute, absolute: false));
+        $canonicalUrl = \App\Support\PublicSite::url($canonicalPath ?? route($pageRoute, absolute: false));
         $socialImage = \App\Support\PublicSite::url('eventjunction-social.png');
     @endphp
     <link rel="canonical" href="{{ $canonicalUrl }}">
     <meta name="description" content="{{ $metadata['description'] }}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $metadata['type'] ?? 'website' }}">
     <meta property="og:site_name" content="EventJunction">
     <meta property="og:title" content="{{ $metadata['title'] }}">
     <meta property="og:description" content="{{ $metadata['description'] }}">

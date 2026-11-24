@@ -6,6 +6,7 @@ import Welcome from "./Pages/Welcome.vue";
 import Pricing from "./Pages/Pricing.vue";
 import Api from "./Pages/Docs/Api.vue";
 import EmbedCalendar from "./Pages/Docs/EmbedCalendar.vue";
+import Blog from "./Pages/Blog.vue";
 
 const directory = new URL("../../storage/app/public-pages/", import.meta.url);
 const pages = {
@@ -13,6 +14,7 @@ const pages = {
     Pricing: { component: Pricing, url: "/pricing" },
     "Docs/Api": { component: Api, url: "/docs/api" },
     "Docs/EmbedCalendar": { component: EmbedCalendar, url: "/guides/embed-event-calendar" },
+    Blog: { component: Blog, url: "/blog" },
 };
 const routes = {
     login: "/login",

@@ -4,6 +4,8 @@ use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\CalendarWidgetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminBlogController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventTemplateController;
 use App\Http\Controllers\FieldTemplateController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\InboundImportController;
 use App\Http\Controllers\WorkspaceImageController;
 use App\Http\Middleware\SetPostgresSchema;
 use App\Http\Middleware\RequirePlatformAdmin;
+use App\Models\BlogPost;
 use App\Support\PublicSite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +26,8 @@ Route::get('/pricing', fn () => Inertia::render('Pricing'))->name('pricing');
 
 Route::get('/docs/api', fn () => Inertia::render('Docs/Api'))->name('docs.api');
 Route::get('/guides/embed-event-calendar', fn () => Inertia::render('Docs/EmbedCalendar'))->name('docs.embed-calendar');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('blog.show');
 
 Route::prefix('embed/upcoming')->withoutMiddleware('web')->middleware('throttle:120,1')->group(function () {
     Route::get('/example', [CalendarWidgetController::class, 'example'])->name('widgets.upcoming.example');
@@ -45,10 +50,10 @@ Route::get('/', fn () => Inertia::render('Welcome', [
 ]))->name('home');
 
 Route::get('/sitemap.xml', fn () => response()->view('sitemap', [
-    'urls' => array_map(
-        fn (string $name) => PublicSite::url(route($name, absolute: false)),
-        array_keys(config('public-site.pages')),
-    ),
+    'urls' => [
+        ...array_map(fn (string $name) => PublicSite::url(route($name, absolute: false)), array_keys(config('public-site.pages'))),
+        ...BlogPost::published()->orderBy('id')->pluck('slug')->map(fn (string $slug) => PublicSite::url(route('blog.show', $slug, absolute: false))),
+    ],
 ])->header('Content-Type', 'application/xml; charset=UTF-8'))->name('sitemap');
 
 Route::get('/robots.txt', fn () => response(implode("\n", [
@@ -67,6 +72,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', RequirePlatformAdmin
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::patch('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::patch('/teams/{team}', [AdminController::class, 'updateTeam'])->name('teams.update');
+    Route::resource('blog', AdminBlogController::class)->parameters(['blog' => 'post'])
+        ->only(['index', 'create', 'store', 'edit', 'update']);
 });
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', SetPostgresSchema::class])->group(function () {

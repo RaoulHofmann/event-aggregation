@@ -8,7 +8,7 @@
 
         @php
             $tagManagerId = config('public-site.google_tag_manager_id');
-            $isPublicPage = request()->routeIs(...array_keys(config('public-site.pages')));
+            $isPublicPage = isset($publicMetadata) || request()->routeIs(...array_keys(config('public-site.pages')));
         @endphp
         @if ($tagManagerId && auth()->guest() && $isPublicPage)
             <script>
@@ -33,11 +33,17 @@
     </head>
     <body class="font-sans antialiased">
         @php
-            $isPublicPage = request()->routeIs(...array_keys(config('public-site.pages')));
             $legal = $page['props']['policy'] ?? $page['props']['terms'] ?? null;
             $prerender = storage_path('app/public-pages/'.str_replace('/', '-', $page['component']).'.html');
         @endphp
-        @if ($isPublicPage && $legal)
+        @if ($isPublicPage && isset($page['props']['blogHtml']))
+            <div id="app" data-page="{{ json_encode($page) }}">
+                @if (auth()->guest() && ! app(\Illuminate\Foundation\Vite::class)->isRunningHot() && is_file($prerender))
+                    {!! file_get_contents($prerender) !!}
+                @endif
+                <div>{!! $page['props']['blogHtml'] !!}</div>
+            </div>
+        @elseif ($isPublicPage && $legal)
             <div id="app" data-page="{{ json_encode($page) }}">
                 <main class="prose mx-auto max-w-3xl p-6">
                     <a href="/">EventJunction home</a>
